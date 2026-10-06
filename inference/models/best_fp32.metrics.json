@@ -1,0 +1,15 @@
+{
+  "confidence_threshold_used": 0.25,
+  "calibration_test_set": {"images": 841, "instances": 1312, "empty_images": 157},
+  "image_level_at_threshold_0.25": {
+    "overall": {"precision": 0.997, "recall": 0.921},
+    "spaghetti": {"precision": 0.963, "recall": 0.975},
+    "warping": {"precision": 0.988, "recall": 0.988},
+    "stringing": {"precision": 0.977, "recall": 0.959},
+    "layer_shift": {"precision": 1.0, "recall": 1.0},
+    "under_extrusion": {"precision": 0.919, "recall": 0.685},
+    "blob_over_extrusion": {"precision": 0.562, "recall": 0.529}
+  },
+  "known_limitation": "blob_over_extrusion: image-level precision never reaches 90% at any threshold with this model (0.562 at 0.25), so threshold tuning cannot fix it. Only 17 images of the calibration test set contain this class, so its numbers are also noisy. Probable remedy: more/cleaner blob_over_extrusion training data (a hypothesis - this calibration shows the threshold is not the lever, not why the model is weak).",
+  "calibrated_at": "2026-09-18"
+}

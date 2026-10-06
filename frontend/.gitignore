@@ -1,0 +1,9 @@
+node_modules
+dist
+.env
+
+# Build cache / salida accidental de `tsc -b` sobre vite.config.ts (no se necesita emitir JS,
+# vite lee el .ts directo) - si reaparecen tras correr `npm run build`, son seguros de borrar.
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts

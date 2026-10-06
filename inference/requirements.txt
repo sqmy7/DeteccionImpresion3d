@@ -1,0 +1,7 @@
+onnxruntime==1.19.2
+opencv-python-headless==4.10.0.84
+numpy==1.26.4
+sqlalchemy==2.0.36
+asyncpg==0.30.0
+redis==5.2.0
+pydantic-settings==2.6.0

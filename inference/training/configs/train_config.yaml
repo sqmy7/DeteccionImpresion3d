@@ -1,0 +1,51 @@
+# Single source of truth for training hyperparameters. colab_train.ipynb reads this
+# file instead of hardcoding values - change a hyperparameter here, not in the notebook.
+
+classes:
+  - spaghetti
+  - warping
+  - stringing
+  - layer_shift
+  - under_extrusion
+  - blob_over_extrusion
+
+dataset:
+  # Split by SEQUENCE (source video/dataset grouping), not by individual image - near-
+  # duplicate consecutive frames from the same sequence must not end up split across
+  # train/val/test, or validation numbers become meaninglessly optimistic.
+  split_by: sequence
+  train_val_test_split: [0.7, 0.15, 0.15]
+  seed: 42
+
+# A few epochs each, just to compare architectures before committing to a full run.
+bakeoff:
+  models:
+    - yolo11s.pt
+    - yolov8n.pt
+  epochs: 15
+  imgsz: 640
+  batch: 16
+  patience: 5
+  # Bakeoff winner is chosen by mAP50 on this class specifically, not the overall mAP -
+  # stringing is the hardest class (thin, low-contrast) and the one most worth optimizing for.
+  priority_class: stringing
+
+final_training:
+  # Overwritten by the notebook with the bakeoff winner unless you pin one manually here.
+  model: yolo11s.pt
+  epochs: 100
+  imgsz: 640
+  batch: 16
+  patience: 20
+  optimizer: auto
+  lr0: 0.01
+  seed: 42
+
+export:
+  format: onnx
+  simplify: true
+  opset: 18
+  imgsz: 640
+  # INT8 quantization is a separate, optional notebook cell - not part of the default
+  # export, since it needs a calibration pass and trades some accuracy for speed.
+  int8: false

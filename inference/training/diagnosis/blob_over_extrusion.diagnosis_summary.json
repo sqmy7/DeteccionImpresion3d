@@ -1,0 +1,26 @@
+{
+  "_source": "Transcribed by hand from the text printed by notebook cell 8d (the run the project owner pasted). This is NOT the original diagnosis.json: it lacks the per-image lists (false_positives_images, missed_images) and the names of the 2 excluded labels. To keep the full analysis, copy Drive persisted/diagnosis/blob_over_extrusion/diagnosis.json to inference/training/diagnosis/blob_over_extrusion/diagnosis.json.",
+  "class_name": "blob_over_extrusion",
+  "model": "best_fp32.onnx",
+  "model_version": "yolo11s-trained-v1-fp32",
+  "threshold": 0.25,
+  "images_evaluated": 841,
+  "images_with_class": 17,
+  "instances": {"tp": 22, "fp": 25, "fn": 123, "precision": 0.468, "recall": 0.152},
+  "gt_instances_derived": 145,
+  "images_flagged_without_class": 7,
+  "images_with_fp": 15,
+  "images_with_missed": 17,
+  "fp_causes": {"unannotated": 21, "mislocalized": 4},
+  "fn_causes": {"not_detected": 79, "below_threshold": 39, "predicted_as:under_extrusion": 3, "mislocalized": 2},
+  "median_side_px_found": 34.6,
+  "median_side_px_missed": 22.3,
+  "excluded_labels_count": 2,
+  "unreadable_images_count": 0,
+  "reviewer_observations": {
+    "_source": "Visual review of the false-positive montage by the project owner; not machine-verified and not an audit of each of the 21 'unannotated' boxes.",
+    "unannotated_boxes_sit_on": "visible bumps on the part surface (e.g. a grey gear), not clean background; in one case (a green cup) next to a real under_extrusion label",
+    "interpretation": "likely real blobs that the source dataset did not label",
+    "confused_with_count": 0
+  }
+}

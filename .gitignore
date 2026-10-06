@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Entorno / secretos
+.env
+
+# Datos generados
+storage/snapshots/*
+!storage/snapshots/.gitkeep
+inference/models/*
+!inference/models/.gitkeep
+# Modelos entrenados y sus metricas (resultados del proyecto). El dummy sigue ignorado.
+!inference/models/best_fp32.onnx
+!inference/models/best_int8.onnx
+!inference/models/*.metrics.json
+
+# Editores
+.vscode/
+.idea/
+
+# Config local de Claude Code (herramienta de desarrollo, no parte del proyecto)
+.claude/
+
+# Backups manuales de la base (generados ad-hoc, no versionar)
+storage/*.sql

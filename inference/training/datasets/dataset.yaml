@@ -1,0 +1,18 @@
+# Ultralytics dataset config. `path` is relative to this file; the Colab notebook may
+# instead pass an absolute Drive path at train time via a copy of this file with `path`
+# rewritten - don't hardcode a Drive path here, this file is meant to be committed.
+path: processed
+train: images/train
+val: images/val
+test: images/test
+
+# Order matters - it defines the class index used everywhere (labels, ONNX output,
+# inference/model.py's class list once a real model replaces the dummy one). Keep this,
+# convert_to_yolo.py's CLASS_NAMES, and configs/train_config.yaml's `classes` in sync.
+names:
+  0: spaghetti
+  1: warping
+  2: stringing
+  3: layer_shift
+  4: under_extrusion
+  5: blob_over_extrusion

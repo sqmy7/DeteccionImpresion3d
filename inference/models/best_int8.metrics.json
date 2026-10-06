@@ -1,0 +1,14 @@
+{
+  "overall": {"map50": 0.6757, "map50_95": 0.3781, "precision": 0.781, "recall": 0.621},
+  "per_class": {
+    "spaghetti": {"map50": 0.8920, "map50_95": 0.6966, "precision": 0.881, "recall": 0.805},
+    "warping": {"map50": 0.8948, "map50_95": 0.3697, "precision": 0.885, "recall": 0.839},
+    "stringing": {"map50": 0.7207, "map50_95": 0.4832, "precision": 0.757, "recall": 0.619},
+    "layer_shift": {"map50": 0.9635, "map50_95": 0.4633, "precision": 0.957, "recall": 0.932},
+    "under_extrusion": {"map50": 0.3559, "map50_95": 0.1799, "precision": 0.579, "recall": 0.388},
+    "blob_over_extrusion": {"map50": 0.2272, "map50_95": 0.0759, "precision": 0.629, "recall": 0.145}
+  },
+  "test_set": {"images": 841, "instances": 1312, "corrupt_images_excluded": 2},
+  "model": "yolo11s-trained-v1-int8",
+  "validated_at": "2026-09-18"
+}

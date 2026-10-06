@@ -1,0 +1,9 @@
+# Datasets reales (imágenes/labels descargados de Roboflow) no se versionan - ver README.md,
+# se bajan localmente antes de correr el notebook. Solo queda la estructura de carpetas.
+# Orden importa: "!*/" primero para que git siga recorriendo subcarpetas ya ignoradas por "*"
+# y pueda encontrar los .gitkeep de adentro (si no, las carpetas quedan invisibles del todo).
+*
+!*/
+!.gitkeep
+!.gitignore
+!dataset.yaml
