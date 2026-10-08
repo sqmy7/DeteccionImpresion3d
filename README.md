@@ -107,6 +107,8 @@ Requisitos: Docker (Postgres y Redis), Python 3.12, Node.js (frontend).
 4. **Servicios en modo nativo** (alternativa a `--profile full`): backend (`uvicorn app.main:app --port 8000` desde `backend/`), inferencia (`python main.py` desde `inference/`) y captura (`python -m capture.main` desde la raíz).
 5. **Frontend** (desde `frontend/`): `npm install` y `npm run dev`.
 
+**Atajo en Windows (Docker Engine dentro de WSL2):** `start.ps1`, en la raíz, mantiene viva la sesión de WSL, levanta los contenedores con `--profile full`, espera a que el backend responda y abre el frontend en otra ventana. La captura (`python -m capture.main`) se arranca aparte porque necesita la cámara conectada.
+
 > Las instrucciones anteriores se derivaron de los `Dockerfile`, los `docker-compose` y los `requirements`; ver [`docs/KNOWN_LIMITATIONS.md`](docs/KNOWN_LIMITATIONS.md) para los detalles de entorno observados (Docker en WSL2, VPN, etc.).
 
 ## Estructura del repositorio
