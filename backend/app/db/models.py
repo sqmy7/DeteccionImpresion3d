@@ -1,10 +1,14 @@
 import enum
 from datetime import datetime
 from decimal import Decimal
+from typing import Any
 
 from sqlalchemy import (
+    REAL,
+    BigInteger,
     Boolean,
     DateTime,
+    Double,
     ForeignKey,
     Index,
     Integer,
@@ -156,6 +160,9 @@ class Layer(Base):
     layer_number: Mapped[int] = mapped_column(Integer, nullable=False)
     z_height: Mapped[Decimal] = mapped_column(Numeric(6, 2), nullable=False)
     detected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    # What the printer was doing when the layer started (temperatures, factors, head position,
+    # object being printed), so a defect can be read next to the conditions that produced it.
+    telemetry: Mapped[dict | None] = mapped_column(JSONB)
 
     job: Mapped["PrintJob"] = relationship(back_populates="layers")
     captures: Mapped[list["LayerCapture"]] = relationship(back_populates="layer", cascade="all, delete-orphan")
@@ -225,3 +232,64 @@ class Alert(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     detection: Mapped["Detection"] = relationship(back_populates="alerts")
+
+
+class TelemetrySample(Base):
+    """The printer's state once per second while a print job is open. REAL (4 bytes, ~7
+    significant digits) is plenty for sensor readings and halves the row against DOUBLE."""
+
+    __tablename__ = "telemetry_samples"
+    __table_args__ = (Index("ix_telemetry_samples_job_ts", "print_job_id", "ts"),)
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    print_job_id: Mapped[int] = mapped_column(ForeignKey("print_jobs.id", ondelete="CASCADE"), nullable=False)
+    ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    # Klipper's monotonic clock at the last status update, to line samples up with klippy.log.
+    klipper_eventtime: Mapped[float | None] = mapped_column(Double)
+    layer_number: Mapped[int | None] = mapped_column(Integer)
+    x: Mapped[float | None] = mapped_column(REAL)
+    y: Mapped[float | None] = mapped_column(REAL)
+    z: Mapped[float | None] = mapped_column(REAL)
+    velocity: Mapped[float | None] = mapped_column(REAL)
+    extruder_velocity: Mapped[float | None] = mapped_column(REAL)
+    extruder_temp: Mapped[float | None] = mapped_column(REAL)
+    extruder_target: Mapped[float | None] = mapped_column(REAL)
+    extruder_power: Mapped[float | None] = mapped_column(REAL)
+    bed_temp: Mapped[float | None] = mapped_column(REAL)
+    bed_target: Mapped[float | None] = mapped_column(REAL)
+    bed_power: Mapped[float | None] = mapped_column(REAL)
+    fan_speed: Mapped[float | None] = mapped_column(REAL)
+    speed_factor: Mapped[float | None] = mapped_column(REAL)
+    extrude_factor: Mapped[float | None] = mapped_column(REAL)
+    z_offset: Mapped[float | None] = mapped_column(REAL)
+    progress: Mapped[float | None] = mapped_column(REAL)
+    filament_used: Mapped[float | None] = mapped_column(REAL)
+    # Sensors and fans that only some printers have, keyed by Klipper object and field.
+    extra: Mapped[dict | None] = mapped_column(JSONB)
+
+
+class PrinterEvent(Base):
+    """Event log of a printer: state changes and interventions, each with who caused it.
+    Rows form one hash chain per printer (hash covers the previous row's hash), so editing or
+    deleting a row afterwards is detectable - see app/services/printer_events.py."""
+
+    __tablename__ = "printer_events"
+    __table_args__ = (
+        Index("ix_printer_events_printer_id_id", "printer_id", "id"),
+        Index("ix_printer_events_print_job_id", "print_job_id"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    printer_id: Mapped[int] = mapped_column(ForeignKey("printers.id", ondelete="CASCADE"), nullable=False)
+    print_job_id: Mapped[int | None] = mapped_column(ForeignKey("print_jobs.id", ondelete="SET NULL"))
+    ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    klipper_eventtime: Mapped[float | None] = mapped_column(Double)
+    # Plain strings, not Postgres enums: new kinds of events must not need a migration.
+    event_type: Mapped[str] = mapped_column(String(40), nullable=False)
+    field: Mapped[str | None] = mapped_column(String(120))
+    value_before: Mapped[Any] = mapped_column(JSONB, nullable=True)
+    value_after: Mapped[Any] = mapped_column(JSONB, nullable=True)
+    origin: Mapped[str] = mapped_column(String(20), nullable=False)
+    detail: Mapped[dict | None] = mapped_column(JSONB)
+    prev_hash: Mapped[str | None] = mapped_column(String(64))
+    hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)

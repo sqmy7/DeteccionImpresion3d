@@ -26,7 +26,7 @@ El sistema **no falla en silencio**: publica `auto_pause.failed` y el frontend m
 
 **Estado:** resuelto para las Creality Hi. El disparo manual queda como plan B.
 
-La Creality Hi corre Klipper con Moonraker, no OctoPrint, así que el listener de `app/integrations/octoprint/` no le sirve. Ahora hay un segundo listener, `app/integrations/moonraker/listener.py`, que se conecta al WebSocket de Moonraker (`ws://<ip>:7125/websocket`), se suscribe a `print_stats` y `virtual_sdcard`, y publica el mismo evento `layer_ready:{printer_id}` en Redis que publicaba el script manual. De ahí en adelante el pipeline no cambia: `capture` -> `captures:pending` -> `inference-worker` -> Postgres -> WebSocket.
+La Creality Hi corre Klipper con Moonraker, no OctoPrint, así que el listener de `app/integrations/octoprint/` no le sirve. Ahora hay un segundo listener, `app/integrations/moonraker/listener.py`, que se conecta al WebSocket de Moonraker (`ws://<ip>:7125/websocket`), se suscribe a `print_stats` y `virtual_sdcard` (y, desde la telemetría, a los demás objetos del punto 7), y publica el mismo evento `layer_ready:{printer_id}` en Redis que publicaba el script manual. De ahí en adelante el pipeline no cambia: `capture` -> `captures:pending` -> `inference-worker` -> Postgres -> WebSocket.
 
 Cada impresora elige su listener con la columna `printers.integration_type` (`octoprint` | `moonraker`); `PrinterListenerManager` arranca el que corresponda.
 
@@ -124,3 +124,20 @@ El detalle de impresión (`/printers/:id/jobs/:id`) ahora muestra la cámara en 
 Observado en la impresión real del cerebro (job 34): el modelo marcó `stringing` con confianza 0.41-0.44 en capas consecutivas sanas. La pieza tiene muchas hebras finas y curvas que visualmente son casi idénticas a los hilos que el modelo busca. Con el umbral actual (0.25) esas detecciones pasan.
 
 No afecta a las alertas (ver punto 3: `stringing` suelto no genera alerta), pero sí ensucia la timeline. Si aparece en la demo, conviene mostrarlo como ejemplo honesto del comportamiento del modelo en vez de esconderlo, o subir el umbral de esa clase en particular.
+
+## 7. Telemetría y bitácora de eventos
+
+**Estado:** implementado y probado contra la impresora simulada (`backend/scripts/mock_moonraker.py`) y Postgres. Falta verificarlo con la Creality Hi real (ver `docs/PROGRESO_TELEMETRIA.md`).
+
+El listener de Moonraker guarda una muestra por segundo (posición, velocidad, temperaturas y potencia de boquilla y cama, ventilador, factores de velocidad y flujo, desfase de Z, progreso, filamento y los sensores extra que tenga la impresora) mientras hay un trabajo abierto, guarda con cada capa una foto de esos valores y registra en la bitácora cada cambio de estado de la impresión con su origen.
+
+- **Volumen medido en la simulada, no en la Hi:** ~2 KB/s de WebSocket, 0,08 % de un núcleo para el listener y ~2,7 MB en Postgres por impresión de 2 h. La Hi puede reportar más o menos campos; se confirma con `moonraker_discovery.py --only-ws` durante una impresión.
+- **Sin trabajo abierto no se guarda serie.** La lectura en vivo (evento `telemetry.sample` y `/printers/{id}/telemetry/latest`) sigue llegando, pero no queda histórico fuera de las impresiones. La última lectura vive en la memoria del backend: tras un reinicio vuelve en ~1 s si la impresora está conectada.
+- **Las muestras se insertan en lotes de 10.** Si la base falla, ese lote se pierde (como mucho ~10 s de telemetría) y queda anotado en el log.
+- **Qué se puede saber del origen de un cambio y qué no:**
+  - `printwatch`: PrintWatch mandó la orden (pausa automática o botones de la web) y el cambio llegó en los 60 s siguientes. Si la orden falló por timeout pero la impresora cambió igual, se atribuye a PrintWatch con el error en el detalle, porque la orden pudo haber llegado.
+  - `external`: cualquier otro cambio. **No distingue** entre la pantalla de la impresora, los botones de Fluidd u otra aplicación, porque Moonraker no informa quién pidió una pausa. Se marca "externo" en vez de inventar un origen.
+  - `printer`: errores de Klipper y fin del archivo. `monitor`: conexión y desconexión de PrintWatch con la impresora.
+- **La cadena de hashes no lo detecta todo.** Detecta un evento editado o borrado en medio de la bitácora (`/printers/{id}/events/verify`), pero no el borrado de los últimos eventos ni una reescritura completa por alguien con acceso de escritura que recalcule todos los hashes. Para cubrir eso hay que guardar el último hash fuera de la base, por ejemplo impreso en el informe del trabajo.
+- **Reinicios de Klipper:** para no depender de si Moonraker restaura la suscripción cuando Klippy se reinicia, el listener registra el aviso (`notify_klippy_*`), se reconecta y se vuelve a suscribir.
+- **Valores con ruido de redondeo:** las columnas son `REAL` (4 bytes, ~7 cifras significativas); la API redondea a 4 decimales al leer.

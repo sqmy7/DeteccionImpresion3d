@@ -18,7 +18,7 @@ Lo que necesita la impresora real queda preparado para correrlo después y anota
 | Fase | Estado |
 |---|---|
 | 0. Descubrimiento | Parte sin impresora terminada; falta correr el script en el laboratorio |
-| 1. Telemetría con fecha y hora | Sin empezar |
+| 1. Telemetría con fecha y hora | Terminada y desplegada; falta verificarla con la impresora real |
 | 2. Bitácora de intervenciones | Sin empezar |
 | 3. Mapa de la cama | Sin empezar |
 | 4. Rediseño de la web | Sin empezar |
@@ -60,6 +60,52 @@ con la C922.
 - La cámara interna, si se agrega, va como `secondary`: los archivos de captura se nombran por rol, así
   que dos cámaras `primary` en la misma impresora se pisarían.
 
+## Fase 1: telemetría con fecha y hora
+
+**Hecho:**
+- Migración `c3f1a9d27b40` (escrita a mano): tablas `telemetry_samples` y `printer_events`, y columna
+  `layers.telemetry`. Probada primero en la base `printwatch_test` (`alembic check` sin diferencias con
+  los modelos) y aplicada a la base real el 2026-10-07, después de respaldarla en
+  `storage/respaldo_antes_telemetria_2026-10-07.sql` (no se versiona).
+- Listener de Moonraker: pide la lista de objetos y se suscribe a los del núcleo más los sensores y
+  ventiladores opcionales que tenga la impresora (`app/services/telemetry.py`). Una muestra por segundo
+  mientras hay trabajo abierto, insertada en lotes de 10. Foto de la telemetría (con el objeto que se
+  imprime) en cada capa. Se reconecta si Klippy se reinicia. La lógica de trabajos y capas no cambió.
+- Bitácora (`app/services/printer_events.py`): conexión/desconexión, cambios de estado con su origen
+  (PrintWatch, impresora o externo) y las órdenes que manda PrintWatch, en una cadena de hashes por
+  impresora. Cada evento sale también por WebSocket (`printer.event`).
+- API: `GET /print-jobs/{id}/telemetry` (serie, reducida a `max_points` promediando por tramos),
+  `GET /printers/{id}/telemetry/latest`, `GET /printers/{id}/events`, `GET /print-jobs/{id}/events`,
+  `GET /printers/{id}/events/verify`. `GET /print-jobs/{id}/layers` incluye `telemetry`.
+- Pruebas: 30 en total; las de Postgres corren contra `printwatch_test` (variable `TEST_DATABASE_URL`,
+  solo acepta bases que terminen en `_test`). Una prueba de punta a punta corre el listener contra la
+  simulada: capas con su foto, muestras, pausa y reanudación atribuidas a PrintWatch y cadena válida.
+- Verificado también en el backend desplegado (Docker) con una impresora simulada temporal dentro del
+  contenedor (impresora 41, trabajo 40), borrada después.
+
+**Mediciones (contra la simulada; estimación para la Hi):**
+
+| Qué | Valor |
+|---|---|
+| Mensajes de la suscripción | 3,9 por segundo, ~2 KB/s (~15 MB por impresión de 2 h, en la red local) |
+| CPU del listener | 0,08 % de un núcleo |
+| Disco | 379 B por muestra; ~2,7 MB por impresión de 2 h (7.200 muestras) |
+
+**Decisiones:**
+- **1 muestra por segundo.** Klipper reporta hasta 4 veces por segundo, pero para gráficas de
+  temperatura y velocidad 1 Hz alcanza, y a 4 Hz serían ~11 MB por impresión de 2 h sin ganancia
+  visible. El dato fino del momento de cada capa queda en la foto de la capa, tomada del estado en
+  memoria (que sí se actualiza a 4 Hz).
+- Columnas `REAL` (4 bytes): suficiente precisión para sensores y la mitad de espacio que `DOUBLE`.
+  Índice `(print_job_id, ts)`. Horas en UTC (`timestamptz`); la web las muestra en hora de Colombia.
+- La bitácora con su cadena de hashes se creó ya en esta fase (no en la 2) para no necesitar una
+  segunda migración que recalculara hashes de filas existentes. Una cadena por impresora, serializada
+  con `pg_advisory_xact_lock` para que dos escritores no usen el mismo hash anterior.
+- Tipos de evento y orígenes como texto, no como enums de Postgres: agregar uno no requiere migración.
+- Para atribuir pausas y reanudaciones, `send_print_action` anota cada orden en memoria
+  (`command_log.py`). `auto_pause.py` no se tocó: sus órdenes se reconocen porque es el único que
+  llama sin `requested_by`.
+
 ## Pendiente con la impresora
 
 Antes de cualquier prueba: VPN HotspotShield desconectada, sesión `wsl -- sleep infinity` abierta y
@@ -67,3 +113,7 @@ Antes de cualquier prueba: VPN HotspotShield desconectada, sesión `wsl -- sleep
 
 1. Fase 0: `backend\.venv\Scripts\python.exe backend\scripts\moonraker_discovery.py` con la impresora
    sin imprimir, y `... --only-ws --ws-seconds 600` durante una impresión.
+2. Fase 1: con el backend corriendo, imprimir algo corto y revisar `GET /print-jobs/{id}/telemetry`
+   (que lleguen posición, temperaturas y sensores extra), la foto de cada capa y la bitácora
+   (`GET /printers/35/events` y `/events/verify`). Confirmar que la Hi tiene `motion_report`; si no, la
+   posición sale de `toolhead.position`, que va adelantada al cabezal real.

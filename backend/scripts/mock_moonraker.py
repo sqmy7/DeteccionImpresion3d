@@ -171,7 +171,9 @@ def _project(h: list[float], x: float, y: float) -> tuple[float, float]:
 
 
 class SimulatedPrinter:
-    def __init__(self, layers: int, layer_seconds: float, layer_height: float, seed: int) -> None:
+    def __init__(
+        self, layers: int, layer_seconds: float, layer_height: float, seed: int, heater_tau_scale: float = 1.0
+    ) -> None:
         self.rng = random.Random(seed)
         self.boot_monotonic = time.monotonic()
         self.boot_wall = time.time()
@@ -183,8 +185,9 @@ class SimulatedPrinter:
         self.excluded: list[str] = []
         self._path = LayerPath(self.objects)
 
-        self.extruder = Heater(tau=3.0)
-        self.bed = Heater(tau=6.0)
+        # heater_tau_scale < 1 makes heating near-instant, for tests.
+        self.extruder = Heater(tau=3.0 * heater_tau_scale)
+        self.bed = Heater(tau=6.0 * heater_tau_scale)
         self.fan_speed = 0.0
         self.speed_factor = 1.0
         self.extrude_factor = 1.0
@@ -1355,13 +1358,16 @@ def main() -> None:
     parser.add_argument("--layer-height", type=float, default=0.2)
     parser.add_argument("--auto-start", action="store_true", help=f"empezar a imprimir {MOCK_FILE} al arrancar")
     parser.add_argument("--require-auth", action="append", default=[], help="prefijo de ruta que responde 401 (repetible)")
+    parser.add_argument("--fast-heat", action="store_true", help="calentar casi al instante")
     parser.add_argument("--seed", type=int, default=7)
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
     auth_required_prefixes = tuple(args.require_auth)
     auto_start = args.auto_start
-    printer = SimulatedPrinter(args.layers, args.layer_seconds, args.layer_height, args.seed)
+    printer = SimulatedPrinter(
+        args.layers, args.layer_seconds, args.layer_height, args.seed, heater_tau_scale=0.05 if args.fast_heat else 1.0
+    )
     uvicorn.run(app, host=args.host, port=args.port, log_level="warning")
 
 

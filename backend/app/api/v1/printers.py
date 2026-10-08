@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, require_admin
 from app.core.security import encrypt_secret
-from app.db.models import IntegrationType, Printer
+from app.db.models import IntegrationType, Printer, User
 from app.db.session import get_db
 from app.integrations.moonraker.client import send_print_action
 from app.schemas.printer import PrinterCreate, PrinterRead, PrinterUpdate
@@ -84,9 +84,9 @@ async def _get_moonraker_printer_or_404(printer_id: int, db: AsyncSession) -> Pr
     return printer
 
 
-async def _send_print_action_or_502(printer: Printer, action: str) -> None:
+async def _send_print_action_or_502(printer: Printer, action: str, user: User) -> None:
     try:
-        await send_print_action(printer.octoprint_url, action)
+        await send_print_action(printer.octoprint_url, action, requested_by=f"{user.username} (web)")
     except httpx.HTTPError as exc:
         # Some httpx exceptions (timeouts especially) carry an empty str(exc) - seen for real
         # on this project's printer, where a manual retry outside the app was the only way to
@@ -99,8 +99,8 @@ async def _send_print_action_or_502(printer: Printer, action: str) -> None:
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=detail) from exc
 
 
-@router.post("/{printer_id}/pause", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(require_admin)])
-async def pause_printer(printer_id: int, db: AsyncSession = Depends(get_db)) -> None:
+@router.post("/{printer_id}/pause", status_code=status.HTTP_204_NO_CONTENT)
+async def pause_printer(printer_id: int, db: AsyncSession = Depends(get_db), user: User = Depends(require_admin)) -> None:
     """Manual pause, for testing/demoing independently of the spaghetti auto-pause flow
     (app/services/auto_pause.py) - same Moonraker action, triggered directly instead of after a
     detected streak. Proxied through the backend rather than called from the browser directly:
@@ -108,15 +108,15 @@ async def pause_printer(printer_id: int, db: AsyncSession = Depends(get_db)) -> 
     that stops a physical machine."""
     printer = await _get_moonraker_printer_or_404(printer_id, db)
     logger.warning("Manual pause requested for printer %s (%s)", printer.id, printer.octoprint_url)
-    await _send_print_action_or_502(printer, "pause")
+    await _send_print_action_or_502(printer, "pause", user)
 
 
-@router.post("/{printer_id}/resume", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(require_admin)])
-async def resume_printer(printer_id: int, db: AsyncSession = Depends(get_db)) -> None:
+@router.post("/{printer_id}/resume", status_code=status.HTTP_204_NO_CONTENT)
+async def resume_printer(printer_id: int, db: AsyncSession = Depends(get_db), user: User = Depends(require_admin)) -> None:
     """Manual resume - independent of whether the pause was triggered automatically (spaghetti
     auto-pause) or by hand on the printer itself. Proxied through the backend rather than called
     directly from the browser: Moonraker has no auth of its own, so this keeps our own
     auth/audit log in front of an action that stops/starts a physical machine."""
     printer = await _get_moonraker_printer_or_404(printer_id, db)
     logger.warning("Manual resume requested for printer %s (%s)", printer.id, printer.octoprint_url)
-    await _send_print_action_or_502(printer, "resume")
+    await _send_print_action_or_502(printer, "resume", user)
