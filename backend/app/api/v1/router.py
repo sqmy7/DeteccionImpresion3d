@@ -7,6 +7,7 @@ from app.api.v1 import (
     bed_map,
     cameras,
     detections,
+    insights,
     layers,
     model_versions,
     print_jobs,
@@ -29,4 +30,5 @@ router.include_router(alerts.router)
 router.include_router(telemetry.router)
 router.include_router(bed_map.router)
 router.include_router(analytics.router)
+router.include_router(insights.router)
 router.include_router(ws.router)

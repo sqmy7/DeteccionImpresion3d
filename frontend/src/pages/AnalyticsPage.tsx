@@ -2,7 +2,7 @@ import { BarChart3, CheckCircle2, Clock, Disc3, Hand, Layers } from "lucide-reac
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { BedMapView, MeshLegend } from "../components/bed/BedMapView";
+import { BedMapView, BedPositionNote, MeshLegend } from "../components/bed/BedMapView";
 import { PageHeader } from "../components/layout/PageHeader";
 import { CHART_COLORS } from "../components/telemetry/TelemetryChart";
 import { Badge, Card, EmptyState, ErrorNote, Kpi, Segmented, Skeleton, Table, Td, Th } from "../components/ui";
@@ -281,6 +281,7 @@ export function AnalyticsPage() {
                     <p className="mt-2 text-xs text-muted">
                       {heatmap.data.located} ubicados · {heatmap.data.unreliable} poco confiables · {heatmap.data.skipped_boxes} sin ubicar (cámara sin calibrar o formato antiguo)
                     </p>
+                    <BedPositionNote className="mt-3" />
                   </>
                 ) : (
                   <Skeleton className="aspect-square w-full" />

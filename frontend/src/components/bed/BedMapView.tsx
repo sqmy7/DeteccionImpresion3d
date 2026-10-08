@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { classCode, classColor, classLabel } from "../../config/defectClasses";
 import type { BedGeometry, BedMesh, LocatedDefect } from "../../types/api";
+import { EstimateNote } from "../ui";
 
 const MARGIN = 14; // mm of room around the bed for labels
 const RIGHT_MARGIN = 22; // the X axis caption sits right of the last tick
@@ -253,6 +254,25 @@ export function BedMapView({
         </g>
       )}
     </svg>
+  );
+}
+
+/** How a defect's place on the bed is estimated (mirrors app/services/bed_map.py). */
+export function BedPositionNote({ className = "" }: { className?: string }) {
+  return (
+    <EstimateNote title="posición de los defectos en la cama" className={className}>
+      <p>
+        Cada recuadro del modelo se lleva de la foto a la cama con la calibración de la cámara (las cuatro esquinas marcadas a mano:
+        una homografía). Luego se corrige el paralaje con la altura de la capa (el defecto se supone en la superficie superior) y, en
+        esta impresora de cama móvil, el desplazamiento de la cama en Y según la posición del cabezal al tomar la foto.
+      </p>
+      <p>
+        Error estimado = √(clic² + paralaje residual² + movimiento²): el clic es 1,5 % del tamaño de la cama (~4 mm), el paralaje
+        residual es parte de la corrección (la posición de la cámara también es estimada) y el movimiento es la velocidad de la cama
+        por 0,3 s (el desfase posible entre la foto y la posición). Por encima de 20 mm la ubicación se marca como poco confiable: se
+        dibuja como un círculo punteado del tamaño del error y no cuenta en el mapa de calor.
+      </p>
+    </EstimateNote>
   );
 }
 

@@ -98,9 +98,11 @@ def child_env() -> dict:
 def start_processes(layers: int, layer_seconds: float) -> list[subprocess.Popen]:
     subprocess.run([sys.executable, "-m", "alembic", "upgrade", "head"], cwd=BACKEND, env=child_env(), check=True)
     STORAGE.mkdir(parents=True, exist_ok=True)
+    # Heaters at the simulation's normal speed (seconds, not instant), so the printer-health page
+    # can measure heat-ups.
     mock = subprocess.Popen(
         [sys.executable, "scripts/mock_moonraker.py", "--port", str(MOCK_PORT), "--layers", str(layers),
-         "--layer-seconds", str(layer_seconds), "--fast-heat"],
+         "--layer-seconds", str(layer_seconds)],
         cwd=BACKEND,
     )
     backend = subprocess.Popen(
@@ -310,6 +312,9 @@ async def mock_post(path: str, **params) -> None:
 
 async def scenario(capture: DemoCapture) -> None:
     print("1/3 Impresión con intervenciones (consola, pantalla, objeto excluido) que termina bien", flush=True)
+    # Each defect comes after a change that explains it, so the combined score (model + telemetry)
+    # has something to show: the nozzle raised before the stringing, the bed lowered from the
+    # screen before the warping and the flow lowered before the under-extrusion.
     capture.plan = {
         12: [("stringing", 95.0, 150.0, 0.62)],
         13: [("stringing", 97.0, 148.0, 0.55)],
@@ -323,11 +328,19 @@ async def scenario(capture: DemoCapture) -> None:
     await at_layer(6)
     await mock_post("/printer/gcode/script", script="M220 S90")
     await at_layer(10)
-    await mock_post("/mock/screen", script="M140 S75")
+    await mock_post("/printer/gcode/script", script="M104 S250")
+    await at_layer(14)
+    await mock_post("/printer/gcode/script", script="M104 S235")
     await at_layer(16)
     await mock_post("/printer/gcode/script", script="SET_GCODE_OFFSET Z_ADJUST=0.02")
+    await at_layer(17)
+    await mock_post("/mock/screen", script="M140 S60")
     await at_layer(22)
     await mock_post("/printer/gcode/script", script="EXCLUDE_OBJECT NAME=BOX_2")
+    await at_layer(24)
+    await mock_post("/printer/gcode/script", script="M221 S90")
+    await at_layer(30)
+    await mock_post("/printer/gcode/script", script="M221 S100")
     await in_state("complete")
 
     print("2/3 Impresión cancelada desde la consola", flush=True)
@@ -351,6 +364,24 @@ async def scenario(capture: DemoCapture) -> None:
     print("Listo: la tercera impresión sigue en curso para ver la pantalla en vivo.", flush=True)
 
 
+async def health_prints(capture: DemoCapture, count: int = 8) -> None:
+    """Short prints for the printer-health page: the first ones set its baseline; in the last two
+    the nozzle heater needs more power to hold its target and the bed heats more slowly."""
+    print(f"Salud: {count} impresiones cortas; en las 2 últimas, desgaste simulado de los calentadores", flush=True)
+    capture.plan = {}
+    for number in range(1, count + 1):
+        worn = number > count - 2
+        hold_power = 0.30 if not worn else 0.36 if number < count else 0.40
+        # Between real prints the heaters cool down to room temperature; the simulation is told so.
+        await mock_post("/mock/heater", heater="extruder", temperature=25, tau=3.0, hold_power=hold_power)
+        await mock_post("/mock/heater", heater="bed", temperature=25, tau=9.0 if worn else 6.0)
+        await mock_post("/printer/print/start", filename="mock_box.gcode")
+        await in_state("complete")
+        print(f"  impresión {number}/{count} terminada", flush=True)
+    await mock_post("/mock/heater", heater="extruder", hold_power=0.30)
+    await mock_post("/mock/heater", heater="bed", tau=6.0)
+
+
 async def live_print(capture: DemoCapture) -> None:
     print("Una impresión en curso con algunos defectos sintéticos, sin pausa", flush=True)
     capture.plan = {
@@ -368,6 +399,10 @@ async def main() -> None:
     parser.add_argument("--layer-seconds", type=float, default=3.0)
     parser.add_argument("--no-scenario", action="store_true", help="solo levantar todo, sin imprimir")
     parser.add_argument("--live", action="store_true", help="en vez del escenario completo, una sola impresión en curso")
+    parser.add_argument(
+        "--health", action="store_true",
+        help="en vez del escenario, 8 impresiones cortas con desgaste simulado al final (usar con --layers 20 --layer-seconds 2)",
+    )
     args = parser.parse_args()
 
     await ensure_database(args.reset)
@@ -386,7 +421,7 @@ async def main() -> None:
         print(f"Modo demostración listo: backend en http://localhost:{API_PORT} (usuario {USERNAME} / {PASSWORD}).", flush=True)
         if not args.no_scenario:
             await asyncio.sleep(3)  # let the listener connect
-            await (live_print(capture) if args.live else scenario(capture))
+            await (live_print(capture) if args.live else health_prints(capture) if args.health else scenario(capture))
         await asyncio.Event().wait()  # keep everything up until Ctrl+C
     finally:
         for task in tasks:

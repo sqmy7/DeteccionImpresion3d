@@ -18,6 +18,7 @@ const LivePrintPage = lazy(() => import("./pages/LivePrintPage").then((module) =
 const JobReplayPage = lazy(() => import("./pages/JobReplayPage").then((module) => ({ default: module.JobReplayPage })));
 const CalibrationPage = lazy(() => import("./pages/CalibrationPage").then((module) => ({ default: module.CalibrationPage })));
 const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage").then((module) => ({ default: module.AnalyticsPage })));
+const HealthPage = lazy(() => import("./pages/HealthPage").then((module) => ({ default: module.HealthPage })));
 
 export function App() {
   return (
@@ -43,6 +44,7 @@ export function App() {
               <Route path="jobs/:jobId" element={<JobReplayPage />} />
               <Route path="logbook" element={<LogbookPage />} />
               <Route path="camera" element={<CalibrationPage />} />
+              <Route path="health" element={<HealthPage />} />
             </Route>
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

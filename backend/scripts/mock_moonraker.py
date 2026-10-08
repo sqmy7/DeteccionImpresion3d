@@ -90,6 +90,8 @@ class Heater:
         self.temperature = ambient
         self.target = 0.0
         self.power = 0.0
+        # PWM needed to hold the target; /mock/heater raises it to simulate wear or a draught.
+        self.hold_power = 0.3
 
     def step(self, dt: float) -> None:
         goal = self.target if self.target > 0 else self.ambient
@@ -97,7 +99,7 @@ class Heater:
         tau = self.tau if goal >= self.temperature else self.tau * 4
         self.temperature += (goal - self.temperature) * (1 - math.exp(-dt / tau))
         if self.target > 0:
-            self.power = min(1.0, max(0.0, 0.3 + (self.target - self.temperature) / 15))
+            self.power = min(1.0, max(0.0, self.hold_power + (self.target - self.temperature) / 15))
         else:
             self.power = 0.0
 
@@ -1179,6 +1181,23 @@ async def mock_error(x: float = 292.424, y: float = 249.610, z: float = 28.401):
 async def mock_filament(detected: bool = False) -> dict:
     printer.filament_detected = detected
     return _ok("ok")
+
+
+@app.post("/mock/heater")
+async def mock_heater(
+    heater: str = "extruder", hold_power: float | None = None, tau: float | None = None, temperature: float | None = None
+) -> dict:
+    """Simulation controls for one heater: the power it needs to hold its target (raise it to
+    simulate wear), its time constant (raise it to heat more slowly) and its current temperature
+    (set it to room temperature to simulate the time between prints)."""
+    target = printer.bed if heater == "bed" else printer.extruder
+    if hold_power is not None:
+        target.hold_power = hold_power
+    if tau is not None:
+        target.tau = tau
+    if temperature is not None:
+        target.temperature = temperature
+    return _ok({"hold_power": target.hold_power, "tau": target.tau, "temperature": round(target.temperature, 2)})
 
 
 @app.post("/mock/screen")

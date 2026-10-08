@@ -1,6 +1,6 @@
 import { Camera as CameraIcon, Check, Crosshair, Grid3x3, RotateCcw, Undo2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
-import { BedMapView, bedSize, MeshLegend } from "../components/bed/BedMapView";
+import { BedMapView, BedPositionNote, bedSize, MeshLegend } from "../components/bed/BedMapView";
 import { usePrinterContext } from "../components/layout/PrinterLayout";
 import { Badge, Button, Card, EmptyState, ErrorNote, Segmented, Skeleton, Table, Td, Th } from "../components/ui";
 import { DEFECT_CLASS_LABELS } from "../config/defectClasses";
@@ -377,6 +377,7 @@ function BedDefectsCard({ printerId, geometry }: { printerId: number; geometry: 
             </p>
             {showMesh === "mesh" && <MeshLegend mesh={heatmap.data.bed_mesh} />}
           </div>
+          <BedPositionNote className="mt-3" />
         </>
       ) : (
         <ErrorNote>{heatmap.error}</ErrorNote>

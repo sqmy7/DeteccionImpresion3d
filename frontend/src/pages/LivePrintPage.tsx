@@ -1,7 +1,7 @@
 import { Camera, Clock, Layers, MapPin, ScrollText } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { BedMapView, MeshLegend } from "../components/bed/BedMapView";
+import { BedMapView, BedPositionNote, MeshLegend } from "../components/bed/BedMapView";
 import { EventList } from "../components/events/EventList";
 import { JobAlertsPanel } from "../components/JobAlertsPanel";
 import { LayerDetail } from "../components/layers/LayerDetail";
@@ -19,6 +19,7 @@ import { defectMarkers, eventMarkers } from "../lib/markers";
 import { readingAge, useLiveTelemetry } from "../lib/telemetryStore";
 import { useApi } from "../lib/useApi";
 import { getJobBedMap, getPrinterGeometry } from "../services/bedMap";
+import { getJobFusion } from "../services/insights";
 import { listCamerasForPrinter } from "../services/cameras";
 import { getJobSummary, getJobTimeline, listPrintJobsForPrinter } from "../services/printJobs";
 import { getJobTelemetry, listJobEvents, listJobLayers } from "../services/telemetry";
@@ -110,6 +111,7 @@ export function LivePrintPage() {
   const timeline = useApi((token) => (jobId ? getJobTimeline(token, jobId) : null), [jobId, version]);
   const layers = useApi((token) => (jobId ? listJobLayers(token, jobId) : null), [jobId, version]);
   const bedMap = useApi((token) => (jobId ? getJobBedMap(token, jobId) : null), [jobId, version]);
+  const fusion = useApi((token) => (jobId ? getJobFusion(token, jobId) : null), [jobId, version]);
   const history = useApi((token) => (jobId ? getJobTelemetry(token, jobId, 900) : null), [jobId]);
   const events = useApi((token) => (jobId ? listJobEvents(token, jobId) : null), [jobId]);
   const geometry = useApi((token) => getPrinterGeometry(token, printer.id), [printer.id, jobId]);
@@ -256,6 +258,7 @@ export function LivePrintPage() {
                 </Link>
               </p>
             )}
+            <BedPositionNote className="mt-3" />
           </Card>
         </div>
       )}
@@ -288,7 +291,7 @@ export function LivePrintPage() {
                   setSelectedLayer(layerNumber);
                 }}
               />
-              <LayerDetail entry={selectedEntry} layer={selectedLayerRow} located={bedMap.data?.defects} jobId={job.id} />
+              <LayerDetail entry={selectedEntry} layer={selectedLayerRow} located={bedMap.data?.defects} fusion={fusion.data} jobId={job.id} />
             </div>
           )}
         </Card>

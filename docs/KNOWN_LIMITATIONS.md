@@ -145,6 +145,9 @@ El listener de Moonraker guarda una muestra por segundo (posición, velocidad, t
 - **Los eventos sin evidencia inmediata se registran con demora:** esperan ~5 s por si aparece el comando de consola, y hasta 3 min si el archivo todavía se está indexando. La hora guardada es la del cambio, no la del registro, así que el orden de la cadena puede no coincidir con el cronológico.
 - **Hora de los comandos de consola:** Moonraker los marca con el reloj de la impresora; se corrigen con la diferencia de relojes estimada a partir del encabezado `Date` de sus respuestas (resolución de 1 s, se afina con cada consulta). Al principio de una conexión puede haber medio segundo de error, y un comando puede aparecer justo después del cambio que provocó.
 - **Lo escrito en la consola antes de que PrintWatch se conectara no se registra** (la primera consulta solo marca el punto de partida).
+- **La cadena de hashes no lo detecta todo.** Detecta un evento editado o borrado en medio de la bitácora (`/printers/{id}/events/verify`), pero no el borrado de los últimos eventos ni una reescritura completa por alguien con acceso de escritura que recalcule todos los hashes. Para cubrir eso hay que guardar el último hash fuera de la base, por ejemplo impreso en el informe del trabajo.
+- **Reinicios de Klipper:** para no depender de si Moonraker restaura la suscripción cuando Klippy se reinicia, el listener registra el aviso (`notify_klippy_*`), se reconecta y se vuelve a suscribir.
+- **Valores con ruido de redondeo:** las columnas son `REAL` (4 bytes, ~7 cifras significativas); la API redondea a 4 decimales al leer.
 
 ## 8. Mapa de la cama: precisión de la ubicación de los defectos
 
@@ -161,6 +164,25 @@ Cómo funciona (`app/services/bed_map.py`): el usuario marca las cuatro esquinas
 - **Si la cámara se mueve hay que recalibrar.** Se guarda el historial: cada detección se ubica con la calibración vigente cuando se capturó (o con la primera posterior, si no había ninguna antes, suponiendo que la cámara no se había movido).
 - **Detecciones anteriores:** las cajas de las primeras 16 detecciones (formato viejo, en píxeles) no se pueden ubicar y se cuentan aparte. Las detecciones previas a este cambio no guardaban el ROI; se asume el cuadro completo, que es lo que se usó siempre (nunca se configuró un ROI).
 - **Antigüedad de la foto para calibrar:** `capture` ahora guarda la hora de cada cuadro y el backend la informa (`X-Frame-Age-Seconds`); hay que reiniciar `capture` para que empiece a hacerlo. Sin eso, la foto puede ser la última que quedó en Redis de una sesión anterior.
-- **La cadena de hashes no lo detecta todo.** Detecta un evento editado o borrado en medio de la bitácora (`/printers/{id}/events/verify`), pero no el borrado de los últimos eventos ni una reescritura completa por alguien con acceso de escritura que recalcule todos los hashes. Para cubrir eso hay que guardar el último hash fuera de la base, por ejemplo impreso en el informe del trabajo.
-- **Reinicios de Klipper:** para no depender de si Moonraker restaura la suscripción cuando Klippy se reinicia, el listener registra el aviso (`notify_klippy_*`), se reconecta y se vuelve a suscribir.
-- **Valores con ruido de redondeo:** las columnas son `REAL` (4 bytes, ~7 cifras significativas); la API redondea a 4 decimales al leer.
+
+## 9. Análisis derivados: puntaje combinado y salud de la impresora
+
+**Estado:** implementados y probados con datos sintéticos y con la impresora simulada; ninguno se ha contrastado con impresiones reales de la Creality Hi (todavía no hay trabajos con telemetría real). En la web llevan la marca "Estimación" con la explicación de cómo se calculan.
+
+**Puntaje combinado (modelo + telemetría, `app/services/fusion.py`).** Solo se muestra: las alertas y la pausa automática siguen usando únicamente el modelo.
+
+- **Los pesos son iniciales, no calibrados.** Cada señal (boquilla fuera del objetivo, calentador al máximo, flujo cambiado, cama bajada, sensor de filamento...) sube el puntaje con un peso fijo según qué tan directa es su relación con el defecto (0,6 / 0,3 / 0,15). Los umbrales sí tienen respaldo (la banda de ±5 °C que Klipper considera en rango, el paso de 5 % de la calibración de flujo), pero cuánto debe pesar cada señal solo se puede ajustar con impresiones reales etiquetadas.
+- **Solo puede subir el puntaje.** Una telemetría normal no es evidencia en contra (un atasco parcial no se ve en los sensores), así que el puntaje no sirve para descartar falsos positivos del modelo.
+- **No todas las clases tienen señales.** El spaghetti y, casi, el desplazamiento de capa no tienen una lectura de la impresora que los explique; su puntaje es el del modelo.
+- **La ventana es la capa recién impresa** (más hasta dos anteriores si tiene menos de 10 muestras). En capas muy rápidas (pocos segundos) la ventana puede quedar con menos muestras; en trabajos sin telemetría por segundo se usa la foto de telemetría de la capa.
+- **No distingue el origen del cambio.** Un flujo bajado por el archivo cuenta igual que uno bajado desde la consola: lo que importa para el defecto es el valor.
+- **El sensor de filamento** solo cuenta si la impresora lo expone; no está verificado que la Hi lo publique.
+
+**Salud de la impresora (`app/services/health.py`).**
+
+- **Necesita historia:** al menos 6 trabajos terminados con telemetría y con el mismo objetivo de temperatura (5 de línea base y 1 para comparar). Con la impresora real eso tomará varias semanas de uso.
+- **"Normal" es lo que la impresora hizo antes**, no un valor de catálogo. Si la impresora ya venía mal cuando se formó la línea base, eso queda como normal.
+- **Factores que cambian la potencia y no son desgaste:** la temperatura del cuarto, el ventilador de capa, la velocidad (más plástico que fundir), el material y una puerta o tapa abierta. Conviene leer la tendencia junto con esos datos; la comparación ya separa por objetivo de temperatura.
+- **Las reglas de la carta de control** (±3σ, 2 de 3 más allá de 2σ, 8 seguidos del mismo lado) suponen mediciones independientes y con ruido parecido al normal; con pocos trabajos la desviación de la línea base es poco precisa. Cuando la línea base casi no varía, se usa como mínimo la resolución del dato para no convertir diferencias ínfimas en anomalías.
+- **La velocidad de calentamiento solo se mide en arranques en frío** (cuando la impresión empieza por debajo del 20 % del camino entre 25 °C y el objetivo). Si se precalienta antes de lanzar la impresión, ese trabajo no aporta el dato.
+- **Costo:** la primera consulta después de reiniciar el backend lee las muestras de cada trabajo (hasta 100 trabajos); los resultados de los trabajos terminados quedan en memoria. Medido en la simulada: ver `docs/PROGRESO_TELEMETRIA.md`.

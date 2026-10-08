@@ -22,7 +22,7 @@ Lo que necesita la impresora real queda preparado para correrlo después y anota
 | 2. Bitácora de intervenciones | Terminada y desplegada (pantalla en la Fase 4); falta verla con una impresión real |
 | 3. Mapa de la cama | Terminada y desplegada (pantalla en la Fase 4); falta calibrar la cámara real |
 | 4. Rediseño de la web | Terminada; probada con la impresora simulada (modo demostración) |
-| 5. Innovación | Sin empezar |
+| 5. Innovación | En curso: puntaje combinado y salud hechos; faltan el reporte PDF y el costo |
 
 ## Fase 0: descubrimiento
 
@@ -251,6 +251,47 @@ en la repetición).
 
 **Pendiente:** ver la web con la impresora real (video de la C922, telemetría real, mapa con la
 calibración real) y desde el celular en la red del laboratorio.
+
+## Fase 5: innovación
+
+**Hecho:**
+1. **Puntaje combinado de modelo y telemetría** (`app/services/fusion.py`,
+   `GET /print-jobs/{id}/fusion`). Para cada recuadro de defecto se miran las muestras de la capa
+   recién impresa (la que se ve arriba en la foto) y se revisan las señales que explican esa clase:
+   sub-extrusión (sin filamento, calentador al máximo, boquilla fría, flujo bajado, más rápido de lo
+   laminado), exceso de material (flujo subido, boquilla caliente), stringing (boquilla caliente o
+   subida respecto de la primera capa), warping (cama fría o bajada) y desplazamiento de capa
+   (velocidad subida). Puntaje = 1 − (1 − confianza) × ∏(1 − peso de cada señal cumplida). La web lo
+   muestra junto a cada detección ("modelo 58 % · combinado 71 %") con las señales a favor y la
+   explicación completa plegada. No toca las alertas ni la pausa automática.
+2. **Salud de la impresora** (`app/services/health.py`, `GET /printers/{id}/health`, pestaña
+   "Salud"). Por trabajo y calentador: potencia para mantener la temperatura, oscilación y mayor
+   desviación una vez asentada, y velocidad de calentamiento desde frío. Cada trabajo se compara
+   con la línea base de la misma impresora en una carta de control.
+- Nota "Estimación · cómo se calcula" (componente `EstimateNote`) en todo dato derivado: posición en
+  la cama (vivo, repetición, cámara y cama, analítica), puntaje combinado y salud.
+- Impresora simulada: `/mock/heater` (potencia para mantener, constante de tiempo y temperatura
+  actual de cada calentador). Modo demostración: el guion pone una causa en la telemetría antes de
+  cada defecto (boquilla subida, cama bajada desde la pantalla, flujo bajado) y `--health` hace 8
+  impresiones cortas con desgaste simulado en las dos últimas. La demo ya no calienta al instante.
+- Pruebas: 113.
+
+**Decisiones:**
+- Combinación tipo "noisy-OR": cada señal es una causa independiente que puede explicar el defecto.
+  Es simple de explicar, nunca baja la confianza del modelo y nunca llega a 100 %.
+- Umbrales con respaldo: ±5 °C (banda que Klipper considera en rango, `hysteresis` de
+  `verify_heater`), 5 % de flujo (paso de la calibración de flujo de los laminadores), 95 % de PWM
+  (sin margen para sostener la temperatura). Los pesos (0,6 / 0,3 / 0,15) son iniciales y la web lo
+  dice.
+- Salud: "asentado" = a menos de 1 °C del objetivo, el criterio de Klipper (`PID_SETTLE_DELTA`) para
+  dar por terminada la espera de M109. Se compara a igual objetivo (pasos de 5 °C). Línea base: los
+  primeros 5 a 10 trabajos, dejando fuera los 3 últimos cuando hay suficientes. Reglas: ±3σ
+  (Shewhart), 2 de 3 más allá de 2σ y 8 seguidos del lado malo (Western Electric). Aparte, una
+  desviación de más de 5 °C ya asentada se marca siempre.
+- Los resultados de salud de los trabajos terminados quedan en memoria del backend; los del
+  puntaje se calculan en cada consulta (13-33 ms por trabajo en la demo).
+
+**Pendiente:** 3. reporte PDF por trabajo; 4. estimación de costo (filamento y energía).
 
 ## Pendiente con la impresora
 

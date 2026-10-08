@@ -345,3 +345,104 @@ export interface BedHeatmap {
   skipped_boxes: number;
   bed_mesh: BedMesh | null;
 }
+
+// --- Combined score: model + telemetry (Fase 5) ---
+
+export type FusionOperator = ">" | ">=" | "<=";
+
+export interface FusionSignal {
+  key: string;
+  label: string;
+  unit: string;
+  operator: FusionOperator;
+  threshold: number;
+  weight: number;
+  value: number | null; // null: no data for it in the window
+  met: boolean;
+}
+
+export interface FusionItem {
+  detection_id: number;
+  box_index: number;
+  layer_number: number;
+  class_name: string | null;
+  confidence: number | null;
+  score: number;
+  signals: FusionSignal[];
+  window: { source: "telemetry" | "layer_snapshot" | null; samples: number; layers: number[] };
+}
+
+export interface FusionMethodSignal {
+  key: string;
+  label: string;
+  unit: string;
+  operator: FusionOperator;
+  threshold: number;
+  weight: number;
+  rationale: string;
+  classes: string[];
+}
+
+export interface FusionMethod {
+  formula: string;
+  window: string;
+  weights: Record<string, number>;
+  calibrated: boolean;
+  signals: FusionMethodSignal[];
+}
+
+export interface JobFusion {
+  job_id: number;
+  items: FusionItem[];
+  method: FusionMethod;
+}
+
+// --- Printer health (Fase 5) ---
+
+export type HealthStatus = "normal" | "attention" | "insufficient";
+
+export interface HealthPoint {
+  job_id: number;
+  started_at: string;
+  file_name: string;
+  value: number;
+  target: number | null;
+  flags: string[];
+}
+
+export interface HealthMetric {
+  key: "hold_power" | "oscillation" | "max_excursion" | "heating_rate";
+  label: string;
+  unit: string;
+  worse: "up" | "down";
+  status: HealthStatus;
+  baseline: { n: number; mean: number; std: number; upper: number; lower: number } | null;
+  findings: string[];
+  points: HealthPoint[];
+}
+
+export interface HealthHeater {
+  heater: "extruder" | "bed";
+  label: string;
+  target_bucket: number | null;
+  metrics: HealthMetric[];
+}
+
+export interface HealthMethod {
+  settle_delta_c: number;
+  in_range_c: number;
+  min_steady_samples: number;
+  min_heatup_c: number;
+  target_bucket_c: number;
+  min_baseline_jobs: number;
+  max_baseline_jobs: number;
+  metrics: { key: string; label: string; unit: string; worse: string; description: string }[];
+}
+
+export interface PrinterHealth {
+  printer_id: number;
+  jobs_considered: number;
+  jobs_with_telemetry: number;
+  heaters: HealthHeater[];
+  method: HealthMethod;
+}

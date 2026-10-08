@@ -1,7 +1,7 @@
 import { Download, FileText, MapPin, Pause, Play, ScrollText, SkipBack } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
-import { BedMapView, MeshLegend } from "../components/bed/BedMapView";
+import { BedMapView, BedPositionNote, MeshLegend } from "../components/bed/BedMapView";
 import { EventList } from "../components/events/EventList";
 import { JobAlertsPanel } from "../components/JobAlertsPanel";
 import { LayerDetail } from "../components/layers/LayerDetail";
@@ -15,6 +15,7 @@ import { formatDateTime, formatDuration, formatTime } from "../lib/format";
 import { defectMarkers, eventMarkers } from "../lib/markers";
 import { useApi } from "../lib/useApi";
 import { getJobBedMap } from "../services/bedMap";
+import { getJobFusion } from "../services/insights";
 import { getJobSummary, getJobTimeline, getPrintJob } from "../services/printJobs";
 import { getJobTelemetry, listJobEvents, listJobLayers } from "../services/telemetry";
 import type { TimelineEntry } from "../types/api";
@@ -59,6 +60,7 @@ export function JobReplayPage() {
   const telemetry = useApi((token) => getJobTelemetry(token, jobId, 1500), [jobId]);
   const events = useApi((token) => listJobEvents(token, jobId), [jobId]);
   const bedMap = useApi((token) => getJobBedMap(token, jobId), [jobId]);
+  const fusion = useApi((token) => getJobFusion(token, jobId), [jobId]);
 
   const start = job.data ? Date.parse(job.data.started_at) : 0;
   const end = job.data ? (job.data.ended_at ? Date.parse(job.data.ended_at) : Date.now()) : 0;
@@ -199,6 +201,7 @@ export function JobReplayPage() {
                 entry={entries.find((entry) => entry.layer_number === currentLayer?.layer_number) ?? null}
                 layer={currentLayer}
                 located={bedMap.data?.defects}
+                fusion={fusion.data}
                 jobId={jobId}
               />
             </div>
@@ -222,6 +225,7 @@ export function JobReplayPage() {
                 {bedMap.data.skipped_boxes} recuadros no se pudieron ubicar (cámara sin calibrar o formato antiguo).
               </p>
             )}
+            <BedPositionNote className="mt-3" />
           </Card>
           {point ? (
             <LiveKpis values={point} />

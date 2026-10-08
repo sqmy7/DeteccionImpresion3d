@@ -6,8 +6,9 @@ import { detectionBoxes } from "../../lib/boxes";
 import { formatDateTime, formatNumber, formatPercent } from "../../lib/format";
 import { API_BASE_URL } from "../../services/apiClient";
 import { getLayerCapture, listDetectionsForCapture } from "../../services/layers";
-import type { Detection, Layer, LayerCapture, LocatedDefect, TimelineEntry } from "../../types/api";
+import type { Detection, JobFusion, Layer, LayerCapture, LocatedDefect, TimelineEntry } from "../../types/api";
 import { AnnotatedImage } from "../camera/AnnotatedImage";
+import { FusionMethodNote, FusionReasons, fusionKey } from "../insights/Fusion";
 import { Badge, Button, EmptyState } from "../ui";
 
 function Fact({ label, children }: { label: string; children: React.ReactNode }) {
@@ -20,16 +21,18 @@ function Fact({ label, children }: { label: string; children: React.ReactNode })
 }
 
 /** One layer: its photo with the boxes the model drew, what the printer was doing when the layer
- * started, and where each defect is on the bed. */
+ * started, where each defect is on the bed and its combined score (model + telemetry). */
 export function LayerDetail({
   entry,
   layer,
   located = [],
+  fusion = null,
   jobId,
 }: {
   entry: TimelineEntry | null;
   layer: Layer | null;
   located?: LocatedDefect[];
+  fusion?: JobFusion | null;
   jobId: number;
 }) {
   const { token } = useAuth();
@@ -51,6 +54,10 @@ export function LayerDetail({
 
   const boxes = useMemo(() => detections.flatMap(detectionBoxes), [detections]);
   const placed = located.filter((defect) => detections.some((detection) => detection.id === defect.detection_id));
+  const scores = useMemo(
+    () => new Map((fusion?.items ?? []).map((item) => [fusionKey(item.detection_id, item.box_index), item])),
+    [fusion],
+  );
 
   if (!entry) {
     return <EmptyState title="Ninguna capa seleccionada" description="Elige una capa en la tira de arriba." />;
@@ -120,17 +127,34 @@ export function LayerDetail({
           {boxes.length === 0 ? (
             <p className="text-sm text-ok-fg">{entry.capture_id ? "Sin defectos en esta capa." : "La capa no tiene foto."}</p>
           ) : (
-            <ul className="flex flex-col gap-1.5">
-              {boxes.map((box, index) => (
-                <li key={index} className="flex items-center gap-2 text-sm">
-                  <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: classColor(box.className) }} />
-                  <span className="text-fg">{classLabel(box.className)}</span>
-                  {isInformationalClass(box.className) && <Badge>informativa</Badge>}
-                  <span className="ml-auto tabular text-muted">{Math.round(box.confidence * 100)} %</span>
-                </li>
-              ))}
+            <ul className="flex flex-col gap-2.5">
+              {boxes.map((box, index) => {
+                const score = scores.get(fusionKey(box.detectionId, box.index));
+                return (
+                  <li key={index} className="flex flex-col gap-0.5">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm">
+                      <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: classColor(box.className) }} />
+                      <span className="text-fg">{classLabel(box.className)}</span>
+                      {isInformationalClass(box.className) && <Badge>informativa</Badge>}
+                      <span className="ml-auto tabular text-muted">
+                        modelo {Math.round(box.confidence * 100)} %
+                        {score && (
+                          <>
+                            {" · "}
+                            <span title="Puntaje combinado con la telemetría (estimación)">
+                              combinado <span className={score.score > (box.confidence ?? 0) + 0.005 ? "text-warn-fg" : "text-fg"}>{Math.round(score.score * 100)} %</span>
+                            </span>
+                          </>
+                        )}
+                      </span>
+                    </div>
+                    {score && <FusionReasons item={score} />}
+                  </li>
+                );
+              })}
             </ul>
           )}
+          {fusion && boxes.length > 0 && <FusionMethodNote method={fusion.method} />}
           {placed.length > 0 && (
             <p className="mt-2 text-xs text-muted">
               En la cama:{" "}
