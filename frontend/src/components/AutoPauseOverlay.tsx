@@ -11,12 +11,14 @@ import type {
   AutoPauseExecutedEvent,
   AutoPauseFailedEvent,
   AutoPausePendingEvent,
+  AutoPauseWouldPauseEvent,
 } from "../types/ws";
 
 type PendingState = { phase: "pending"; printerId: number; consecutiveLayers: number; executesAt: string };
 type ExecutedState = { phase: "executed"; printerId: number };
 type FailedState = { phase: "failed"; printerId: number; reason: string };
-type AutoPauseState = PendingState | ExecutedState | FailedState;
+type WouldPauseState = { phase: "would_pause"; printerId: number; consecutiveLayers: number; layer: number | null; confidence: number | null };
+type AutoPauseState = PendingState | ExecutedState | FailedState | WouldPauseState;
 
 /** Mounted once at the app root (see App.tsx), not inside a job page - an auto-pause is
  * severe enough that it must interrupt whatever screen the user is on, not just the one for
@@ -48,6 +50,15 @@ export function AutoPauseOverlay() {
     setByJob((prev) => ({
       ...prev,
       [job_id]: { phase: "pending", printerId: printer_id, consecutiveLayers: consecutive_layers, executesAt: executes_at },
+    }));
+  });
+
+  // Warn mode (AUTO_PAUSE_MODE=warn): the pause would have fired, and nothing was sent to the printer.
+  useWsEvent<AutoPauseWouldPauseEvent>("auto_pause.would_pause", (envelope) => {
+    const { job_id, printer_id, consecutive_layers, layer, confidence } = envelope.data;
+    setByJob((prev) => ({
+      ...prev,
+      [job_id]: { phase: "would_pause", printerId: printer_id, consecutiveLayers: consecutive_layers, layer, confidence },
     }));
   });
 
@@ -136,6 +147,25 @@ function AutoPauseBanner({
         </div>
         <Button variant="danger" onClick={handleAbort} disabled={busy}>
           Abortar pausa
+        </Button>
+      </Banner>
+    );
+  }
+
+  if (state.phase === "would_pause") {
+    return (
+      <Banner tone="warn" icon={<AlertTriangle size={20} />}>
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold text-fg">
+            Spaghetti detectado {state.consecutiveLayers} capas seguidas en {printerName}
+            {state.layer != null ? ` (capa ${state.layer}` : ""}
+            {state.layer != null && state.confidence != null ? `, confianza ${Math.round(state.confidence * 100)} %` : ""}
+            {state.layer != null ? ")" : ""}
+          </p>
+          <p className="text-sm text-muted">Modo aviso: habría pausado la impresión, pero no se envió nada a la impresora.</p>
+        </div>
+        <Button variant="ghost" onClick={onDismiss}>
+          Cerrar
         </Button>
       </Banner>
     );

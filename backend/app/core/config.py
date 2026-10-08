@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ROOT_DIR = Path(__file__).resolve().parents[3]
@@ -23,6 +24,20 @@ class Settings(BaseSettings):
     # for the real system; the demo mode (scripts/demo_environment.py) sets one so a second
     # backend on the same Redis never mixes with the real one.
     redis_channel_prefix: str = ""
+    # What the spaghetti auto-pause does once three layers in a row show spaghetti:
+    #   on   - announce it, count down 15 s and send the pause to Moonraker (the original behaviour);
+    #   warn - announce it and log an "auto_pause.would_pause" event, but never send the pause;
+    #   off  - do nothing at all (no announcement, no event, no pause).
+    # A value that is none of these stops the backend at startup instead of silently pausing (or not).
+    auto_pause_mode: str = "on"
+
+    @field_validator("auto_pause_mode", mode="before")
+    @classmethod
+    def _known_auto_pause_mode(cls, value: object) -> str:
+        mode = str(value).strip().lower()
+        if mode not in ("on", "warn", "off"):
+            raise ValueError("AUTO_PAUSE_MODE must be on, warn or off")
+        return mode
 
 
 settings = Settings()

@@ -229,3 +229,41 @@ Opciones (ninguna aplicada):
 - Calibración vigente de la C922: la 2 (Y de referencia 260 mm, focal 1.499 px estimada, avisos `focal_unusual`
   y `mark_far_at_typical_focal`); no se tocó.
 - Último trabajo: 43 (`completed`). El siguiente número esperado en la base: el próximo `print_jobs.id` (>43).
+
+## Etapa B: pausa automática en modo aviso (2026-10-08, 18:47 hora de Colombia = 23:47 UTC)
+
+Samuel eligió la opción A. Se añadió `AUTO_PAUSE_MODE` (`on` por defecto, `warn`, `off`):
+
+- **`on`**: sin cambios (aviso, cuenta de 15 s, `pause` a Moonraker).
+- **`warn`**: al cerrarse la racha de 3 capas con *spaghetti* no hay cuenta ni pausa; se registra el evento
+  `auto_pause.would_pause` en la bitácora (origen `monitor`, `print_job_id`, hora, `detail` con `layer`,
+  `confidence`, `streak` de las tres capas, `sent: false`) y se anuncia en la web con un banner «Modo aviso».
+  Para contar cuántas veces habría pausado: `SELECT count(*) FROM printer_events WHERE event_type =
+  'auto_pause.would_pause';`.
+- **`off`**: no hace nada (ni aviso ni evento ni pausa).
+- Un valor inválido (por ejemplo `maybe`) impide arrancar el backend, en vez de pausar o no pausar en silencio.
+  Se acepta con mayúsculas y espacios.
+- Segunda guarda: `_execute` no envía nada si el modo no es `on`.
+- Código: `backend/app/core/config.py`, `backend/app/services/auto_pause.py`; web: banner en
+  `AutoPauseOverlay.tsx`, etiqueta en `events.ts`, filtro de estados de la bitácora. `.env.example` documenta la
+  variable.
+- **Pruebas** (`backend/tests/test_auto_pause_modes.py`, contra la impresora simulada, que cambia de estado de
+  verdad): `on` → la simulada queda `paused` con 1 pause recibido; `warn` → sigue `printing`, 0 pause, un evento
+  con capa 9 y confianza 0,92 y la cadena íntegra; `off` → 0 pause y ningún evento; por defecto `on` y un
+  valor erróneo falla. Suite completa: **153 pasan**.
+
+**Despliegue.** Respaldo previo con `pg_dump`: `storage/respaldo_antes_modo_aviso_2026-10-08.sql` (8,5 MB, no se
+versiona). `AUTO_PAUSE_MODE=warn` añadido al final del `.env` real (no se versiona) con un comentario. Solo se
+reconstruyó el contenedor `backend`, con la .22 en `standby`. Comprobado: contenedor `healthy`, el modo dentro
+del contenedor es `warn`, `alembic current` = `e7b3c2a91f04` (head, sin migraciones), `/health` base y Redis `ok`,
+listener conectado a la .22 (`standby`, `layer=0/0`), `capture` con cuadros frescos, SalaSteam_UIS.
+
+**Cómo revertir** (volver a `on`): borrar las dos últimas líneas del `.env` (el comentario y
+`AUTO_PAUSE_MODE=warn`) y reconstruir solo el backend, con el mismo comando que se usa siempre:
+`docker compose --env-file .env -f infra/docker-compose.yml --profile full up -d --build --no-deps backend`
+(en WSL, desde la raíz del repositorio). Sin la variable el modo es `on`. Se hace **cuando no haya impresión en
+curso**. Para comprobarlo: `docker exec infra-backend-1 python -c "from app.core.config import settings;
+print(settings.auto_pause_mode)"` debe imprimir `on`.
+
+**Estado al cerrar el despliegue:** modo **warn**; la .22 en `standby`, sin archivo, cama en Y 260,0 mm; nada se
+envió a ninguna impresora. Se espera el «inicié» de Samuel.

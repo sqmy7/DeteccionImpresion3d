@@ -21,6 +21,7 @@ const GROUP_TYPES: Record<Group, string[] | undefined> = {
   states: [
     "state_changed",
     "printwatch_command",
+    "auto_pause.would_pause",
     "klippy_state_changed",
     "klippy_disconnected",
     "klippy_shutdown",

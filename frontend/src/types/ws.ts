@@ -18,6 +18,7 @@ export type WsEventType =
   | "auto_pause.aborted"
   | "auto_pause.executed"
   | "auto_pause.failed"
+  | "auto_pause.would_pause"
   | "telemetry.sample"
   | "printer.event";
 
@@ -124,4 +125,14 @@ export interface AutoPauseFailedEvent {
   job_id: number;
   printer_id: number;
   reason: string;
+}
+
+/** Warn mode (AUTO_PAUSE_MODE=warn): the streak was reached and the pause would have been sent. */
+export interface AutoPauseWouldPauseEvent {
+  job_id: number;
+  printer_id: number;
+  reason: string;
+  consecutive_layers: number;
+  layer: number | null;
+  confidence: number | null;
 }

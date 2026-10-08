@@ -42,6 +42,7 @@ export const EVENT_LABELS: Record<string, string> = {
   monitor_disconnected: "PrintWatch perdió la conexión",
   state_changed: "Cambio de estado",
   printwatch_command: "Orden de PrintWatch",
+  "auto_pause.would_pause": "Habría pausado (modo aviso)",
   target_changed: "Temperatura objetivo",
   speed_factor_changed: "Factor de velocidad",
   flow_factor_changed: "Factor de flujo",
@@ -130,6 +131,11 @@ export function describeEvent(event: PrinterEvent): string {
       const who = detail?.source === "auto_pause" ? "pausa automática por spaghetti" : (detail?.requested_by as string) ?? "web";
       const failed = detail?.ok === false ? ` — falló: ${detail?.error ?? "sin detalle"}` : "";
       return `Pidió ${verb} (${who})${failed}`;
+    }
+    case "auto_pause.would_pause": {
+      const layer = detail?.layer != null ? `capa ${String(detail.layer)}` : "capa desconocida";
+      const confidence = typeof detail?.confidence === "number" ? `, confianza ${Math.round(detail.confidence * 100)} %` : "";
+      return `Spaghetti en ${detail?.consecutive_layers ?? 3} capas seguidas (${layer}${confidence}); no se envió nada`;
     }
     case "object_excluded":
       return String(after);

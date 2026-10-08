@@ -3,9 +3,12 @@ import logging
 from datetime import datetime, timedelta, timezone
 
 import httpx
+from sqlalchemy import desc, select
 
-from app.db.models import JobStatus, Printer, PrinterStatus, PrintJob
+from app.core.config import settings
+from app.db.models import Detection, JobStatus, Layer, LayerCapture, Printer, PrinterStatus, PrintJob
 from app.integrations.moonraker.client import send_print_action
+from app.services.printer_events import EventOrigin, record_event
 from app.services.streak_detection import check_consecutive_streak
 from app.ws.manager import manager
 
@@ -20,7 +23,11 @@ _GRACE_PERIOD_SECONDS = 15
 
 
 class AutoPauseManager:
-    """At most one pending auto-pause per job, tracked entirely in memory. The grace-period
+    """What happens when the spaghetti streak is reached depends on settings.auto_pause_mode (read on
+    every check, so tests and the .env agree): "on" is the countdown below; "warn" announces and logs
+    an auto_pause.would_pause event and nothing else; "off" does nothing.
+
+    At most one pending auto-pause per job, tracked entirely in memory. The grace-period
     countdown IS a live asyncio.Task in this process regardless of where its existence is
     recorded, so tracking 'is one pending' here (instead of in Postgres) avoids a second source
     of truth for the same fact. Trade-off: a backend restart mid-countdown silently drops the
@@ -31,6 +38,9 @@ class AutoPauseManager:
         self._pending: dict[int, asyncio.Task] = {}  # job_id -> countdown task
 
     async def check_spaghetti_streak(self, db_session_factory, job_id: int, camera_id: int, printer_id: int) -> None:
+        mode = settings.auto_pause_mode
+        if mode == "off":
+            return
         if job_id in self._pending:
             # Grace period already running for this job - do NOT reset it just because the
             # streak continues. Otherwise a print that keeps producing spaghetti every layer
@@ -50,6 +60,11 @@ class AutoPauseManager:
                     "Spaghetti streak on job %s, but printer %s is already paused - not scheduling", job_id, printer_id
                 )
                 return
+            streak = await _streak_layers(db, job_id, camera_id) if mode == "warn" else []
+
+        if mode == "warn":
+            await self._would_pause(db_session_factory, job_id, printer_id, streak)
+            return
 
         executes_at = datetime.now(timezone.utc) + timedelta(seconds=_GRACE_PERIOD_SECONDS)
         logger.warning(
@@ -69,6 +84,43 @@ class AutoPauseManager:
                 "reason": "spaghetti",
                 "consecutive_layers": _SPAGHETTI_STREAK_THRESHOLD,
                 "executes_at": executes_at.isoformat(),
+            },
+        )
+
+    async def _would_pause(self, db_session_factory, job_id: int, printer_id: int, streak: list[dict]) -> None:
+        """Warn mode: say the pause would have been sent, with the layer and the model's confidence,
+        and send nothing to the printer."""
+        last = streak[0] if streak else {}
+        logger.warning(
+            "Spaghetti streak (%s consecutive layers) on job %s (printer %s): auto-pause would have fired "
+            "(AUTO_PAUSE_MODE=warn, nothing sent)",
+            _SPAGHETTI_STREAK_THRESHOLD, job_id, printer_id,
+        )
+        await record_event(
+            db_session_factory,
+            printer_id,
+            "auto_pause.would_pause",
+            EventOrigin.MONITOR,
+            job_id=job_id,
+            detail={
+                "mode": "warn",
+                "sent": False,
+                "reason": "spaghetti",
+                "consecutive_layers": _SPAGHETTI_STREAK_THRESHOLD,
+                "layer": last.get("layer"),
+                "confidence": last.get("confidence"),
+                "streak": streak,
+            },
+        )
+        await manager.broadcast(
+            "auto_pause.would_pause",
+            {
+                "job_id": job_id,
+                "printer_id": printer_id,
+                "reason": "spaghetti",
+                "consecutive_layers": _SPAGHETTI_STREAK_THRESHOLD,
+                "layer": last.get("layer"),
+                "confidence": last.get("confidence"),
             },
         )
 
@@ -101,6 +153,9 @@ class AutoPauseManager:
             self._pending.pop(job_id, None)
 
     async def _execute(self, db_session_factory, job_id: int, printer_id: int) -> None:
+        if settings.auto_pause_mode != "on":
+            logger.warning("Auto-pause for job %s not sent: AUTO_PAUSE_MODE is %s", job_id, settings.auto_pause_mode)
+            return
         async with db_session_factory() as db:
             job = await db.get(PrintJob, job_id)
             printer = await db.get(Printer, printer_id)
@@ -137,6 +192,19 @@ class AutoPauseManager:
         # Klipper report print_stats.state == 'paused' (_STATE_TO_PRINTER_STATUS already maps
         # that) - no need to set it here and risk disagreeing with what Klipper actually did.
         await manager.broadcast("auto_pause.executed", {"job_id": job_id, "printer_id": printer_id, "reason": "spaghetti"})
+
+
+async def _streak_layers(db, job_id: int, camera_id: int) -> list[dict]:
+    """The layers of the streak that just fired, most recent first, with the model's confidence."""
+    rows = await db.execute(
+        select(Layer.layer_number, Detection.max_confidence)
+        .join(LayerCapture, LayerCapture.layer_id == Layer.id)
+        .join(Detection, Detection.capture_id == LayerCapture.id)
+        .where(Layer.job_id == job_id, LayerCapture.camera_id == camera_id)
+        .order_by(desc(Layer.layer_number))
+        .limit(_SPAGHETTI_STREAK_THRESHOLD)
+    )
+    return [{"layer": number, "confidence": None if confidence is None else float(confidence)} for number, confidence in rows.all()]
 
 
 auto_pause_manager = AutoPauseManager()
