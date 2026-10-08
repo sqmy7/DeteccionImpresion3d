@@ -1,24 +1,20 @@
+import { BellOff } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { AlertRow } from "../components/AlertRow";
+import { PageHeader } from "../components/layout/PageHeader";
+import { Card, EmptyState, Segmented, Skeleton } from "../components/ui";
 import { useAuth } from "../hooks/useAuth";
 import { useWsEvent } from "../hooks/useWebSocket";
 import { listAlerts, transitionAlert } from "../services/alerts";
 import type { AlertListItem, AlertStatus } from "../types/api";
 import type { DetectionAlertEvent } from "../types/ws";
 
-const STATUS_FILTERS: { label: string; value: AlertStatus | "all" }[] = [
-  { label: "Todas", value: "all" },
-  { label: "Nuevas", value: "new" },
-  { label: "Reconocidas", value: "acknowledged" },
-  { label: "Descartadas", value: "dismissed" },
-  { label: "Falso positivo", value: "false_positive" },
-];
+type Filter = AlertStatus | "all";
 
 export function AlertCenterPage() {
   const { token } = useAuth();
   const [alerts, setAlerts] = useState<AlertListItem[]>([]);
-  const [filter, setFilter] = useState<AlertStatus | "all">("all");
+  const [filter, setFilter] = useState<Filter>("new");
   const [isLoading, setIsLoading] = useState(true);
 
   const refetch = useCallback(() => {
@@ -39,47 +35,52 @@ export function AlertCenterPage() {
     if (!token) return;
     try {
       await transitionAlert(token, alertId, status);
-      refetch();
-    } catch {
-      // Backend already validates the transition (409 on an invalid one) - a stale
-      // button click just gets a no-op refetch showing the alert's real current state.
+    } finally {
+      // The backend validates transitions (409 on an invalid one); a stale click just refetches
+      // the alert's real state.
       refetch();
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="border-b border-slate-200 bg-white px-4 py-3 sm:px-6">
-        <Link to="/" className="text-sm text-slate-500 hover:text-slate-700">
-          &larr; Volver al dashboard
-        </Link>
-        <h1 className="mt-1 text-lg font-bold text-slate-900">Centro de alertas</h1>
-      </header>
-
-      <main className="p-4 sm:p-6">
-        <div className="mb-4 flex flex-wrap gap-2">
-          {STATUS_FILTERS.map((option) => (
-            <button
-              key={option.value}
-              onClick={() => setFilter(option.value)}
-              className={`rounded-full px-3 py-1 text-xs font-medium ${
-                filter === option.value ? "bg-slate-900 text-white" : "bg-slate-200 text-slate-600 hover:bg-slate-300"
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-
-        {isLoading && <p className="text-slate-500">Cargando alertas...</p>}
-        {!isLoading && alerts.length === 0 && <p className="text-slate-500">No hay alertas para este filtro.</p>}
-
-        <div className="flex flex-col gap-2">
-          {alerts.map((alert) => (
-            <AlertRow key={alert.id} alert={alert} onTransition={handleTransition} />
-          ))}
-        </div>
-      </main>
-    </div>
+    <>
+      <PageHeader
+        title="Alertas"
+        subtitle="Generadas por reglas sobre las detecciones (por ahora, atasco por sub-extrusión en capas seguidas)"
+      />
+      <Card
+        actions={
+          <Segmented
+            label="Estado"
+            value={filter}
+            onChange={setFilter}
+            options={[
+              { value: "new", label: "Sin revisar" },
+              { value: "acknowledged", label: "Reconocidas" },
+              { value: "dismissed", label: "Descartadas" },
+              { value: "false_positive", label: "Falsos positivos" },
+              { value: "all", label: "Todas" },
+            ]}
+          />
+        }
+        title="Listado"
+      >
+        {isLoading ? (
+          <div className="flex flex-col gap-2">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <Skeleton key={index} className="h-14 w-full" />
+            ))}
+          </div>
+        ) : alerts.length === 0 ? (
+          <EmptyState icon={<BellOff size={28} />} title="Sin alertas para este filtro" />
+        ) : (
+          <div className="flex flex-col gap-2">
+            {alerts.map((alert) => (
+              <AlertRow key={alert.id} alert={alert} onTransition={handleTransition} />
+            ))}
+          </div>
+        )}
+      </Card>
+    </>
   );
 }

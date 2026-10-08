@@ -1,4 +1,7 @@
+import { Link } from "react-router-dom";
+import { formatDateTime } from "../lib/format";
 import type { AlertListItem, AlertStatus } from "../types/api";
+import { Badge, Button } from "./ui";
 
 // new -> acknowledged/dismissed/false_positive; acknowledged -> dismissed/false_positive;
 // mirrors app/services/alerts.py's _ALLOWED_TRANSITIONS exactly.
@@ -16,42 +19,34 @@ const TRANSITION_LABELS: Record<AlertStatus, string> = {
   false_positive: "Falso positivo",
 };
 
-/** Shared between AlertCenterPage (all alerts, light theme) and the embedded job dashboard
- * panel (this job's alerts, dark theme) - `dark` only swaps the row chrome, not the logic. */
+const STATUS_LABELS: Record<AlertStatus, string> = {
+  new: "Sin revisar",
+  acknowledged: "Reconocida",
+  dismissed: "Descartada",
+  false_positive: "Falso positivo",
+};
+
+/** Shared by the alert center (every printer) and the job pages (one job's alerts). */
 export function AlertRow({
   alert,
   onTransition,
-  dark = false,
 }: {
   alert: AlertListItem;
   onTransition: (alertId: number, status: AlertStatus) => void;
-  dark?: boolean;
 }) {
-  const severityClasses = dark
-    ? alert.severity === "critical"
-      ? "bg-red-500/15 text-red-400"
-      : "bg-amber-500/15 text-amber-400"
-    : alert.severity === "critical"
-      ? "bg-red-100 text-red-700"
-      : "bg-amber-100 text-amber-700";
   const nextStatuses = ALLOWED_TRANSITIONS[alert.status];
+  const critical = alert.severity === "critical";
 
   return (
-    <div
-      className={
-        dark
-          ? "flex flex-col gap-2 rounded-lg border border-slate-800 bg-slate-900 p-3 sm:flex-row sm:items-center sm:justify-between"
-          : "flex flex-col gap-2 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
-      }
-    >
-      <div className="flex items-center gap-3">
-        <span className={`rounded-full px-2.5 py-1 text-xs font-semibold uppercase ${severityClasses}`}>
-          {alert.severity}
-        </span>
-        <div>
-          <p className={dark ? "font-medium text-slate-100" : "font-medium text-slate-900"}>{alert.printer_name}</p>
-          <p className={dark ? "text-xs text-slate-400" : "text-xs text-slate-500"}>
-            {new Date(alert.created_at).toLocaleString()} · {alert.status}
+    <div className="flex flex-col gap-2 rounded-lg border border-line bg-surface-2/60 p-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-w-0 items-center gap-3">
+        <Badge tone={critical ? "danger" : "warn"}>{critical ? "Crítica" : "Aviso"}</Badge>
+        <div className="min-w-0">
+          <Link to={`/printers/${alert.printer_id}/live`} className="block truncate font-medium text-fg hover:text-accent-fg">
+            {alert.printer_name}
+          </Link>
+          <p className="text-xs text-muted">
+            {formatDateTime(alert.created_at)} · {STATUS_LABELS[alert.status]}
           </p>
         </div>
       </div>
@@ -59,17 +54,9 @@ export function AlertRow({
       {nextStatuses.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {nextStatuses.map((status) => (
-            <button
-              key={status}
-              onClick={() => onTransition(alert.id, status)}
-              className={
-                dark
-                  ? "rounded-md border border-slate-700 px-2.5 py-1 text-xs font-medium text-slate-300 hover:bg-slate-800"
-                  : "rounded-md border border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100"
-              }
-            >
+            <Button key={status} size="sm" variant="secondary" onClick={() => onTransition(alert.id, status)}>
               {TRANSITION_LABELS[status]}
-            </button>
+            </Button>
           ))}
         </div>
       )}

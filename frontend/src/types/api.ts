@@ -5,6 +5,7 @@ export interface Printer {
   name: string;
   model: string | null;
   octoprint_url: string;
+  integration_type: "octoprint" | "moonraker";
   last_known_status: PrinterStatus;
   created_at: string;
   updated_at: string;
@@ -129,4 +130,176 @@ export interface AlertListItem {
   acknowledged_by: number | null;
   acknowledged_at: string | null;
   created_at: string;
+}
+
+// --- Telemetry (backend Fase 1) ---
+
+export type ExtraSensors = Record<string, number | boolean>;
+
+export interface TelemetryValues {
+  layer_number: number | null;
+  x: number | null;
+  y: number | null;
+  z: number | null;
+  velocity: number | null;
+  extruder_velocity: number | null;
+  extruder_temp: number | null;
+  extruder_target: number | null;
+  extruder_power: number | null;
+  bed_temp: number | null;
+  bed_target: number | null;
+  bed_power: number | null;
+  fan_speed: number | null;
+  speed_factor: number | null;
+  extrude_factor: number | null;
+  z_offset: number | null;
+  progress: number | null;
+  filament_used: number | null;
+  extra: ExtraSensors | null;
+}
+
+export interface TelemetryPoint extends TelemetryValues {
+  ts: string;
+}
+
+export interface JobTelemetry {
+  job_id: number;
+  samples: number;
+  bucket_seconds: number | null;
+  points: TelemetryPoint[];
+}
+
+/** What the listener pushes once per second (telemetry.sample) and /telemetry/latest returns. */
+export interface TelemetryReading extends TelemetryValues {
+  printer_id: number;
+  job_id: number | null;
+  state: string | null;
+  ts: string;
+}
+
+export interface Layer {
+  id: number;
+  job_id: number;
+  layer_number: number;
+  z_height: string;
+  detected_at: string;
+  telemetry: (Partial<TelemetryValues> & { current_object?: string }) | null;
+}
+
+// --- Event log (backend Fases 1 y 2) ---
+
+export type EventOrigin = "printwatch" | "console" | "gcode_file" | "printer" | "external" | "monitor";
+
+export interface PrinterEvent {
+  id: number;
+  printer_id: number;
+  print_job_id: number | null;
+  ts: string;
+  klipper_eventtime: number | null;
+  event_type: string;
+  field: string | null;
+  value_before: unknown;
+  value_after: unknown;
+  origin: EventOrigin;
+  detail: Record<string, unknown> | null;
+  hash: string;
+}
+
+export interface ChainVerification {
+  ok: boolean;
+  events_checked: number;
+  first_broken_id: number | null;
+  reason: "prev_hash_mismatch" | "content_changed" | null;
+  last_hash: string | null;
+}
+
+// --- Bed map (backend Fase 3) ---
+
+export interface BedObject {
+  name: string;
+  center?: [number, number];
+  polygon?: [number, number][];
+}
+
+export interface BedMesh {
+  profile_name: string | null;
+  mesh_min: [number, number];
+  mesh_max: [number, number];
+  probed_matrix: number[][];
+}
+
+export interface BedGeometry {
+  axis_minimum: number[] | null;
+  axis_maximum: number[] | null;
+  bed_mesh: BedMesh | null;
+  objects: BedObject[];
+}
+
+export interface CameraCalibration {
+  id: number;
+  camera_id: number;
+  created_at: string;
+  created_by: number | null;
+  image_points: [number, number][];
+  bed_points: [number, number][];
+  image_width: number;
+  image_height: number;
+  bed_moves_in_image: boolean;
+  reference_y: number | null;
+  focal_px: number | null;
+  camera_position: [number, number, number] | null;
+  warnings: string[];
+}
+
+export interface CalibrationCreate {
+  image_points: [number, number][];
+  bed_points?: [number, number][];
+  image_width: number;
+  image_height: number;
+  bed_moves_in_image: boolean;
+  reference_y?: number | null;
+}
+
+export interface LocatedDefect {
+  detection_id: number;
+  capture_id: number;
+  camera_id: number;
+  calibration_id: number;
+  calibration_after_capture: boolean;
+  layer_number: number;
+  z: number;
+  class_name: string | null;
+  confidence: number | null;
+  box: number[];
+  x: number;
+  y: number;
+  uncertainty_mm: number;
+  reliable: boolean;
+  parallax_mm: number;
+  shift_mm: number;
+  object: string | null;
+  head: { x: number | null; y: number | null; z: number | null };
+  current_object: string | null;
+}
+
+export interface JobBedMap {
+  job_id: number;
+  geometry: BedGeometry | null;
+  calibrated_cameras: number[];
+  defects: LocatedDefect[];
+  skipped_boxes: number;
+  head_path: [number, number][];
+}
+
+export interface BedHeatmap {
+  printer_id: number;
+  cell_mm: number;
+  width_mm: number;
+  depth_mm: number;
+  counts: number[][];
+  jobs: number;
+  located: number;
+  unreliable: number;
+  skipped_boxes: number;
+  bed_mesh: BedMesh | null;
 }

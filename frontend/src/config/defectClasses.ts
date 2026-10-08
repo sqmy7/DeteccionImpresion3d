@@ -28,21 +28,35 @@ export function classLabel(name: string): string {
   return DEFECT_CLASS_LABELS[name] ?? name;
 }
 
-// Per-class color for bounding-box overlays (live view) - distinct, saturated hues per class so
-// several boxes on screen stay distinguishable at a glance; informational classes get the same
-// muted slate used for their "info" status elsewhere (LayerTimeline), not an alarming color.
+// Per-class color, from the Okabe-Ito palette (distinguishable with the common forms of color
+// blindness); informational classes get a muted slate, not an alarming color. Color is never the
+// only cue: maps and charts also show the class code below or its name.
 const CLASS_COLORS: Record<string, string> = {
-  spaghetti: "#ef4444", // red-500
-  warping: "#f97316", // orange-500
-  stringing: "#eab308", // yellow-500
-  layer_shift: "#a855f7", // purple-500
-  under_extrusion: "#ec4899", // pink-500
-  blob_over_extrusion: "#64748b", // slate-500 (informational)
+  spaghetti: "#D55E00", // vermillion
+  warping: "#E69F00", // orange
+  stringing: "#F0E442", // yellow
+  layer_shift: "#CC79A7", // reddish purple
+  under_extrusion: "#56B4E9", // sky blue
+  blob_over_extrusion: "#94A3B8", // slate (informational)
 };
-const DEFAULT_CLASS_COLOR = "#64748b"; // slate-500, for any class not in the palette above
+const DEFAULT_CLASS_COLOR = "#94A3B8";
+
+const CLASS_CODES: Record<string, string> = {
+  spaghetti: "SP",
+  warping: "WA",
+  stringing: "ST",
+  layer_shift: "LS",
+  under_extrusion: "UE",
+  blob_over_extrusion: "BL",
+};
 
 export function classColor(name: string): string {
   return CLASS_COLORS[name] ?? DEFAULT_CLASS_COLOR;
+}
+
+/** Two-letter code drawn on map markers, so classes are told apart without relying on color. */
+export function classCode(name: string): string {
+  return CLASS_CODES[name] ?? name.slice(0, 2).toUpperCase();
 }
 
 export type LayerStatus = "ok" | "info" | "defect";

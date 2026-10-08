@@ -1,8 +1,9 @@
-import type { PrinterStatus } from "./api";
+import type { PrinterEvent, PrinterStatus, TelemetryReading } from "./api";
 
 // Event types from the WS contract: printer.status, layer.captured, detection.result,
 // detection.boxes, detection.alert, job.started/completed/failed/cancelled,
-// auto_pause.pending/aborted/executed/failed.
+// auto_pause.pending/aborted/executed/failed, telemetry.sample (1 Hz per connected printer)
+// and printer.event (each new event-log entry).
 export type WsEventType =
   | "printer.status"
   | "layer.captured"
@@ -16,7 +17,12 @@ export type WsEventType =
   | "auto_pause.pending"
   | "auto_pause.aborted"
   | "auto_pause.executed"
-  | "auto_pause.failed";
+  | "auto_pause.failed"
+  | "telemetry.sample"
+  | "printer.event";
+
+export type TelemetrySampleEvent = TelemetryReading;
+export type PrinterEventEvent = PrinterEvent;
 
 export interface WsEnvelope<T = unknown> {
   type: WsEventType;

@@ -42,7 +42,7 @@ export function JobAlertsPanel({ jobId }: { jobId: number }) {
       ) : (
         <div className="flex flex-col gap-2">
           {alerts.map((alert) => (
-            <AlertRow key={alert.id} alert={alert} onTransition={handleTransition} dark />
+            <AlertRow key={alert.id} alert={alert} onTransition={handleTransition} />
           ))}
         </div>
       )}

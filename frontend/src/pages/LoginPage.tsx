@@ -1,7 +1,12 @@
+import { Activity } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Navigate } from "react-router-dom";
+import { Button, ErrorNote } from "../components/ui";
 import { useAuth } from "../hooks/useAuth";
 import { ApiError } from "../services/apiClient";
+
+const INPUT =
+  "w-full rounded-md border border-line bg-surface-2 px-3 py-2 text-sm text-fg placeholder:text-faint focus:border-accent focus:outline-none";
 
 export function LoginPage() {
   const { token, login } = useAuth();
@@ -21,54 +26,62 @@ export function LoginPage() {
     try {
       await login(username, password);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "No se pudo iniciar sesión.");
+      setError(err instanceof ApiError && err.status === 401 ? "Usuario o contraseña incorrectos." : "No se pudo iniciar sesión.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
-      <form onSubmit={handleSubmit} className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-        <h1 className="mb-1 text-xl font-bold text-slate-900">PrintWatch</h1>
-        <p className="mb-6 text-sm text-slate-500">Iniciá sesión para ver el estado de tus impresoras.</p>
+    <div className="flex min-h-screen items-center justify-center bg-canvas px-4">
+      <div className="w-full max-w-sm">
+        <div className="mb-6 flex flex-col items-center gap-3 text-center">
+          <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent/15 text-accent">
+            <Activity size={26} strokeWidth={2.5} />
+          </span>
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-fg">PrintWatch</h1>
+            <p className="mt-1 text-sm text-muted">Detección de fallos en impresión 3D, capa por capa</p>
+          </div>
+        </div>
 
-        <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="username">
-          Usuario
-        </label>
-        <input
-          id="username"
-          type="text"
-          value={username}
-          onChange={(event) => setUsername(event.target.value)}
-          className="mb-4 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
-          autoComplete="username"
-          required
-        />
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-xl border border-line bg-surface p-6">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-fg" htmlFor="username">
+              Usuario
+            </label>
+            <input
+              id="username"
+              type="text"
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              className={INPUT}
+              autoComplete="username"
+              required
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-fg" htmlFor="password">
+              Contraseña
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              className={INPUT}
+              autoComplete="current-password"
+              required
+            />
+          </div>
 
-        <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="password">
-          Contraseña
-        </label>
-        <input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          className="mb-4 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
-          autoComplete="current-password"
-          required
-        />
+          {error && <ErrorNote>{error}</ErrorNote>}
 
-        {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
-
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
-        >
-          {isSubmitting ? "Ingresando..." : "Ingresar"}
-        </button>
-      </form>
+          <Button type="submit" variant="primary" disabled={isSubmitting} className="w-full">
+            {isSubmitting ? "Ingresando…" : "Ingresar"}
+          </Button>
+        </form>
+      </div>
     </div>
   );
 }
