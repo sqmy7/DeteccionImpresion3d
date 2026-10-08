@@ -20,13 +20,16 @@ export interface HeatmapOverlay {
 
 /** The bed's size in mm (mirrors bed_dimensions in app/services/defect_map.py): Klipper's axis
  * limits are the head's travel (285 x 273 on the Hi, past the bed because of the filament cutter),
- * so the size comes from the bed mesh, which is symmetric about the bed (10 + 250 = 260). */
+ * so the size comes from the bed mesh, which is symmetric about the bed (10 + 250 = 260). With no
+ * mesh loaded (the printer idle after a boot) Klipper reports mesh_min = mesh_max = [0, 0]: that is
+ * not a size, so the spec size is used. */
 export function bedSize(geometry: BedGeometry | null | undefined): { width: number; depth: number } {
   const maximum = geometry?.axis_maximum ?? [];
   const mesh = geometry?.bed_mesh;
   const axis = (index: 0 | 1): number => {
     const travel = maximum.length > index && maximum[index] ? maximum[index] : null;
-    const meshSize = mesh?.mesh_min?.[index] != null && mesh?.mesh_max?.[index] != null ? mesh.mesh_min[index] + mesh.mesh_max[index] : DEFAULT_SIZE;
+    const probed = mesh?.mesh_min?.[index] != null && mesh?.mesh_max?.[index] != null ? mesh.mesh_min[index] + mesh.mesh_max[index] : 0;
+    const meshSize = probed > 0 ? probed : DEFAULT_SIZE;
     return travel ? Math.min(meshSize, travel) : meshSize;
   };
   return { width: axis(0), depth: axis(1) };
@@ -43,6 +46,7 @@ function MeshLayer({ mesh, sy }: { mesh: BedMesh; sy: (y: number) => number }) {
   if (!rows.length || !rows[0].length) return null;
   const [minX, minY] = mesh.mesh_min;
   const [maxX, maxY] = mesh.mesh_max;
+  if (!(maxX > minX) || !(maxY > minY)) return null; // no mesh loaded: Klipper reports [0, 0] to [0, 0]
   const cellW = (maxX - minX) / Math.max(1, rows[0].length - 1);
   const cellH = (maxY - minY) / Math.max(1, rows.length - 1);
   const limit = Math.max(0.01, ...rows.flat().map((value) => Math.abs(value)));
@@ -283,7 +287,7 @@ export function BedPositionNote({ className = "" }: { className?: string }) {
 }
 
 export function MeshLegend({ mesh }: { mesh: BedMesh | null | undefined }) {
-  if (!mesh?.probed_matrix?.length) return null;
+  if (!mesh?.probed_matrix?.length || !(mesh.mesh_max[0] > mesh.mesh_min[0])) return null;
   const values = mesh.probed_matrix.flat();
   const low = Math.min(...values);
   const high = Math.max(...values);

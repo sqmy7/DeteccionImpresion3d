@@ -181,7 +181,9 @@ def build_calibration(
 ) -> Calibration:
     """image_points are normalized (0..1 of the frame), in the same order as bed_points (mm)."""
     pixels = [(u * width, v * height) for u, v in image_points]
-    if not is_convex_in_order(pixels) or not is_convex_in_order(list(bed_points)):
+    if not is_convex_in_order(list(bed_points)):
+        raise ValueError("the bed corners (bed_points) do not form a quadrilateral: the bed size is zero or the corners are repeated")
+    if not is_convex_in_order(pixels):
         raise ValueError("the four points must be marked in order around the bed, without crossing")
     if _signed_area(pixels) == 0:
         raise ValueError("the four points are degenerate")

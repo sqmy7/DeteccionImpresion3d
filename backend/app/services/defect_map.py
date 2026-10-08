@@ -35,7 +35,8 @@ def bed_dimensions(geometry: dict | None) -> tuple[float, float]:
     on the Creality Hi they are 285 x 273 (the filament cutter sits past the bed), against a
     260 x 260 bed. The bed mesh is symmetric about the bed, so mesh_min + mesh_max gives its size
     (10 + 250 = 260, the same as the spec sheet); without a mesh, the spec size, never more than the
-    head can travel."""
+    head can travel. With no mesh loaded (the printer idle after a boot) Klipper reports
+    mesh_min = mesh_max = [0, 0]; that is not a size, so the spec size is used."""
     geometry = geometry or {}
     maximum = geometry.get("axis_maximum") or []
     mesh = geometry.get("bed_mesh") or {}
@@ -44,6 +45,8 @@ def bed_dimensions(geometry: dict | None) -> tuple[float, float]:
         travel = float(maximum[axis]) if len(maximum) > axis and maximum[axis] else None
         try:
             size = float(mesh["mesh_min"][axis]) + float(mesh["mesh_max"][axis])
+            if size <= 0:
+                size = _DEFAULT_BED_MM
         except (KeyError, IndexError, TypeError, ValueError):
             size = _DEFAULT_BED_MM
         sizes.append(min(size, travel) if travel else size)

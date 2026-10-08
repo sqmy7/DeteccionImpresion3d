@@ -104,6 +104,12 @@ def test_crossed_or_degenerate_marks_are_rejected():
             build_calibration(points, BED, WIDTH, HEIGHT, True, 0.0)
 
 
+def test_bed_corners_of_size_zero_are_blamed_on_the_bed_not_on_the_marks():
+    good_marks = [(0.2, 0.8), (0.8, 0.8), (0.8, 0.5), (0.2, 0.5)]
+    with pytest.raises(ValueError, match="bed corners"):
+        build_calibration(good_marks, [(0.0, 0.0)] * 4, WIDTH, HEIGHT, True, 0.0)
+
+
 def test_bed_size_comes_from_the_mesh_not_from_the_head_travel():
     """Measured on the real Creality Hi: the axes travel 285 x 273 (the cutter sits past the bed), the mesh
     covers 10..250 on both axes and the bed is 260 x 260."""
@@ -115,3 +121,7 @@ def test_bed_size_comes_from_the_mesh_not_from_the_head_travel():
     assert bed_dimensions({"axis_maximum": [285.0, 273.0]}) == (260.0, 260.0)  # no mesh: the spec size
     assert bed_dimensions({"axis_maximum": [220.0, 220.0]}) == (220.0, 220.0)  # never more than the head can reach
     assert bed_dimensions(None) == (260.0, 260.0)
+    # idle after a boot: no mesh loaded, Klipper reports [0, 0] to [0, 0]; that is not a bed size
+    idle = {"axis_maximum": [285.0, 273.0, 310.0, 0.0], "bed_mesh": {"mesh_min": [0.0, 0.0], "mesh_max": [0.0, 0.0], "probed_matrix": [[0.0]]}}
+    assert bed_dimensions(idle) == (260.0, 260.0)
+    assert default_bed_points(idle)[1] == (260.0, 0.0)
