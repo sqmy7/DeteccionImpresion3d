@@ -76,7 +76,7 @@ export function LiveCameraView({ cameraId }: { cameraId: number }) {
   }, [boxes]);
 
   return (
-    <div ref={containerRef} className="relative aspect-video w-full overflow-hidden rounded-lg bg-slate-900">
+    <div ref={containerRef} className="relative aspect-video w-full overflow-hidden rounded-lg bg-surface-2">
       <VideoFeed cameraId={cameraId} />
       <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 h-full w-full" />
     </div>

@@ -6,8 +6,10 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { PrintersProvider } from "./context/PrintersContext";
 import { WebSocketProvider } from "./context/WebSocketContext";
 import { AlertCenterPage } from "./pages/AlertCenterPage";
-import { JobDetailPage } from "./pages/JobDetailPage";
+import { CalibrationPage } from "./pages/CalibrationPage";
+import { JobReplayPage } from "./pages/JobReplayPage";
 import { JobsListPage } from "./pages/JobsListPage";
+import { LivePrintPage } from "./pages/LivePrintPage";
 import { LoginPage } from "./pages/LoginPage";
 import { LogbookPage } from "./pages/LogbookPage";
 import { OverviewPage } from "./pages/OverviewPage";
@@ -30,10 +32,11 @@ export function App() {
             <Route path="alerts" element={<AlertCenterPage />} />
             <Route path="printers/:printerId" element={<PrinterLayout />}>
               <Route index element={<Navigate to="live" replace />} />
-              <Route path="live" element={<JobDetailPage />} />
+              <Route path="live" element={<LivePrintPage />} />
               <Route path="jobs" element={<JobsListPage />} />
-              <Route path="jobs/:jobId" element={<JobDetailPage />} />
+              <Route path="jobs/:jobId" element={<JobReplayPage />} />
               <Route path="logbook" element={<LogbookPage />} />
+              <Route path="camera" element={<CalibrationPage />} />
             </Route>
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
