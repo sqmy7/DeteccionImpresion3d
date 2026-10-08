@@ -19,7 +19,7 @@ Lo que necesita la impresora real queda preparado para correrlo después y anota
 |---|---|
 | 0. Descubrimiento | Parte sin impresora terminada; falta correr el script en el laboratorio |
 | 1. Telemetría con fecha y hora | Terminada y desplegada; falta verificarla con la impresora real |
-| 2. Bitácora de intervenciones | Sin empezar |
+| 2. Bitácora de intervenciones | Backend terminado y desplegado; la pantalla de la bitácora va en la Fase 4 |
 | 3. Mapa de la cama | Sin empezar |
 | 4. Rediseño de la web | Sin empezar |
 | 5. Innovación | Sin empezar |
@@ -106,6 +106,38 @@ con la C922.
   (`command_log.py`). `auto_pause.py` no se tocó: sus órdenes se reconocen porque es el único que
   llama sin `requested_by`.
 
+## Fase 2: bitácora de intervenciones
+
+**Hecho:**
+- Detección de cambios en los campos vigilados (`app/integrations/moonraker/interventions.py`):
+  temperaturas objetivo, factores de velocidad y flujo, ventiladores, desfase de Z (babystepping),
+  objetos excluidos, sensores de filamento y estado de Klippy, además de los cambios de estado.
+- Atribución con evidencia (`printwatch`, `console`, `gcode_file`, `printer`, `external`; ver
+  `docs/KNOWN_LIMITATIONS.md`, punto 7):
+  - consola: consulta de `/server/gcode_store` cada ~2 s; cada comando nuevo queda también como evento
+    `console_command`, y los errores `!!` como `gcode_error`;
+  - archivo: índice de las líneas que cambian algo, con su posición en bytes, construido al empezar cada
+    impresión descargando el archivo (GET, 1 MB/s como máximo) y siguiendo las macros que llama
+    (`app/integrations/moonraker/gcode_effects.py`, plantillas tomadas de `configfile`).
+- La cadena de hashes, la verificación y el aviso por WebSocket ya venían de la Fase 1.
+- API: filtros `origin` y `event_type` en `GET /printers/{id}/events`.
+- Impresora simulada más fiel: posición en bytes real dentro del G-code, cambios programados en el
+  archivo (temperatura en la capa 2, ventilador en la 3), macros de inicio y fin, y `/mock/screen` para
+  simular cambios desde la pantalla (sin rastro en la consola).
+- Pruebas: 78. Una de punta a punta cubre un cambio de cada tipo y comprueba que los únicos "externos"
+  son el inicio de la impresión y el cambio hecho desde la pantalla. Verificado también en el backend
+  desplegado con una impresora simulada temporal (impresoras 42 y 43, borradas después).
+
+**Decisiones:**
+- Ninguna orden nueva a la impresora: todo es lectura (WebSocket, `gcode_store`, el archivo y
+  `configfile`).
+- Los cambios del ventilador programados en el archivo no se registran; sin el archivo, los del
+  ventilador sin explicación tampoco (serían en su mayoría falsos "externos").
+- Un evento sin evidencia espera ~5 s a la consola y hasta 3 min al índice del archivo antes de
+  registrarse como `external`; la hora del evento es la del cambio.
+- Los comandos de consola llevan la hora de la impresora corregida por la diferencia de relojes,
+  estimada con el encabezado `Date` de las respuestas.
+
 ## Pendiente con la impresora
 
 Antes de cualquier prueba: VPN HotspotShield desconectada, sesión `wsl -- sleep infinity` abierta y
@@ -117,3 +149,8 @@ Antes de cualquier prueba: VPN HotspotShield desconectada, sesión `wsl -- sleep
    (que lleguen posición, temperaturas y sensores extra), la foto de cada capa y la bitácora
    (`GET /printers/35/events` y `/events/verify`). Confirmar que la Hi tiene `motion_report`; si no, la
    posición sale de `toolhead.position`, que va adelantada al cabezal real.
+3. Fase 2: en la bitácora de esa impresión, ver qué origen reciben los cambios del inicio (macros
+   propias de Creality); en el log del backend, la línea "Indexed <archivo>" (cuánto tardó el índice) y
+   que las macros de la Hi se lean de `configfile`. Para comprobar `console` y `external` hace falta que
+   alguien cambie algo durante la impresión (por ejemplo el factor de velocidad desde Fluidd y desde la
+   pantalla). Eso ya es una orden a la impresora, así que queda a tu criterio; PrintWatch no lo hace.

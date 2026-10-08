@@ -137,7 +137,14 @@ async def record_event(
 
 
 async def list_events(
-    db, printer_id: int, *, job_id: int | None = None, before_id: int | None = None, limit: int = 100
+    db,
+    printer_id: int,
+    *,
+    job_id: int | None = None,
+    before_id: int | None = None,
+    origins: list[str] | None = None,
+    event_types: list[str] | None = None,
+    limit: int = 100,
 ) -> list[PrinterEvent]:
     """Newest first; before_id pages backwards."""
     query = select(PrinterEvent).where(PrinterEvent.printer_id == printer_id)
@@ -145,6 +152,10 @@ async def list_events(
         query = query.where(PrinterEvent.print_job_id == job_id)
     if before_id is not None:
         query = query.where(PrinterEvent.id < before_id)
+    if origins:
+        query = query.where(PrinterEvent.origin.in_(origins))
+    if event_types:
+        query = query.where(PrinterEvent.event_type.in_(event_types))
     result = await db.execute(query.order_by(PrinterEvent.id.desc()).limit(limit))
     return list(result.scalars().all())
 

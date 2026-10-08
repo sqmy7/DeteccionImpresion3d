@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     field_encryption_key: str
     cors_allow_origins: str = "*"
     storage_root: Path = Path("/app/storage/snapshots")
+    # Read (GET, rate-limited) the G-code file being printed to tell programmed changes from
+    # interventions in the event log. False: those changes show as "external".
+    gcode_scan_enabled: bool = True
 
 
 settings = Settings()

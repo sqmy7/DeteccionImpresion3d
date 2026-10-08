@@ -1,7 +1,9 @@
 import asyncio
 import contextlib
+import functools
 import json
 import logging
+import time
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 from urllib.parse import urlsplit, urlunsplit
@@ -13,6 +15,13 @@ from sqlalchemy.exc import IntegrityError
 
 from app.db.models import JobStatus, Layer, Printer, PrinterStatus, PrintJob, TelemetrySample
 from app.integrations.moonraker import command_log
+from app.integrations.moonraker.interventions import (
+    DetectedChange,
+    FieldChange,
+    InterventionTracker,
+    detect_changes,
+    print_phase,
+)
 from app.schemas.print_job import PrintJobCreate
 from app.services import telemetry
 from app.services.print_jobs import create_print_job, transition_job_status
@@ -85,6 +94,19 @@ class _PrinterState:
     @property
     def message(self) -> str | None:
         return (self.status.get("print_stats") or {}).get("message") or None
+
+    @property
+    def file_position(self) -> int | None:
+        value = (self.status.get("virtual_sdcard") or {}).get("file_position")
+        return value if isinstance(value, int) and not isinstance(value, bool) else None
+
+    @property
+    def progress(self) -> float | None:
+        value = (self.status.get("virtual_sdcard") or {}).get("progress")
+        return value if isinstance(value, (int, float)) and not isinstance(value, bool) else None
+
+    def phase(self, state: str | None = None) -> str:
+        return print_phase(state or self.state, self.layer, self.progress, self.job_id is not None)
 
     def merge(self, status: dict, eventtime: float | None = None) -> None:
         for name, values in status.items():
@@ -172,6 +194,8 @@ async def _listen_once(printer_id: int, db_session_factory, redis_client, state:
 
     ws_url = _websocket_url(base_url)
     sampler: asyncio.Task | None = None
+    tracker: InterventionTracker | None = None
+    tracker_task: asyncio.Task | None = None
 
     async with websockets.connect(ws_url, max_size=None) as ws:
         # List the printer's objects first, to subscribe to the sensors and fans it actually has.
@@ -221,6 +245,12 @@ async def _listen_once(printer_id: int, db_session_factory, redis_client, state:
                         klipper_eventtime=state.eventtime,
                     )
                     sampler = asyncio.create_task(_run_sampler(printer_id, base_url, db_session_factory, state))
+                    tracker = InterventionTracker(
+                        base_url, state, functools.partial(_record_event_safely, db_session_factory, printer_id)
+                    )
+                    tracker_task = asyncio.create_task(tracker.run())
+                    if state.job_id is not None:
+                        tracker.want_file(state.filename)
                     logger.info(
                         "Moonraker listener for printer %s baseline: state=%s layer=%s/%s z=%s",
                         printer_id,
@@ -245,17 +275,38 @@ async def _listen_once(printer_id: int, db_session_factory, redis_client, state:
                     continue
 
                 params = message.get("params") or [{}]
+                patch = params[0] if params and isinstance(params[0], dict) else {}
                 previous_state = state.state
                 previous_layer = state.layer
-                state.merge(params[0] if params else {}, params[1] if len(params) > 1 else None)
+                previous_phase = state.phase()
+                position_before = state.file_position
+                changes = detect_changes(state.status, patch)
+                state.merge(patch, params[1] if len(params) > 1 else None)
 
+                job_change: dict = {}
                 if state.state != previous_state:
                     logger.info(
                         "Printer %s state: %s -> %s (file=%s)", printer_id, previous_state, state.state, state.filename
                     )
                     await _sync_printer_status(db_session_factory, printer_id, state)
                     job_change = await _sync_job(db_session_factory, printer_id, state)
-                    await _record_state_change(db_session_factory, printer_id, base_url, state, previous_state, job_change)
+                    if job_change.get("job_opened") and tracker is not None:
+                        tracker.want_file(state.filename)
+
+                if changes and tracker is not None:
+                    # Changes in the same update that closed a job (END_PRINT turning heaters off)
+                    # still belong to that job.
+                    job_id = job_change.get("job_closed") or state.job_id
+                    phase = "end" if job_change.get("job_closed") else state.phase()
+                    await _handle_field_changes(
+                        db_session_factory, printer_id, state, tracker, changes, position_before, job_id, phase
+                    )
+
+                if state.state != previous_state:
+                    await _record_state_change(
+                        db_session_factory, printer_id, base_url, state, previous_state, previous_phase, job_change,
+                        tracker, position_before,
+                    )
 
                 if state.layer != previous_layer and state.state == "printing":
                     await _handle_layer_change(db_session_factory, redis_client, printer_id, state)
@@ -264,6 +315,12 @@ async def _listen_once(printer_id: int, db_session_factory, redis_client, state:
                 sampler.cancel()
                 with contextlib.suppress(asyncio.CancelledError):
                     await sampler
+            if tracker_task is not None:
+                tracker_task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await tracker_task
+            if tracker is not None:
+                await tracker.close()
 
 
 async def _sync_printer_status(db_session_factory, printer_id: int, state: _PrinterState) -> None:
@@ -350,14 +407,26 @@ def _describe_command(command: command_log.SentCommand) -> dict:
 
 
 async def _record_state_change(
-    db_session_factory, printer_id: int, base_url: str, state: _PrinterState, previous_state: str | None, job_change: dict
+    db_session_factory,
+    printer_id: int,
+    base_url: str,
+    state: _PrinterState,
+    previous_state: str | None,
+    previous_phase: str,
+    job_change: dict,
+    tracker: InterventionTracker | None,
+    position_before: int | None,
 ) -> None:
+    """Logs a print-state change. PrintWatch's own orders and the printer's own end states are
+    known at once; anything else goes to the tracker, which looks for the console command or file
+    line behind it (or settles on "external")."""
     # Orders logged first, so the chain reads "PrintWatch asked to pause" before "paused".
     await _log_sent_commands(db_session_factory, printer_id, base_url, state)
 
     new_state = state.state
-    origin = EventOrigin.EXTERNAL
+    origin: EventOrigin | None = None
     detail: dict = dict(job_change)
+    job_id = job_change.get("job_opened") or job_change.get("job_closed") or state.job_id
 
     if previous_state == "paused" and new_state == "printing":
         action = "resume"
@@ -373,18 +442,82 @@ async def _record_state_change(
     if new_state == "error" and state.message:
         detail["error"] = _parse_klipper_message(state.message)
 
+    if origin is None and tracker is not None:
+        tracker.add(
+            DetectedChange(
+                event_type="state_changed",
+                field="print_stats.state",
+                before=previous_state,
+                after=new_state,
+                observed_at=datetime.now(timezone.utc),
+                observed_monotonic=time.monotonic(),
+                klipper_eventtime=state.eventtime,
+                filename=state.filename,
+                file_position_before=position_before,
+                file_position_after=state.file_position,
+                phase=previous_phase,
+                job_id=job_id,
+                detail=detail,
+            )
+        )
+        return
+
     await _record_event_safely(
         db_session_factory,
         printer_id,
         "state_changed",
-        origin,
-        job_id=job_change.get("job_opened") or job_change.get("job_closed") or state.job_id,
+        origin or EventOrigin.EXTERNAL,
+        job_id=job_id,
         field="print_stats.state",
         before=previous_state,
         after=new_state,
-        detail=detail or None,
+        detail={**detail, "phase": previous_phase},
         klipper_eventtime=state.eventtime,
     )
+
+
+async def _handle_field_changes(
+    db_session_factory,
+    printer_id: int,
+    state: _PrinterState,
+    tracker: InterventionTracker,
+    changes: list[FieldChange],
+    position_before: int | None,
+    job_id: int | None,
+    phase: str,
+) -> None:
+    now = datetime.now(timezone.utc)
+    for change in changes:
+        if not change.needs_attribution:
+            await _record_event_safely(
+                db_session_factory,
+                printer_id,
+                change.event_type,
+                EventOrigin.PRINTER,
+                job_id=job_id,
+                field=change.field,
+                before=change.before,
+                after=change.after,
+                detail={"phase": phase},
+                klipper_eventtime=state.eventtime,
+            )
+            continue
+        tracker.add(
+            DetectedChange(
+                event_type=change.event_type,
+                field=change.field,
+                before=change.before,
+                after=change.after,
+                observed_at=now,
+                observed_monotonic=time.monotonic(),
+                klipper_eventtime=state.eventtime,
+                filename=state.filename,
+                file_position_before=position_before,
+                file_position_after=state.file_position,
+                phase=phase,
+                job_id=job_id,
+            )
+        )
 
 
 async def _log_sent_commands(db_session_factory, printer_id: int, base_url: str, state: _PrinterState) -> None:

@@ -57,16 +57,30 @@ async def get_latest_reading(printer_id: int, db: AsyncSession = Depends(get_db)
     return reading
 
 
+def _csv(value: str | None) -> list[str] | None:
+    return [item.strip() for item in value.split(",") if item.strip()] if value else None
+
+
 @router.get("/printers/{printer_id}/events", response_model=list[PrinterEventRead])
 async def get_printer_events(
     printer_id: int,
     job_id: int | None = None,
     before_id: int | None = None,
+    origin: str | None = Query(default=None, description="comma-separated, e.g. console,external"),
+    event_type: str | None = Query(default=None, description="comma-separated"),
     limit: int = Query(default=100, ge=1, le=1000),
     db: AsyncSession = Depends(get_db),
 ) -> list:
     await _get_printer_or_404(printer_id, db)
-    return await list_events(db, printer_id, job_id=job_id, before_id=before_id, limit=limit)
+    return await list_events(
+        db,
+        printer_id,
+        job_id=job_id,
+        before_id=before_id,
+        origins=_csv(origin),
+        event_types=_csv(event_type),
+        limit=limit,
+    )
 
 
 @router.get("/print-jobs/{job_id}/events", response_model=list[PrinterEventRead])
