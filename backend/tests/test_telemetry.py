@@ -102,3 +102,48 @@ def test_clean_row_removes_real_column_noise():
 def test_downsample_returns_small_series_untouched():
     points = [{"ts": datetime.now(timezone.utc), "extruder_temp": 1.0}]
     assert downsample(points, max_points=10) == (points, None)
+
+
+# --- Values measured on the real Creality Hi (docs/laboratorio) ---
+
+REAL_HI_STATUS = {
+    "print_stats": {"filename": "CAJA LISTA CARA.stl_PETG_6h0m27s.gcode", "filament_used": 43169.4, "state": "printing"},
+    "virtual_sdcard": {
+        "layer": 301,
+        "cur_print_data": {
+            "metadata": {
+                "slicer": "Creality", "slicer_version": "7.3.0.6149", "layer_count": 486, "layer_height": 0.2,
+                "filament_type": "PETG", "object_height": 97.2, "filament_used_g": ["201.83"],
+                "flush_para": {"nozzle_volume": 183.0}, "default_filament_colour": ["#56DF3D"],
+            }
+        },
+    },
+    "output_pin fan0": {"value": 0.3549},
+    "output_pin LED": {"value": 1},
+}
+
+
+def test_hi_file_metadata_gets_the_weight_from_filament_used_g_and_the_time_from_the_file_name():
+    from app.services.telemetry import file_metadata
+
+    metadata = file_metadata(REAL_HI_STATUS)
+    assert metadata["filament_weight_total"] == 201.83
+    assert metadata["estimated_time"] == 6 * 3600 + 27 and metadata["estimated_time_source"] == "filename"
+    assert metadata["layer_count"] == 486 and metadata["filament_type"] == "PETG" and metadata["layer_height"] == 0.2
+    assert "flush_para" not in metadata  # only what the report and the cost use
+
+    status = {"print_stats": {"filename": "files-servohorn.stl_PLA_21m43s.gcode"}, "virtual_sdcard": {}}
+    assert file_metadata(status) == {"estimated_time": 21 * 60 + 43, "estimated_time_source": "filename"}
+    assert file_metadata({"print_stats": {"filename": "sin_tiempo.gcode"}}) is None
+    # A slicer that does give the estimate keeps it.
+    given = {"virtual_sdcard": {"cur_print_data": {"metadata": {"estimated_time": 100}}}, "print_stats": {"filename": "a_1h0m0s.gcode"}}
+    assert file_metadata(given) == {"estimated_time": 100}
+
+
+def test_hi_part_cooling_fan_is_the_output_pin_fan0():
+    sample = sample_from_status(REAL_HI_STATUS)
+    assert sample["fan_speed"] == 0.3549
+    assert sample["extra"]["output_pin LED.value"] == 1.0
+    assert build_subscription(["fan", "output_pin fan0"])["output_pin fan0"] == ["value"]
+    with_fan = {**REAL_HI_STATUS, "fan": {"speed": 0.5}}
+    assert sample_from_status(with_fan)["fan_speed"] == 0.5  # a standard fan object wins

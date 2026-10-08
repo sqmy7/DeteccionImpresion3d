@@ -176,7 +176,7 @@ export function AnalyticsPage() {
           <EmptyState icon={<BarChart3 size={28} />} title="Sin trabajos en este periodo" description="Prueba con otro periodo o con todas las impresoras." />
         </Card>
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="flex min-w-0 flex-col gap-4">
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-7">
             <Kpi label="Trabajos" value={data.totals.jobs} icon={<Layers size={14} />} />
             <Kpi

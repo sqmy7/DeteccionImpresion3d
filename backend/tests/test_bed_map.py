@@ -102,3 +102,16 @@ def test_crossed_or_degenerate_marks_are_rejected():
     for points in (crossed, collinear):
         with pytest.raises(ValueError):
             build_calibration(points, BED, WIDTH, HEIGHT, True, 0.0)
+
+
+def test_bed_size_comes_from_the_mesh_not_from_the_head_travel():
+    """Measured on the real Creality Hi: the axes travel 285 x 273 (the cutter sits past the bed), the mesh
+    covers 10..250 on both axes and the bed is 260 x 260."""
+    from app.services.defect_map import bed_dimensions, default_bed_points
+
+    real = {"axis_maximum": [285.0, 273.0, 310.0, 0.0], "bed_mesh": {"mesh_min": [10.0, 10.0], "mesh_max": [250.0, 250.0]}}
+    assert bed_dimensions(real) == (260.0, 260.0)
+    assert default_bed_points(real)[2] == (260.0, 260.0)
+    assert bed_dimensions({"axis_maximum": [285.0, 273.0]}) == (260.0, 260.0)  # no mesh: the spec size
+    assert bed_dimensions({"axis_maximum": [220.0, 220.0]}) == (220.0, 220.0)  # never more than the head can reach
+    assert bed_dimensions(None) == (260.0, 260.0)

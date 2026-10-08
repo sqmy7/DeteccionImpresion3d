@@ -2,6 +2,7 @@
 becomes a stored sample or a per-layer snapshot, and how a job's series is thinned for charts.
 Pure functions (no I/O), so they are tested without a printer."""
 
+import re
 from collections.abc import Iterable
 from datetime import datetime
 
@@ -32,6 +33,9 @@ _PREFIXED_SUBSCRIPTION: dict[str, list[str]] = {
     "heater_fan ": ["speed", "rpm"],
     "controller_fan ": ["speed", "rpm"],
     "fan_generic ": ["speed", "rpm"],
+    # Creality's printers have no `fan` object: the part-cooling fan is `output_pin fan0` (the
+    # others are the aux fan and the board fan; LED is the chamber light).
+    "output_pin ": ["value"],
     "filament_switch_sensor ": ["filament_detected", "enabled"],
     "filament_motion_sensor ": ["filament_detected", "enabled"],
 }
@@ -79,15 +83,40 @@ _FILE_METADATA_KEYS = (
     "nozzle_diameter",
     "layer_height",
     "first_layer_height",
+    "layer_count",
     "object_height",
     "slicer",
     "slicer_version",
 )
 
+# Creality Print writes the estimated time in the file name: "name.stl_PETG_6h0m27s.gcode".
+_NAME_TIME = re.compile(r"_(?:(\d+)h)?(\d+)m(\d+)s\.gcode$", re.IGNORECASE)
+
+
+def _number_list_sum(value) -> float | None:
+    """filament_used_g comes as a list of strings, one per filament ("201.83")."""
+    items = value if isinstance(value, list) else [value]
+    try:
+        total = sum(float(item) for item in items)
+    except (TypeError, ValueError):
+        return None
+    return round(total, 2) if total > 0 else None
+
 
 def file_metadata(status: dict) -> dict | None:
+    """What the slicer wrote about the file being printed. On the Creality Hi (measured on a real
+    print) Moonraker's own parser gives the layer count and height, the material and
+    filament_used_g, but no estimated_time and no filament length."""
     metadata = ((status.get("virtual_sdcard") or {}).get("cur_print_data") or {}).get("metadata") or {}
     selected = {key: metadata[key] for key in _FILE_METADATA_KEYS if metadata.get(key) not in (None, "")}
+    if "filament_weight_total" not in selected and (grams := _number_list_sum(metadata.get("filament_used_g"))):
+        selected["filament_weight_total"] = grams
+    if "estimated_time" not in selected:
+        match = _NAME_TIME.search((status.get("print_stats") or {}).get("filename") or "")
+        if match:
+            hours, minutes, seconds = (int(part or 0) for part in match.groups())
+            selected["estimated_time"] = hours * 3600 + minutes * 60 + seconds
+            selected["estimated_time_source"] = "filename"
     return selected or None
 
 
@@ -186,7 +215,9 @@ def sample_from_status(status: dict) -> dict:
         "bed_temp": _number(bed.get("temperature")),
         "bed_target": _number(bed.get("target")),
         "bed_power": _number(bed.get("power")),
-        "fan_speed": _number((status.get("fan") or {}).get("speed")),
+        "fan_speed": _number(
+            (status.get("fan") or {}).get("speed", (status.get("output_pin fan0") or {}).get("value"))
+        ),
         "speed_factor": _number(gcode_move.get("speed_factor")),
         "extrude_factor": _number(gcode_move.get("extrude_factor")),
         "z_offset": _component(gcode_move.get("homing_origin"), 2),

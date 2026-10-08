@@ -238,7 +238,7 @@ function CalibrationWizard({
         </div>
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex min-w-0 flex-col gap-4">
         <div>
           <p className="mb-2 text-sm font-medium text-fg">Marca las esquinas en este orden</p>
           <ol className="flex flex-col gap-1.5 text-sm">
@@ -401,7 +401,7 @@ export function CalibrationPage() {
 
   return (
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-      <div className="flex flex-col gap-4">
+      <div className="flex min-w-0 flex-col gap-4">
         <Card
           title="Calibración de la cámara"
           subtitle="Para ubicar en la cama, en milímetros, cada defecto que el modelo encuentra en la foto"
@@ -425,7 +425,7 @@ export function CalibrationPage() {
           {!camera ? (
             <EmptyState title="Esta impresora no tiene cámaras" />
           ) : (
-            <div className="flex flex-col gap-4">
+            <div className="flex min-w-0 flex-col gap-4">
               {latest ? (
                 <CalibrationResult calibration={latest} />
               ) : (

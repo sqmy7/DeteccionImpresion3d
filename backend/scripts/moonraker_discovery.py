@@ -131,9 +131,12 @@ class AuthenticationRequired(Exception):
 
 
 class ReadOnlyMoonraker:
-    def __init__(self, base_url: str, timeout: float) -> None:
+    def __init__(self, base_url: str, timeout: float, throttle_kb_s: float | None = None) -> None:
         self.base_url = base_url.rstrip("/")
         self.host = urlsplit(self.base_url).hostname
+        # Caps the download speed (a pause after each chunk) so reading a big file doesn't compete
+        # with a print for the printer's small CPU and storage.
+        self.throttle_kb_s = throttle_kb_s
         self.requests: list[dict] = []
         self.first_date_header: str | None = None
         self._client = httpx.AsyncClient(timeout=timeout, follow_redirects=False)
@@ -205,6 +208,8 @@ class ReadOnlyMoonraker:
                     async for chunk in response.aiter_bytes():
                         on_chunk(chunk)
                         received += len(chunk)
+                        if self.throttle_kb_s:
+                            await asyncio.sleep(len(chunk) / (self.throttle_kb_s * 1024))
                         if received >= max_bytes or (
                             max_seconds is not None and time.monotonic() - started >= max_seconds
                         ):
@@ -900,7 +905,7 @@ def _jpeg_size(data: bytes) -> list[int] | None:
         return None
 
 
-async def _probe_webcam(moon: ReadOnlyMoonraker, webcam_dir: Path, cam: dict) -> dict:
+async def _probe_webcam(moon: ReadOnlyMoonraker, webcam_dir: Path, cam: dict, skip_stream: bool = False) -> dict:
     name = _safe_name(cam.get("name") or "webcam")
     result = {
         "nombre": cam.get("name"),
@@ -921,6 +926,10 @@ async def _probe_webcam(moon: ReadOnlyMoonraker, webcam_dir: Path, cam: dict) ->
 
     candidates, note = _webcam_candidates(moon, cam.get("stream_url"))
     result["stream"] = {"nota": note} if note else {"ok": False}
+    if skip_stream:
+        # Reading an MJPEG stream for seconds loads the printer's camera pipeline; not during a print.
+        result["stream"] = {"nota": "no se probó (--skip-webcam-stream)", "url_candidata": candidates[:1]}
+        candidates = []
     for url in candidates:
         started = time.monotonic()
         entry, data = await moon.fetch_bytes(url, api=False, max_bytes=8 * 1024 * 1024, max_seconds=5)
@@ -946,14 +955,14 @@ async def _probe_webcam(moon: ReadOnlyMoonraker, webcam_dir: Path, cam: dict) ->
     return result
 
 
-async def _save_webcams(moon: ReadOnlyMoonraker, out: Path) -> dict:
+async def _save_webcams(moon: ReadOnlyMoonraker, out: Path, skip_stream: bool = False) -> dict:
     result = await moon.get_json("/server/webcams/list")
     if result is None:
         return {"ok": False, "detalle": "sin respuesta de /server/webcams/list"}
     _write_json(out / "webcams.json", result)
     webcam_dir = out / "webcam"
     webcam_dir.mkdir(exist_ok=True)
-    probes = [await _probe_webcam(moon, webcam_dir, cam) for cam in result.get("webcams", [])]
+    probes = [await _probe_webcam(moon, webcam_dir, cam, skip_stream) for cam in result.get("webcams", [])]
     _write_json(out / "webcam_probe.json", probes)
     return {
         "ok": True,
@@ -1002,7 +1011,12 @@ async def _measure_on(ws, out: Path, ctx: dict, seconds: float) -> dict:
         objects = (await rpc.call("printer.objects.list")).get("objects", [])
         ctx["objects"] = objects
     # configfile never changes while running and is huge; everything else is measured.
-    subscription = {name: None for name in objects if name != "configfile"}
+    skip_macros = ctx["args"].ws_skip_macros
+    # --ws-skip-macros: the ~70 gcode_macro objects hold static variables; every subscriber makes
+    # Klipper query them each 250 ms, which is load a running print doesn't need.
+    subscription = {
+        name: None for name in objects if name != "configfile" and not (skip_macros and name.startswith("gcode_macro "))
+    }
     initial = await rpc.call("printer.objects.subscribe", {"objects": subscription}) or {}
     initial_status = initial.get("status", {})
     printer_state = _safe_name(initial_status.get("print_stats", {}).get("state") or "desconocido")
@@ -1151,7 +1165,7 @@ def _write_summary(out: Path) -> None:
 async def run(args: argparse.Namespace) -> int:
     out: Path = args.out
     out.mkdir(parents=True, exist_ok=True)
-    moon = ReadOnlyMoonraker(args.url, args.timeout)
+    moon = ReadOnlyMoonraker(args.url, args.timeout, args.throttle_kb_s)
     ctx: dict = {"args": args}
     report: dict = {"inicio_utc": _utc_now(), "url": moon.base_url, "solo_lectura": True, "pasos": {}}
     manifest_name = "manifest_ws.json" if args.only_ws else "manifest.json"
@@ -1172,15 +1186,23 @@ async def run(args: argparse.Namespace) -> int:
         print(f"Conectado a {moon.base_url} (Klipper {printer_info.get('software_version', '?')}).")
 
         if not args.only_ws:
-            # Perishable evidence first.
-            await _run_step(report, "consola_gcode_store", _save_gcode_store(moon, out))
-            await _run_step(report, "logs", _save_logs(moon, out, ctx))
-            await _run_step(report, "historial", _save_history(moon, out, ctx))
-            await _run_step(report, "objetos", _save_objects(moon, out, ctx))
-            await _run_step(report, "configuracion", _analyze_config(out, ctx))
-            await _run_step(report, "archivos_gcode", _save_gcode_files(moon, out, ctx))
-            await _run_step(report, "camaras", _save_webcams(moon, out))
-            await _run_step(report, "sistema", _save_machine(moon, out))
+            # Perishable evidence first. --steps picks a subset (e.g. everything but the logs).
+            steps = {
+                "consola_gcode_store": lambda: _save_gcode_store(moon, out),
+                "logs": lambda: _save_logs(moon, out, ctx),
+                "historial": lambda: _save_history(moon, out, ctx),
+                "objetos": lambda: _save_objects(moon, out, ctx),
+                "configuracion": lambda: _analyze_config(out, ctx),
+                "archivos_gcode": lambda: _save_gcode_files(moon, out, ctx),
+                "camaras": lambda: _save_webcams(moon, out, args.skip_webcam_stream),
+                "sistema": lambda: _save_machine(moon, out),
+            }
+            wanted = [name.strip() for name in args.steps.split(",")] if args.steps else list(steps)
+            unknown = [name for name in wanted if name not in steps]
+            if unknown:
+                raise SystemExit(f"Pasos desconocidos: {unknown}. Validos: {list(steps)}")
+            for name in wanted:
+                await _run_step(report, name, steps[name]())
         if not args.skip_ws:
             await _run_step(report, "medicion_websocket", _measure_websocket(moon, out, ctx, args.ws_seconds))
     except AuthenticationRequired as error:
@@ -1213,6 +1235,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-log-mb", type=float, default=200.0, help="tope de descarga por log, en MB")
     parser.add_argument("--gcode-file", action="append", default=[], help="archivo G-code extra a revisar (repetible)")
     parser.add_argument("--timeout", type=float, default=15.0, help="timeout por peticion, en segundos")
+    parser.add_argument("--ws-skip-macros", action="store_true", help="en la medicion del WebSocket, no suscribirse a las macros (gcode_macro *): menos carga durante una impresion")
+    parser.add_argument("--throttle-kb-s", type=float, default=None, help="limite de velocidad de descarga, en KB/s (para usarlo durante una impresion)")
+    parser.add_argument("--steps", default="", help="pasos a correr, separados por coma (por defecto todos): consola_gcode_store,logs,historial,objetos,configuracion,archivos_gcode,camaras,sistema")
+    parser.add_argument("--skip-webcam-stream", action="store_true", help="de las camaras, solo la lista y un cuadro (snapshot); no leer el stream")
     args = parser.parse_args()
     if args.only_ws and args.skip_ws:
         parser.error("--only-ws y --skip-ws se excluyen")

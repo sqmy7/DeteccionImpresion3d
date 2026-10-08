@@ -334,7 +334,7 @@ def _time_chart(pdf: _Report, top: float, height: float, start: datetime, end: d
 def _bed_map(pdf: _Report, top: float, size: float, geometry: dict | None, path: list, defects: list[dict]) -> None:
     """The bed from above (front at the bottom), with the parts, the head's path and the defects:
     reliable ones as a dot with the class code, the rest as a dashed circle the size of their error."""
-    width, depth = defect_map.default_bed_points(geometry)[2]
+    width, depth = defect_map.bed_dimensions(geometry)
     scale = size / max(width, depth)
     left = pdf.l_margin + 8
 
@@ -487,7 +487,8 @@ async def build_report(db: AsyncSession, job: PrintJob) -> bytes:
     time_text = _duration(duration)
     if isinstance(estimated_time, (int, float)) and estimated_time > 0:
         difference = (duration - estimated_time) / estimated_time * 100
-        time_text += f" (laminador: {_duration(estimated_time)}; {'+' if difference >= 0 else ''}{_num(difference, 0)} %)"
+        origin = "nombre del archivo" if file.get("estimated_time_source") == "filename" else "laminador"
+        time_text += f" ({origin}: {_duration(estimated_time)}; {'+' if difference >= 0 else ''}{_num(difference, 0)} %)"
     else:
         time_text += " (el archivo no trae la estimación del laminador)"
     class_counts = ", ".join(

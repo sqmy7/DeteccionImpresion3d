@@ -18,12 +18,18 @@ export interface HeatmapOverlay {
   counts: number[][]; // [row from the front][column from the left]
 }
 
+/** The bed's size in mm (mirrors bed_dimensions in app/services/defect_map.py): Klipper's axis
+ * limits are the head's travel (285 x 273 on the Hi, past the bed because of the filament cutter),
+ * so the size comes from the bed mesh, which is symmetric about the bed (10 + 250 = 260). */
 export function bedSize(geometry: BedGeometry | null | undefined): { width: number; depth: number } {
   const maximum = geometry?.axis_maximum ?? [];
-  return {
-    width: maximum.length > 1 && maximum[0] ? maximum[0] : DEFAULT_SIZE,
-    depth: maximum.length > 1 && maximum[1] ? maximum[1] : DEFAULT_SIZE,
+  const mesh = geometry?.bed_mesh;
+  const axis = (index: 0 | 1): number => {
+    const travel = maximum.length > index && maximum[index] ? maximum[index] : null;
+    const meshSize = mesh?.mesh_min?.[index] != null && mesh?.mesh_max?.[index] != null ? mesh.mesh_min[index] + mesh.mesh_max[index] : DEFAULT_SIZE;
+    return travel ? Math.min(meshSize, travel) : meshSize;
   };
+  return { width: axis(0), depth: axis(1) };
 }
 
 function meshColor(value: number, limit: number): string {

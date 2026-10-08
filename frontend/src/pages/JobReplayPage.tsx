@@ -157,7 +157,7 @@ export function JobReplayPage() {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex min-w-0 flex-col gap-4">
       <Card
         title={
           <span className="flex flex-wrap items-center gap-2">
@@ -183,7 +183,7 @@ export function JobReplayPage() {
           <Kpi
             label="Duración"
             value={formatDuration((end - start) / 1000)}
-            hint={estimatedTime ? `laminador: ${formatDuration(estimatedTime)}` : undefined}
+            hint={estimatedTime ? `${bedMap.data?.geometry?.file?.estimated_time_source === "filename" ? "en el nombre del archivo" : "laminador"}: ${formatDuration(estimatedTime)}` : undefined}
           />
           <Kpi label="Capas registradas" value={summary.data?.total_layers_recorded ?? "—"} hint={job.data.estimated_layers ? `de ${job.data.estimated_layers}` : undefined} />
           <Kpi label="Capas con defecto" value={summary.data?.layers_with_defect ?? "—"} tone={summary.data?.layers_with_defect ? "danger" : "ok"} />
@@ -225,7 +225,7 @@ export function JobReplayPage() {
           {entries.length === 0 ? (
             <EmptyState title="Sin capas registradas" />
           ) : (
-            <div className="flex flex-col gap-4">
+            <div className="flex min-w-0 flex-col gap-4">
               <LayerStrip entries={entries} selected={currentLayer?.layer_number ?? null} upTo={currentLayer?.layer_number ?? 0} onSelect={seekToLayer} />
               <LayerDetail
                 entry={entries.find((entry) => entry.layer_number === currentLayer?.layer_number) ?? null}
@@ -238,7 +238,7 @@ export function JobReplayPage() {
           )}
         </Card>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex min-w-0 flex-col gap-4">
           <Card
             title={
               <span className="flex items-center gap-2">
@@ -305,7 +305,7 @@ export function JobReplayPage() {
             </div>
           )}
         </Card>
-        <div className="flex flex-col gap-4">
+        <div className="flex min-w-0 flex-col gap-4">
           <JobAlertsPanel jobId={jobId} />
           {cost.data && <JobCostCard cost={cost.data} onChanged={() => setCostVersion((value) => value + 1)} />}
         </div>

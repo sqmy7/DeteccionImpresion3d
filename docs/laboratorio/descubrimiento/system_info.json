@@ -1,0 +1,90 @@
+{
+  "system_info": {
+    "python": {
+      "version": [
+        3,
+        9,
+        12,
+        "final",
+        0
+      ],
+      "version_string": "3.9.12 (main, Jun 19 2025, 09:26:56)  [GCC 8.3.0]"
+    },
+    "cpu_info": {
+      "cpu_count": 2,
+      "bits": "32bit",
+      "processor": "armv7l",
+      "cpu_desc": "ARMv7 Processor rev 5 (v7l)",
+      "serial_number": "<oculto>",
+      "hardware_desc": "Generic DT based system",
+      "model": "",
+      "total_memory": 499976,
+      "memory_units": "kB"
+    },
+    "sd_info": {
+      "manufacturer_id": "45",
+      "manufacturer": "Unknown",
+      "oem_id": "0100",
+      "product_name": "DG400",
+      "product_revision": "3.8",
+      "serial_number": "<oculto>",
+      "manufacturer_date": "11/2106",
+      "capacity": "Unknown",
+      "total_bytes": 0
+    },
+    "distribution": {
+      "name": "OpenWrt 21.02-SNAPSHOT",
+      "id": "openwrt",
+      "version": "21.02-snapshot",
+      "version_parts": {
+        "major": "21",
+        "minor": "02",
+        "build_number": ""
+      },
+      "like": "lede openwrt",
+      "codename": "",
+      "release_info": {
+        "name": "DISTRIB_ID='OpenWrt'",
+        "id": "openwrt"
+      }
+    },
+    "virtualization": {
+      "virt_type": "unknown",
+      "virt_identifier": "unknown"
+    },
+    "network": {
+      "wlan0": {
+        "mac_address": "<oculto>",
+        "ip_addresses": [
+          {
+            "family": "ipv4",
+            "address": "192.168.10.22",
+            "is_link_local": false
+          },
+          {
+            "family": "ipv6",
+            "address": "fe80::3a54:39ff:fe23:1507",
+            "is_link_local": true
+          }
+        ]
+      }
+    },
+    "canbus": {},
+    "available_services": [
+      "klipper",
+      "klipper_mcu"
+    ],
+    "service_state": {
+      "klipper": {
+        "active_state": "unknown"
+      },
+      "klipper_mcu": {
+        "active_state": "unknown"
+      }
+    },
+    "instance_ids": {
+      "moonraker": "moonraker",
+      "klipper": "klipper"
+    }
+  }
+}

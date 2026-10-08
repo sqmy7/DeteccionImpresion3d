@@ -138,9 +138,23 @@ def _mean(values: list[float]) -> float | None:
     return fmean(values) if values else None
 
 
-def window_stats(samples: list[dict]) -> dict:
+def active_filament_sensors(samples: list[dict]) -> set[str]:
+    """Filament sensors that were detecting filament at some point in the job. The Creality Hi
+    exposes five (the toolhead's, one more and three for the CFS box slots); the box ones read "no
+    filament" the whole time when no box is attached, so only a sensor that has seen filament in
+    this job can say it ran out."""
+    return {
+        key
+        for sample in samples
+        for key, value in (sample.get("extra") or {}).items()
+        if key.endswith(".filament_detected") and value is True
+    }
+
+
+def window_stats(samples: list[dict], active_sensors: set[str] | None = None) -> dict:
     """What the signals look at, from the samples of the window (dicts with the telemetry
-    columns). A value is None when the window has no data for it."""
+    columns). A value is None when the window has no data for it. active_sensors: see
+    active_filament_sensors; None means every sensor that reports counts."""
     nozzle = [s["extruder_target"] - s["extruder_temp"] for s in samples
               if s.get("extruder_target") and s.get("extruder_temp") is not None]
     bed = [s["bed_target"] - s["bed_temp"] for s in samples if s.get("bed_target") and s.get("bed_temp") is not None]
@@ -150,7 +164,8 @@ def window_stats(samples: list[dict]) -> dict:
     nozzle_targets = [s["extruder_target"] for s in samples if s.get("extruder_target") is not None]
     bed_targets = [s["bed_target"] for s in samples if s.get("bed_target") is not None]
     filament = [value for s in samples for key, value in (s.get("extra") or {}).items()
-                if key.endswith(".filament_detected") and isinstance(value, bool)]
+                if key.endswith(".filament_detected") and isinstance(value, bool)
+                and (active_sensors is None or key in active_sensors)]
     return {
         "samples": len(samples),
         "nozzle_deficit": _mean(nozzle),
@@ -269,6 +284,7 @@ async def job_fusion(db: AsyncSession, job: PrintJob) -> list[dict]:
         if sample["layer_number"] is not None:
             by_layer[sample["layer_number"]].append(sample)
     initial = initial_targets(samples)
+    active_sensors = active_filament_sensors(samples)
 
     items = []
     for detection, layer in rows:
@@ -277,7 +293,7 @@ async def job_fusion(db: AsyncSession, job: PrintJob) -> list[dict]:
         if not window and layer.telemetry:
             # Jobs from before the 1 Hz telemetry, or a gap: the snapshot taken at the layer change.
             window, source = [layer.telemetry], "layer_snapshot"
-        stats = window_stats(window)
+        stats = window_stats(window, active_sensors)
         for index, box in enumerate((detection.raw_output or {}).get("detections", [])):
             confidence = box.get("confidence")
             outcome = evaluate(box.get("class"), confidence, stats, initial)

@@ -1,0 +1,3957 @@
+[
+  {
+    "message": "// Klipper state: Ready",
+    "time": 1577836856.896892,
+    "type": "response"
+  },
+  {
+    "message": "!! {\"code\":\"key855\", \"msg\":\"cut position error\", \"values\": [279.60]}",
+    "time": 1577836856.8970847,
+    "type": "response"
+  },
+  {
+    "message": "// initial set_pin_io done",
+    "time": 1577836857.4162078,
+    "type": "response"
+  },
+  {
+    "message": "// broadcast retries:1",
+    "time": 1577836858.0150816,
+    "type": "response"
+  },
+  {
+    "message": "// All motors are normal",
+    "time": 1577836858.2278714,
+    "type": "response"
+  },
+  {
+    "message": "// STARTUP_READ_FILAMENT_RACK_RFID",
+    "time": 1577836858.8608677,
+    "type": "response"
+  },
+  {
+    "message": "// restore set_pin_io done",
+    "time": 1577836859.0102963,
+    "type": "response"
+  },
+  {
+    "message": "// x_axes is NULL",
+    "time": 1577837126.2145295,
+    "type": "response"
+  },
+  {
+    "message": "// cmd_UP_SAFE_Z start",
+    "time": 1577837126.397159,
+    "type": "response"
+  },
+  {
+    "message": "// z_limit normal state",
+    "time": 1577837126.3998914,
+    "type": "response"
+  },
+  {
+    "message": "// START Z-UP",
+    "time": 1577837127.6320245,
+    "type": "response"
+  },
+  {
+    "message": "// send query_z_align cur_retries:0 oid=6 enable=1 quickSpeed=7500 slowSpeed=30000 risingDist=12000 filterCnt:10",
+    "time": 1577837127.63477,
+    "type": "response"
+  },
+  {
+    "message": "// usetime:1.0006595840000045 z_align_status :{'oid': 6, 'flag': 1, 'deltaError1': 0, '#name': 'z_align_status', '#sent_time': 326.27715061366666, '#receive_time': 326.777703739}",
+    "time": 1577837128.6383038,
+    "type": "response"
+  },
+  {
+    "message": "// Z-UP END",
+    "time": 1577837128.6493077,
+    "type": "response"
+  },
+  {
+    "message": "// max_volumetric_speed: 16",
+    "time": 1577837191.2398605,
+    "type": "response"
+  },
+  {
+    "message": "// x_axes: xyz",
+    "time": 1577837281.8822813,
+    "type": "response"
+  },
+  {
+    "message": "// max_volumetric_speed: 16",
+    "time": 1577837293.2376695,
+    "type": "response"
+  },
+  {
+    "message": "// print prepared 111",
+    "time": 1577837454.6871612,
+    "type": "response"
+  },
+  {
+    "message": "B:29.8 /80.0 T0:128.3 /140.0",
+    "time": 1577837454.7966485,
+    "type": "response"
+  },
+  {
+    "message": "B:29.9 /80.0 T0:127.8 /140.0",
+    "time": 1577837455.800682,
+    "type": "response"
+  },
+  {
+    "message": "B:30.0 /80.0 T0:127.3 /140.0",
+    "time": 1577837456.8044245,
+    "type": "response"
+  },
+  {
+    "message": "B:30.0 /80.0 T0:127.7 /140.0",
+    "time": 1577837457.8087735,
+    "type": "response"
+  },
+  {
+    "message": "B:30.0 /80.0 T0:129.2 /140.0",
+    "time": 1577837458.8021169,
+    "type": "response"
+  },
+  {
+    "message": "B:30.0 /80.0 T0:132.7 /140.0",
+    "time": 1577837459.8057482,
+    "type": "response"
+  },
+  {
+    "message": "B:30.0 /80.0 T0:136.0 /140.0",
+    "time": 1577837460.8107536,
+    "type": "response"
+  },
+  {
+    "message": "B:29.9 /80.0 T0:139.0 /140.0",
+    "time": 1577837461.8059127,
+    "type": "response"
+  },
+  {
+    "message": "B:29.8 /80.0 T0:141.7 /140.0",
+    "time": 1577837462.8068864,
+    "type": "response"
+  },
+  {
+    "message": "B:29.8 /80.0 T0:142.6 /140.0",
+    "time": 1577837463.8171978,
+    "type": "response"
+  },
+  {
+    "message": "B:29.8 /80.0 T0:142.9 /140.0",
+    "time": 1577837464.8139098,
+    "type": "response"
+  },
+  {
+    "message": "B:29.8 /80.0 T0:142.6 /140.0",
+    "time": 1577837465.8148494,
+    "type": "response"
+  },
+  {
+    "message": "B:29.9 /80.0 T0:142.2 /140.0",
+    "time": 1577837466.8261113,
+    "type": "response"
+  },
+  {
+    "message": "// x_axes: xyz",
+    "time": 1577837467.9282892,
+    "type": "response"
+  },
+  {
+    "message": "// x_axes: xyz",
+    "time": 1577837467.9316425,
+    "type": "response"
+  },
+  {
+    "message": "// x_park = 142.5",
+    "time": 1577837472.2528665,
+    "type": "response"
+  },
+  {
+    "message": "// y_park = 133.5",
+    "time": 1577837472.2607677,
+    "type": "response"
+  },
+  {
+    "message": "// z_limit_state: Normal",
+    "time": 1577837474.1440287,
+    "type": "response"
+  },
+  {
+    "message": "// send query_z_align cur_retries:0 oid=5 enable=1 quickSpeed=7500 slowSpeed=30000 risingDist=4000 filterCnt:10",
+    "time": 1577837474.1653602,
+    "type": "response"
+  },
+  {
+    "message": "// usetime:21.078299093000055 z_align_status :{'oid': 5, 'flag': 1, 'deltaError1': -1, '#name': 'z_align_status', '#sent_time': 692.9903904268889, '#receive_time': 693.621000288}",
+    "time": 1577837495.2460365,
+    "type": "response"
+  },
+  {
+    "message": "// ZDOWN end",
+    "time": 1577837495.2480912,
+    "type": "response"
+  },
+  {
+    "message": "// real_zmax:294.53875",
+    "time": 1577837495.2515626,
+    "type": "response"
+  },
+  {
+    "message": "// Making the following Z adjustments:\n// stepper_z = 0.288007\n// stepper_z1 = 0.000000",
+    "time": 1577837496.6190834,
+    "type": "response"
+  },
+  {
+    "message": "// [TEST_SWAP]PY_VER=78, PRES_VER=71, STEP_VER=71\n// ---Swap Test Success---",
+    "time": 1577837514.045014,
+    "type": "response"
+  },
+  {
+    "message": "// za1:279.0 za2:15.35125 z_max:294.35125",
+    "time": 1577837518.9371185,
+    "type": "response"
+  },
+  {
+    "message": "B:35.0 /80.0 T0:142.3 /250.0",
+    "time": 1577837522.0293586,
+    "type": "response"
+  },
+  {
+    "message": "B:35.1 /80.0 T0:142.5 /250.0",
+    "time": 1577837523.0029507,
+    "type": "response"
+  },
+  {
+    "message": "B:35.2 /80.0 T0:142.7 /250.0",
+    "time": 1577837524.0063102,
+    "type": "response"
+  },
+  {
+    "message": "B:35.4 /80.0 T0:143.5 /250.0",
+    "time": 1577837525.0078342,
+    "type": "response"
+  },
+  {
+    "message": "B:35.5 /80.0 T0:145.2 /250.0",
+    "time": 1577837526.0146945,
+    "type": "response"
+  },
+  {
+    "message": "B:35.6 /80.0 T0:148.7 /250.0",
+    "time": 1577837527.020245,
+    "type": "response"
+  },
+  {
+    "message": "B:35.7 /80.0 T0:152.0 /250.0",
+    "time": 1577837528.0206203,
+    "type": "response"
+  },
+  {
+    "message": "B:35.9 /80.0 T0:155.7 /250.0",
+    "time": 1577837529.0087926,
+    "type": "response"
+  },
+  {
+    "message": "B:35.9 /80.0 T0:160.8 /250.0",
+    "time": 1577837530.0209224,
+    "type": "response"
+  },
+  {
+    "message": "B:36.1 /80.0 T0:164.7 /250.0",
+    "time": 1577837531.0086927,
+    "type": "response"
+  },
+  {
+    "message": "B:36.2 /80.0 T0:168.6 /250.0",
+    "time": 1577837532.0098305,
+    "type": "response"
+  },
+  {
+    "message": "B:36.3 /80.0 T0:173.7 /250.0",
+    "time": 1577837533.0112338,
+    "type": "response"
+  },
+  {
+    "message": "B:36.5 /80.0 T0:177.4 /250.0",
+    "time": 1577837534.010634,
+    "type": "response"
+  },
+  {
+    "message": "B:36.6 /80.0 T0:181.0 /250.0",
+    "time": 1577837535.010086,
+    "type": "response"
+  },
+  {
+    "message": "B:36.7 /80.0 T0:185.7 /250.0",
+    "time": 1577837536.0135424,
+    "type": "response"
+  },
+  {
+    "message": "B:36.8 /80.0 T0:189.1 /250.0",
+    "time": 1577837537.0324967,
+    "type": "response"
+  },
+  {
+    "message": "B:37.1 /80.0 T0:192.5 /250.0",
+    "time": 1577837538.0156505,
+    "type": "response"
+  },
+  {
+    "message": "B:37.2 /80.0 T0:196.8 /250.0",
+    "time": 1577837539.013515,
+    "type": "response"
+  },
+  {
+    "message": "B:37.3 /80.0 T0:200.1 /250.0",
+    "time": 1577837540.0142522,
+    "type": "response"
+  },
+  {
+    "message": "B:37.5 /80.0 T0:203.2 /250.0",
+    "time": 1577837541.013876,
+    "type": "response"
+  },
+  {
+    "message": "B:37.6 /80.0 T0:207.3 /250.0",
+    "time": 1577837542.01537,
+    "type": "response"
+  },
+  {
+    "message": "B:37.8 /80.0 T0:210.4 /250.0",
+    "time": 1577837543.0166378,
+    "type": "response"
+  },
+  {
+    "message": "B:37.9 /80.0 T0:213.3 /250.0",
+    "time": 1577837544.0168722,
+    "type": "response"
+  },
+  {
+    "message": "B:38.0 /80.0 T0:217.3 /250.0",
+    "time": 1577837545.016951,
+    "type": "response"
+  },
+  {
+    "message": "B:38.2 /80.0 T0:220.2 /250.0",
+    "time": 1577837546.0181816,
+    "type": "response"
+  },
+  {
+    "message": "B:38.3 /80.0 T0:223.1 /250.0",
+    "time": 1577837547.04746,
+    "type": "response"
+  },
+  {
+    "message": "B:38.5 /80.0 T0:226.8 /250.0",
+    "time": 1577837548.0284169,
+    "type": "response"
+  },
+  {
+    "message": "B:38.6 /80.0 T0:229.6 /250.0",
+    "time": 1577837549.0209584,
+    "type": "response"
+  },
+  {
+    "message": "B:38.8 /80.0 T0:232.6 /250.0",
+    "time": 1577837550.02893,
+    "type": "response"
+  },
+  {
+    "message": "B:38.9 /80.0 T0:236.3 /250.0",
+    "time": 1577837551.0274007,
+    "type": "response"
+  },
+  {
+    "message": "B:39.2 /80.0 T0:238.8 /250.0",
+    "time": 1577837552.0272975,
+    "type": "response"
+  },
+  {
+    "message": "B:39.3 /80.0 T0:241.0 /250.0",
+    "time": 1577837553.025532,
+    "type": "response"
+  },
+  {
+    "message": "B:39.5 /80.0 T0:243.4 /250.0",
+    "time": 1577837554.0269973,
+    "type": "response"
+  },
+  {
+    "message": "B:39.7 /80.0 T0:244.8 /250.0",
+    "time": 1577837555.029827,
+    "type": "response"
+  },
+  {
+    "message": "B:39.9 /80.0 T0:246.0 /250.0",
+    "time": 1577837556.0369365,
+    "type": "response"
+  },
+  {
+    "message": "B:40.0 /80.0 T0:247.4 /250.0",
+    "time": 1577837557.027549,
+    "type": "response"
+  },
+  {
+    "message": "B:40.2 /80.0 T0:248.4 /250.0",
+    "time": 1577837558.0291152,
+    "type": "response"
+  },
+  {
+    "message": "B:40.4 /80.0 T0:249.4 /250.0",
+    "time": 1577837559.0317645,
+    "type": "response"
+  },
+  {
+    "message": "B:40.5 /80.0 T0:250.6 /250.0",
+    "time": 1577837560.030581,
+    "type": "response"
+  },
+  {
+    "message": "B:40.7 /80.0 T0:251.3 /250.0",
+    "time": 1577837561.0335352,
+    "type": "response"
+  },
+  {
+    "message": "// >>>new tri_hold = [4000, 10000, 500]",
+    "time": 1577837583.6920557,
+    "type": "response"
+  },
+  {
+    "message": "// [TEST_SWAP]PY_VER=78, PRES_VER=71, STEP_VER=71\n// ---Swap Test Success---",
+    "time": 1577837587.6009562,
+    "type": "response"
+  },
+  {
+    "message": "B:44.4 /80.0 T0:243.5 /175.0",
+    "time": 1577837591.505356,
+    "type": "response"
+  },
+  {
+    "message": "B:44.5 /80.0 T0:242.2 /175.0",
+    "time": 1577837592.4961393,
+    "type": "response"
+  },
+  {
+    "message": "B:44.6 /80.0 T0:240.8 /175.0",
+    "time": 1577837593.4938426,
+    "type": "response"
+  },
+  {
+    "message": "B:44.7 /80.0 T0:239.1 /175.0",
+    "time": 1577837594.4947977,
+    "type": "response"
+  },
+  {
+    "message": "B:44.8 /80.0 T0:237.9 /175.0",
+    "time": 1577837595.4948158,
+    "type": "response"
+  },
+  {
+    "message": "B:44.9 /80.0 T0:236.7 /175.0",
+    "time": 1577837596.496868,
+    "type": "response"
+  },
+  {
+    "message": "B:45.0 /80.0 T0:235.2 /175.0",
+    "time": 1577837597.497122,
+    "type": "response"
+  },
+  {
+    "message": "B:45.2 /80.0 T0:234.1 /175.0",
+    "time": 1577837598.4978585,
+    "type": "response"
+  },
+  {
+    "message": "B:45.3 /80.0 T0:233.0 /175.0",
+    "time": 1577837599.4993825,
+    "type": "response"
+  },
+  {
+    "message": "B:45.5 /80.0 T0:231.3 /175.0",
+    "time": 1577837600.499805,
+    "type": "response"
+  },
+  {
+    "message": "B:45.6 /80.0 T0:230.1 /175.0",
+    "time": 1577837601.5007536,
+    "type": "response"
+  },
+  {
+    "message": "B:45.8 /80.0 T0:229.0 /175.0",
+    "time": 1577837602.5020614,
+    "type": "response"
+  },
+  {
+    "message": "B:45.9 /80.0 T0:227.6 /175.0",
+    "time": 1577837603.5031822,
+    "type": "response"
+  },
+  {
+    "message": "B:46.1 /80.0 T0:226.6 /175.0",
+    "time": 1577837604.5024889,
+    "type": "response"
+  },
+  {
+    "message": "B:46.2 /80.0 T0:225.5 /175.0",
+    "time": 1577837605.503455,
+    "type": "response"
+  },
+  {
+    "message": "B:46.3 /80.0 T0:224.1 /175.0",
+    "time": 1577837606.5031598,
+    "type": "response"
+  },
+  {
+    "message": "B:46.4 /80.0 T0:223.1 /175.0",
+    "time": 1577837607.5045893,
+    "type": "response"
+  },
+  {
+    "message": "B:46.6 /80.0 T0:222.1 /175.0",
+    "time": 1577837608.5074384,
+    "type": "response"
+  },
+  {
+    "message": "B:46.7 /80.0 T0:220.7 /175.0",
+    "time": 1577837609.5051818,
+    "type": "response"
+  },
+  {
+    "message": "B:46.9 /80.0 T0:219.7 /175.0",
+    "time": 1577837610.505849,
+    "type": "response"
+  },
+  {
+    "message": "B:47.1 /80.0 T0:218.7 /175.0",
+    "time": 1577837611.5068805,
+    "type": "response"
+  },
+  {
+    "message": "B:47.2 /80.0 T0:217.3 /175.0",
+    "time": 1577837612.5069818,
+    "type": "response"
+  },
+  {
+    "message": "B:47.4 /80.0 T0:216.3 /175.0",
+    "time": 1577837613.5078688,
+    "type": "response"
+  },
+  {
+    "message": "B:47.5 /80.0 T0:215.3 /175.0",
+    "time": 1577837614.5082664,
+    "type": "response"
+  },
+  {
+    "message": "B:47.7 /80.0 T0:214.0 /175.0",
+    "time": 1577837615.5092497,
+    "type": "response"
+  },
+  {
+    "message": "B:47.9 /80.0 T0:213.0 /175.0",
+    "time": 1577837616.5098996,
+    "type": "response"
+  },
+  {
+    "message": "B:48.1 /80.0 T0:212.0 /175.0",
+    "time": 1577837617.5107946,
+    "type": "response"
+  },
+  {
+    "message": "B:48.2 /80.0 T0:210.7 /175.0",
+    "time": 1577837618.5114033,
+    "type": "response"
+  },
+  {
+    "message": "B:48.3 /80.0 T0:209.8 /175.0",
+    "time": 1577837619.5125556,
+    "type": "response"
+  },
+  {
+    "message": "B:48.5 /80.0 T0:208.8 /175.0",
+    "time": 1577837620.5129066,
+    "type": "response"
+  },
+  {
+    "message": "B:48.6 /80.0 T0:207.6 /175.0",
+    "time": 1577837621.5132182,
+    "type": "response"
+  },
+  {
+    "message": "B:48.8 /80.0 T0:206.6 /175.0",
+    "time": 1577837622.5134373,
+    "type": "response"
+  },
+  {
+    "message": "B:49.0 /80.0 T0:205.7 /175.0",
+    "time": 1577837623.5174246,
+    "type": "response"
+  },
+  {
+    "message": "B:49.1 /80.0 T0:204.5 /175.0",
+    "time": 1577837624.5147882,
+    "type": "response"
+  },
+  {
+    "message": "B:49.2 /80.0 T0:203.5 /175.0",
+    "time": 1577837625.515641,
+    "type": "response"
+  },
+  {
+    "message": "B:49.3 /80.0 T0:202.6 /175.0",
+    "time": 1577837626.5191298,
+    "type": "response"
+  },
+  {
+    "message": "B:49.4 /80.0 T0:201.4 /175.0",
+    "time": 1577837627.5174544,
+    "type": "response"
+  },
+  {
+    "message": "B:49.6 /80.0 T0:200.5 /175.0",
+    "time": 1577837628.5212,
+    "type": "response"
+  },
+  {
+    "message": "B:49.7 /80.0 T0:199.6 /175.0",
+    "time": 1577837629.5186384,
+    "type": "response"
+  },
+  {
+    "message": "B:49.8 /80.0 T0:198.4 /175.0",
+    "time": 1577837630.5186522,
+    "type": "response"
+  },
+  {
+    "message": "B:49.9 /80.0 T0:197.5 /175.0",
+    "time": 1577837631.5220118,
+    "type": "response"
+  },
+  {
+    "message": "B:50.0 /80.0 T0:196.6 /175.0",
+    "time": 1577837632.52558,
+    "type": "response"
+  },
+  {
+    "message": "B:50.1 /80.0 T0:195.5 /175.0",
+    "time": 1577837633.521979,
+    "type": "response"
+  },
+  {
+    "message": "B:50.2 /80.0 T0:194.6 /175.0",
+    "time": 1577837634.524318,
+    "type": "response"
+  },
+  {
+    "message": "B:50.3 /80.0 T0:193.7 /175.0",
+    "time": 1577837635.526312,
+    "type": "response"
+  },
+  {
+    "message": "B:50.4 /80.0 T0:192.6 /175.0",
+    "time": 1577837636.5246365,
+    "type": "response"
+  },
+  {
+    "message": "B:50.5 /80.0 T0:191.7 /175.0",
+    "time": 1577837637.533138,
+    "type": "response"
+  },
+  {
+    "message": "B:50.6 /80.0 T0:190.9 /175.0",
+    "time": 1577837638.5336847,
+    "type": "response"
+  },
+  {
+    "message": "B:50.7 /80.0 T0:189.8 /175.0",
+    "time": 1577837639.5352015,
+    "type": "response"
+  },
+  {
+    "message": "B:50.8 /80.0 T0:188.9 /175.0",
+    "time": 1577837640.5391893,
+    "type": "response"
+  },
+  {
+    "message": "B:50.9 /80.0 T0:188.1 /175.0",
+    "time": 1577837641.5498827,
+    "type": "response"
+  },
+  {
+    "message": "B:51.0 /80.0 T0:187.0 /175.0",
+    "time": 1577837642.5531526,
+    "type": "response"
+  },
+  {
+    "message": "B:51.2 /80.0 T0:186.2 /175.0",
+    "time": 1577837643.5659719,
+    "type": "response"
+  },
+  {
+    "message": "B:51.3 /80.0 T0:185.4 /175.0",
+    "time": 1577837644.561907,
+    "type": "response"
+  },
+  {
+    "message": "B:51.4 /80.0 T0:184.3 /175.0",
+    "time": 1577837645.569305,
+    "type": "response"
+  },
+  {
+    "message": "B:51.6 /80.0 T0:183.5 /175.0",
+    "time": 1577837646.5855405,
+    "type": "response"
+  },
+  {
+    "message": "B:51.7 /80.0 T0:182.7 /175.0",
+    "time": 1577837647.5770512,
+    "type": "response"
+  },
+  {
+    "message": "B:51.8 /80.0 T0:181.7 /175.0",
+    "time": 1577837648.5920618,
+    "type": "response"
+  },
+  {
+    "message": "B:52.0 /80.0 T0:180.9 /175.0",
+    "time": 1577837649.5796633,
+    "type": "response"
+  },
+  {
+    "message": "B:52.1 /80.0 T0:180.1 /175.0",
+    "time": 1577837650.5838532,
+    "type": "response"
+  },
+  {
+    "message": "B:52.3 /80.0 T0:179.2 /175.0",
+    "time": 1577837651.5975082,
+    "type": "response"
+  },
+  {
+    "message": "B:52.5 /80.0 T0:178.6 /175.0",
+    "time": 1577837652.6071033,
+    "type": "response"
+  },
+  {
+    "message": "B:52.6 /80.0 T0:178.0 /175.0",
+    "time": 1577837653.5985544,
+    "type": "response"
+  },
+  {
+    "message": "B:52.8 /80.0 T0:177.7 /175.0",
+    "time": 1577837654.602349,
+    "type": "response"
+  },
+  {
+    "message": "B:53.0 /80.0 T0:177.4 /175.0",
+    "time": 1577837655.6052592,
+    "type": "response"
+  },
+  {
+    "message": "B:53.1 /80.0 T0:177.0 /175.0",
+    "time": 1577837656.6107852,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 97.000,268.000 is z=-0.340000 z_compensation=0.038000",
+    "time": 1577837660.908152,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 97.000,268.000 is z=-0.302000",
+    "time": 1577837660.9129221,
+    "type": "response"
+  },
+  {
+    "message": "// Result is z=-0.302000",
+    "time": 1577837660.914877,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 99.000,268.000 is z=-0.335000 z_compensation=0.087000",
+    "time": 1577837663.744764,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 99.000,268.000 is z=-0.248000",
+    "time": 1577837663.7637293,
+    "type": "response"
+  },
+  {
+    "message": "// Result is z=-0.248000",
+    "time": 1577837663.775533,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 101.000,268.000 is z=-0.265000 z_compensation=0.123000",
+    "time": 1577837666.5758307,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 101.000,268.000 is z=-0.142000",
+    "time": 1577837666.578157,
+    "type": "response"
+  },
+  {
+    "message": "// Result is z=-0.142000",
+    "time": 1577837666.5811632,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 108.000,268.000 is z=-0.222500 z_compensation=0.160000",
+    "time": 1577837669.3936357,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 108.000,268.000 is z=-0.062500",
+    "time": 1577837669.3967378,
+    "type": "response"
+  },
+  {
+    "message": "// Result is z=-0.062500",
+    "time": 1577837669.3968785,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 110.000,268.000 is z=-0.245000 z_compensation=0.061000",
+    "time": 1577837672.204356,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 110.000,268.000 is z=-0.184000",
+    "time": 1577837672.2106135,
+    "type": "response"
+  },
+  {
+    "message": "// Result is z=-0.184000",
+    "time": 1577837672.2156613,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 112.000,268.000 is z=-0.225000 z_compensation=0.146000",
+    "time": 1577837675.0342147,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 112.000,268.000 is z=-0.079000",
+    "time": 1577837675.0412385,
+    "type": "response"
+  },
+  {
+    "message": "// Result is z=-0.079000",
+    "time": 1577837675.0432708,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 119.000,268.000 is z=-0.192500 z_compensation=0.125000",
+    "time": 1577837677.8705893,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 119.000,268.000 is z=-0.067500",
+    "time": 1577837677.8791394,
+    "type": "response"
+  },
+  {
+    "message": "// Result is z=-0.067500",
+    "time": 1577837677.885324,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 121.000,268.000 is z=-0.211250 z_compensation=0.136000",
+    "time": 1577837680.694296,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 121.000,268.000 is z=-0.075250",
+    "time": 1577837680.7039516,
+    "type": "response"
+  },
+  {
+    "message": "// Result is z=-0.075250",
+    "time": 1577837680.7097876,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 123.000,268.000 is z=-0.208750 z_compensation=0.073000",
+    "time": 1577837683.556324,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 123.000,268.000 is z=-0.135750",
+    "time": 1577837683.5564482,
+    "type": "response"
+  },
+  {
+    "message": "// Result is z=-0.135750",
+    "time": 1577837683.5565479,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 130.000,268.000 is z=-0.128750 z_compensation=0.072000",
+    "time": 1577837686.363967,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 130.000,268.000 is z=-0.056750",
+    "time": 1577837686.3666663,
+    "type": "response"
+  },
+  {
+    "message": "// Result is z=-0.056750",
+    "time": 1577837686.3697603,
+    "type": "response"
+  },
+  {
+    "message": "B:56.4 /80.0 T0:174.7 /170.0",
+    "time": 1577837686.3872836,
+    "type": "response"
+  },
+  {
+    "message": "B:56.5 /80.0 T0:174.5 /170.0",
+    "time": 1577837687.3882174,
+    "type": "response"
+  },
+  {
+    "message": "B:56.6 /80.0 T0:174.4 /170.0",
+    "time": 1577837688.3886118,
+    "type": "response"
+  },
+  {
+    "message": "B:56.8 /80.0 T0:174.3 /170.0",
+    "time": 1577837689.3897393,
+    "type": "response"
+  },
+  {
+    "message": "B:56.9 /80.0 T0:174.0 /170.0",
+    "time": 1577837690.388853,
+    "type": "response"
+  },
+  {
+    "message": "B:57.0 /80.0 T0:173.3 /170.0",
+    "time": 1577837691.3933444,
+    "type": "response"
+  },
+  {
+    "message": "B:57.2 /80.0 T0:172.6 /170.0",
+    "time": 1577837692.3933086,
+    "type": "response"
+  },
+  {
+    "message": "B:57.3 /80.0 T0:171.8 /170.0",
+    "time": 1577837693.391771,
+    "type": "response"
+  },
+  {
+    "message": "B:57.4 /80.0 T0:170.8 /170.0",
+    "time": 1577837694.3931842,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 128.000,266.000 is z=-0.228750 z_compensation=0.050000",
+    "time": 1577837698.5981038,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 128.000,266.000 is z=-0.178750",
+    "time": 1577837698.6009817,
+    "type": "response"
+  },
+  {
+    "message": "// Result is z=-0.178750",
+    "time": 1577837698.602935,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 128.000,266.000 is z=-0.082500 z_compensation=0.045000",
+    "time": 1577837705.53229,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 128.000,266.000 is z=-0.037500",
+    "time": 1577837705.5346353,
+    "type": "response"
+  },
+  {
+    "message": "// Result is z=-0.037500",
+    "time": 1577837705.53692,
+    "type": "response"
+  },
+  {
+    "message": "B:59.0 /80.0 T0:164.6 /120.0",
+    "time": 1577837705.558952,
+    "type": "response"
+  },
+  {
+    "message": "B:59.1 /80.0 T0:163.9 /120.0",
+    "time": 1577837706.5589895,
+    "type": "response"
+  },
+  {
+    "message": "B:59.2 /80.0 T0:163.2 /120.0",
+    "time": 1577837707.5600774,
+    "type": "response"
+  },
+  {
+    "message": "B:59.3 /80.0 T0:162.2 /120.0",
+    "time": 1577837708.5610025,
+    "type": "response"
+  },
+  {
+    "message": "B:59.4 /80.0 T0:161.5 /120.0",
+    "time": 1577837709.5629802,
+    "type": "response"
+  },
+  {
+    "message": "B:59.5 /80.0 T0:160.8 /120.0",
+    "time": 1577837710.565083,
+    "type": "response"
+  },
+  {
+    "message": "B:59.6 /80.0 T0:159.8 /120.0",
+    "time": 1577837711.566223,
+    "type": "response"
+  },
+  {
+    "message": "B:59.7 /80.0 T0:159.0 /120.0",
+    "time": 1577837712.5655224,
+    "type": "response"
+  },
+  {
+    "message": "B:59.8 /80.0 T0:158.3 /120.0",
+    "time": 1577837713.5653949,
+    "type": "response"
+  },
+  {
+    "message": "B:59.9 /80.0 T0:157.2 /120.0",
+    "time": 1577837714.5660927,
+    "type": "response"
+  },
+  {
+    "message": "B:60.0 /80.0 T0:156.4 /120.0",
+    "time": 1577837715.5665207,
+    "type": "response"
+  },
+  {
+    "message": "B:60.1 /80.0 T0:155.6 /120.0",
+    "time": 1577837716.5678096,
+    "type": "response"
+  },
+  {
+    "message": "B:60.2 /80.0 T0:154.5 /120.0",
+    "time": 1577837717.5693712,
+    "type": "response"
+  },
+  {
+    "message": "B:60.4 /80.0 T0:153.7 /120.0",
+    "time": 1577837718.5696661,
+    "type": "response"
+  },
+  {
+    "message": "B:60.5 /80.0 T0:152.9 /120.0",
+    "time": 1577837719.5729973,
+    "type": "response"
+  },
+  {
+    "message": "B:60.6 /80.0 T0:151.8 /120.0",
+    "time": 1577837720.571213,
+    "type": "response"
+  },
+  {
+    "message": "B:60.7 /80.0 T0:151.0 /120.0",
+    "time": 1577837721.5737262,
+    "type": "response"
+  },
+  {
+    "message": "B:60.8 /80.0 T0:150.2 /120.0",
+    "time": 1577837722.5714836,
+    "type": "response"
+  },
+  {
+    "message": "B:60.8 /80.0 T0:149.1 /120.0",
+    "time": 1577837723.5761633,
+    "type": "response"
+  },
+  {
+    "message": "B:60.9 /80.0 T0:148.3 /120.0",
+    "time": 1577837724.5733688,
+    "type": "response"
+  },
+  {
+    "message": "B:61.0 /80.0 T0:147.5 /120.0",
+    "time": 1577837725.5744884,
+    "type": "response"
+  },
+  {
+    "message": "B:61.0 /80.0 T0:146.4 /120.0",
+    "time": 1577837726.5767584,
+    "type": "response"
+  },
+  {
+    "message": "B:61.1 /80.0 T0:145.6 /120.0",
+    "time": 1577837727.57678,
+    "type": "response"
+  },
+  {
+    "message": "B:61.2 /80.0 T0:144.8 /120.0",
+    "time": 1577837728.5773027,
+    "type": "response"
+  },
+  {
+    "message": "B:61.3 /80.0 T0:143.7 /120.0",
+    "time": 1577837729.5782564,
+    "type": "response"
+  },
+  {
+    "message": "B:61.4 /80.0 T0:143.0 /120.0",
+    "time": 1577837730.5792184,
+    "type": "response"
+  },
+  {
+    "message": "B:61.5 /80.0 T0:142.2 /120.0",
+    "time": 1577837731.5822892,
+    "type": "response"
+  },
+  {
+    "message": "B:61.6 /80.0 T0:141.1 /120.0",
+    "time": 1577837732.5815806,
+    "type": "response"
+  },
+  {
+    "message": "B:61.7 /80.0 T0:140.4 /120.0",
+    "time": 1577837733.5827866,
+    "type": "response"
+  },
+  {
+    "message": "B:61.7 /80.0 T0:139.6 /120.0",
+    "time": 1577837734.5849588,
+    "type": "response"
+  },
+  {
+    "message": "B:61.8 /80.0 T0:138.5 /120.0",
+    "time": 1577837735.5855565,
+    "type": "response"
+  },
+  {
+    "message": "B:61.9 /80.0 T0:137.8 /120.0",
+    "time": 1577837736.5853176,
+    "type": "response"
+  },
+  {
+    "message": "B:62.0 /80.0 T0:137.0 /120.0",
+    "time": 1577837737.5879571,
+    "type": "response"
+  },
+  {
+    "message": "B:62.1 /80.0 T0:136.0 /120.0",
+    "time": 1577837738.5874612,
+    "type": "response"
+  },
+  {
+    "message": "B:62.2 /80.0 T0:135.3 /120.0",
+    "time": 1577837739.5874946,
+    "type": "response"
+  },
+  {
+    "message": "B:62.3 /80.0 T0:134.3 /120.0",
+    "time": 1577837740.5890157,
+    "type": "response"
+  },
+  {
+    "message": "B:62.4 /80.0 T0:133.6 /120.0",
+    "time": 1577837741.588418,
+    "type": "response"
+  },
+  {
+    "message": "B:62.4 /80.0 T0:132.9 /120.0",
+    "time": 1577837742.5893526,
+    "type": "response"
+  },
+  {
+    "message": "B:62.5 /80.0 T0:131.9 /120.0",
+    "time": 1577837743.5907438,
+    "type": "response"
+  },
+  {
+    "message": "B:62.6 /80.0 T0:131.2 /120.0",
+    "time": 1577837744.5940175,
+    "type": "response"
+  },
+  {
+    "message": "B:62.7 /80.0 T0:130.5 /120.0",
+    "time": 1577837745.5944538,
+    "type": "response"
+  },
+  {
+    "message": "B:62.8 /80.0 T0:129.6 /120.0",
+    "time": 1577837746.5917192,
+    "type": "response"
+  },
+  {
+    "message": "B:62.9 /80.0 T0:128.9 /120.0",
+    "time": 1577837747.592827,
+    "type": "response"
+  },
+  {
+    "message": "B:63.0 /80.0 T0:128.2 /120.0",
+    "time": 1577837748.5948727,
+    "type": "response"
+  },
+  {
+    "message": "B:63.1 /80.0 T0:127.3 /120.0",
+    "time": 1577837749.59412,
+    "type": "response"
+  },
+  {
+    "message": "B:63.2 /80.0 T0:126.6 /120.0",
+    "time": 1577837750.5951395,
+    "type": "response"
+  },
+  {
+    "message": "B:63.3 /80.0 T0:125.9 /120.0",
+    "time": 1577837751.5972102,
+    "type": "response"
+  },
+  {
+    "message": "B:63.4 /80.0 T0:125.0 /120.0",
+    "time": 1577837752.5965374,
+    "type": "response"
+  },
+  {
+    "message": "B:63.6 /80.0 T0:124.4 /120.0",
+    "time": 1577837753.6009035,
+    "type": "response"
+  },
+  {
+    "message": "B:63.7 /80.0 T0:123.7 /120.0",
+    "time": 1577837754.6004145,
+    "type": "response"
+  },
+  {
+    "message": "B:63.8 /80.0 T0:122.9 /120.0",
+    "time": 1577837755.601397,
+    "type": "response"
+  },
+  {
+    "message": "B:64.0 /80.0 T0:122.2 /120.0",
+    "time": 1577837756.6023996,
+    "type": "response"
+  },
+  {
+    "message": "B:64.0 /80.0 T0:121.6 /120.0",
+    "time": 1577837757.6036434,
+    "type": "response"
+  },
+  {
+    "message": "// >>>old tri_hold = [4000, 10000, 500]",
+    "time": 1577837758.617371,
+    "type": "response"
+  },
+  {
+    "message": "// print prepared 111",
+    "time": 1577837760.6542592,
+    "type": "response"
+  },
+  {
+    "message": "B:64.3 /80.0 T0:120.2 /120.0",
+    "time": 1577837760.7024446,
+    "type": "response"
+  },
+  {
+    "message": "B:64.4 /80.0 T0:120.0 /120.0",
+    "time": 1577837761.703914,
+    "type": "response"
+  },
+  {
+    "message": "B:64.5 /80.0 T0:119.7 /120.0",
+    "time": 1577837762.7048073,
+    "type": "response"
+  },
+  {
+    "message": "B:64.6 /80.0 T0:119.4 /120.0",
+    "time": 1577837763.7055626,
+    "type": "response"
+  },
+  {
+    "message": "B:64.7 /80.0 T0:119.3 /120.0",
+    "time": 1577837764.7088923,
+    "type": "response"
+  },
+  {
+    "message": "B:64.8 /80.0 T0:119.3 /120.0",
+    "time": 1577837765.7079163,
+    "type": "response"
+  },
+  {
+    "message": "B:64.8 /80.0 T0:119.4 /120.0",
+    "time": 1577837766.7100136,
+    "type": "response"
+  },
+  {
+    "message": "B:65.0 /80.0 T0:119.6 /120.0",
+    "time": 1577837767.7091832,
+    "type": "response"
+  },
+  {
+    "message": "B:65.0 /80.0 T0:119.7 /120.0",
+    "time": 1577837768.708743,
+    "type": "response"
+  },
+  {
+    "message": "B:65.1 /80.0 T0:119.7 /120.0",
+    "time": 1577837769.7110016,
+    "type": "response"
+  },
+  {
+    "message": "B:65.2 /80.0 T0:119.6 /120.0",
+    "time": 1577837770.7099905,
+    "type": "response"
+  },
+  {
+    "message": "B:65.3 /80.0 T0:119.4 /120.0",
+    "time": 1577837771.7118034,
+    "type": "response"
+  },
+  {
+    "message": "B:65.5 /80.0 T0:119.1 /120.0",
+    "time": 1577837772.7177472,
+    "type": "response"
+  },
+  {
+    "message": "B:65.6 /80.0 T0:119.0 /120.0",
+    "time": 1577837773.7142239,
+    "type": "response"
+  },
+  {
+    "message": "B:65.7 /80.0 T0:119.1 /120.0",
+    "time": 1577837774.7144208,
+    "type": "response"
+  },
+  {
+    "message": "B:65.8 /80.0 T0:119.4 /120.0",
+    "time": 1577837775.7159884,
+    "type": "response"
+  },
+  {
+    "message": "B:65.9 /80.0 T0:119.7 /120.0",
+    "time": 1577837776.714558,
+    "type": "response"
+  },
+  {
+    "message": "B:66.0 /80.0 T0:119.9 /120.0",
+    "time": 1577837777.717354,
+    "type": "response"
+  },
+  {
+    "message": "B:66.1 /80.0 T0:120.0 /120.0",
+    "time": 1577837778.715848,
+    "type": "response"
+  },
+  {
+    "message": "B:66.2 /80.0 T0:119.8 /120.0",
+    "time": 1577837779.7176542,
+    "type": "response"
+  },
+  {
+    "message": "B:66.2 /80.0 T0:119.6 /120.0",
+    "time": 1577837780.7175748,
+    "type": "response"
+  },
+  {
+    "message": "B:66.3 /80.0 T0:119.3 /120.0",
+    "time": 1577837781.718649,
+    "type": "response"
+  },
+  {
+    "message": "B:66.3 /80.0 T0:119.2 /120.0",
+    "time": 1577837782.7187119,
+    "type": "response"
+  },
+  {
+    "message": "B:66.4 /80.0 T0:119.4 /120.0",
+    "time": 1577837783.7191045,
+    "type": "response"
+  },
+  {
+    "message": "B:66.4 /80.0 T0:119.8 /120.0",
+    "time": 1577837784.7211137,
+    "type": "response"
+  },
+  {
+    "message": "B:66.5 /80.0 T0:120.1 /120.0",
+    "time": 1577837785.7224958,
+    "type": "response"
+  },
+  {
+    "message": "B:66.5 /80.0 T0:120.3 /120.0",
+    "time": 1577837786.7232115,
+    "type": "response"
+  },
+  {
+    "message": "B:66.5 /80.0 T0:120.2 /120.0",
+    "time": 1577837787.7223153,
+    "type": "response"
+  },
+  {
+    "message": "B:66.6 /80.0 T0:120.0 /120.0",
+    "time": 1577837788.7224085,
+    "type": "response"
+  },
+  {
+    "message": "B:66.6 /80.0 T0:119.7 /120.0",
+    "time": 1577837789.725509,
+    "type": "response"
+  },
+  {
+    "message": "B:66.6 /80.0 T0:119.4 /120.0",
+    "time": 1577837790.7233064,
+    "type": "response"
+  },
+  {
+    "message": "B:66.7 /80.0 T0:119.4 /120.0",
+    "time": 1577837791.7258196,
+    "type": "response"
+  },
+  {
+    "message": "B:66.7 /80.0 T0:119.6 /120.0",
+    "time": 1577837792.731756,
+    "type": "response"
+  },
+  {
+    "message": "B:66.7 /80.0 T0:120.1 /120.0",
+    "time": 1577837793.7263176,
+    "type": "response"
+  },
+  {
+    "message": "B:66.7 /80.0 T0:120.4 /120.0",
+    "time": 1577837794.729298,
+    "type": "response"
+  },
+  {
+    "message": "B:66.8 /80.0 T0:120.5 /120.0",
+    "time": 1577837795.7261126,
+    "type": "response"
+  },
+  {
+    "message": "B:66.8 /80.0 T0:120.3 /120.0",
+    "time": 1577837796.7300289,
+    "type": "response"
+  },
+  {
+    "message": "B:66.9 /80.0 T0:120.0 /120.0",
+    "time": 1577837797.7288773,
+    "type": "response"
+  },
+  {
+    "message": "B:66.9 /80.0 T0:119.7 /120.0",
+    "time": 1577837798.729569,
+    "type": "response"
+  },
+  {
+    "message": "B:67.0 /80.0 T0:119.5 /120.0",
+    "time": 1577837799.7297072,
+    "type": "response"
+  },
+  {
+    "message": "B:67.0 /80.0 T0:119.6 /120.0",
+    "time": 1577837800.7313488,
+    "type": "response"
+  },
+  {
+    "message": "B:67.1 /80.0 T0:119.9 /120.0",
+    "time": 1577837801.7305243,
+    "type": "response"
+  },
+  {
+    "message": "B:67.1 /80.0 T0:120.3 /120.0",
+    "time": 1577837802.731864,
+    "type": "response"
+  },
+  {
+    "message": "B:67.2 /80.0 T0:120.5 /120.0",
+    "time": 1577837803.731977,
+    "type": "response"
+  },
+  {
+    "message": "B:67.2 /80.0 T0:120.5 /120.0",
+    "time": 1577837804.732584,
+    "type": "response"
+  },
+  {
+    "message": "B:67.3 /80.0 T0:120.1 /120.0",
+    "time": 1577837805.7344732,
+    "type": "response"
+  },
+  {
+    "message": "B:67.3 /80.0 T0:119.8 /120.0",
+    "time": 1577837806.7339704,
+    "type": "response"
+  },
+  {
+    "message": "B:67.3 /80.0 T0:119.5 /120.0",
+    "time": 1577837807.7364917,
+    "type": "response"
+  },
+  {
+    "message": "B:67.4 /80.0 T0:119.5 /120.0",
+    "time": 1577837808.7383497,
+    "type": "response"
+  },
+  {
+    "message": "B:67.4 /80.0 T0:119.7 /120.0",
+    "time": 1577837809.7367873,
+    "type": "response"
+  },
+  {
+    "message": "B:67.5 /80.0 T0:120.0 /120.0",
+    "time": 1577837810.7400835,
+    "type": "response"
+  },
+  {
+    "message": "B:67.5 /80.0 T0:120.4 /120.0",
+    "time": 1577837811.7389562,
+    "type": "response"
+  },
+  {
+    "message": "B:67.5 /80.0 T0:120.5 /120.0",
+    "time": 1577837812.7397628,
+    "type": "response"
+  },
+  {
+    "message": "B:67.5 /80.0 T0:120.4 /120.0",
+    "time": 1577837813.7421796,
+    "type": "response"
+  },
+  {
+    "message": "B:67.6 /80.0 T0:120.0 /120.0",
+    "time": 1577837814.740644,
+    "type": "response"
+  },
+  {
+    "message": "B:67.6 /80.0 T0:119.7 /120.0",
+    "time": 1577837815.7430599,
+    "type": "response"
+  },
+  {
+    "message": "B:67.7 /80.0 T0:119.5 /120.0",
+    "time": 1577837816.7449894,
+    "type": "response"
+  },
+  {
+    "message": "B:67.7 /80.0 T0:119.6 /120.0",
+    "time": 1577837817.7462635,
+    "type": "response"
+  },
+  {
+    "message": "B:67.7 /80.0 T0:119.9 /120.0",
+    "time": 1577837818.7445536,
+    "type": "response"
+  },
+  {
+    "message": "B:67.8 /80.0 T0:120.2 /120.0",
+    "time": 1577837819.7442627,
+    "type": "response"
+  },
+  {
+    "message": "B:67.8 /80.0 T0:120.5 /120.0",
+    "time": 1577837820.7451556,
+    "type": "response"
+  },
+  {
+    "message": "B:67.9 /80.0 T0:120.6 /120.0",
+    "time": 1577837821.747748,
+    "type": "response"
+  },
+  {
+    "message": "B:67.9 /80.0 T0:120.4 /120.0",
+    "time": 1577837822.7483733,
+    "type": "response"
+  },
+  {
+    "message": "B:67.9 /80.0 T0:120.0 /120.0",
+    "time": 1577837823.7462645,
+    "type": "response"
+  },
+  {
+    "message": "B:68.0 /80.0 T0:119.8 /120.0",
+    "time": 1577837824.7471,
+    "type": "response"
+  },
+  {
+    "message": "B:68.0 /80.0 T0:119.6 /120.0",
+    "time": 1577837825.7481782,
+    "type": "response"
+  },
+  {
+    "message": "B:68.1 /80.0 T0:119.7 /120.0",
+    "time": 1577837826.7510166,
+    "type": "response"
+  },
+  {
+    "message": "B:68.1 /80.0 T0:120.0 /120.0",
+    "time": 1577837827.752176,
+    "type": "response"
+  },
+  {
+    "message": "B:68.2 /80.0 T0:120.3 /120.0",
+    "time": 1577837828.7485876,
+    "type": "response"
+  },
+  {
+    "message": "B:68.2 /80.0 T0:120.6 /120.0",
+    "time": 1577837829.7522008,
+    "type": "response"
+  },
+  {
+    "message": "B:68.3 /80.0 T0:120.5 /120.0",
+    "time": 1577837830.7505403,
+    "type": "response"
+  },
+  {
+    "message": "B:68.4 /80.0 T0:120.3 /120.0",
+    "time": 1577837831.7535396,
+    "type": "response"
+  },
+  {
+    "message": "B:68.4 /80.0 T0:119.9 /120.0",
+    "time": 1577837832.752743,
+    "type": "response"
+  },
+  {
+    "message": "B:68.5 /80.0 T0:119.7 /120.0",
+    "time": 1577837833.752441,
+    "type": "response"
+  },
+  {
+    "message": "B:68.5 /80.0 T0:119.6 /120.0",
+    "time": 1577837834.7533126,
+    "type": "response"
+  },
+  {
+    "message": "B:68.6 /80.0 T0:119.8 /120.0",
+    "time": 1577837835.7585492,
+    "type": "response"
+  },
+  {
+    "message": "B:68.7 /80.0 T0:120.1 /120.0",
+    "time": 1577837836.7582214,
+    "type": "response"
+  },
+  {
+    "message": "B:68.7 /80.0 T0:120.4 /120.0",
+    "time": 1577837837.758844,
+    "type": "response"
+  },
+  {
+    "message": "B:68.8 /80.0 T0:120.6 /120.0",
+    "time": 1577837838.7628455,
+    "type": "response"
+  },
+  {
+    "message": "B:68.9 /80.0 T0:120.4 /120.0",
+    "time": 1577837839.7658896,
+    "type": "response"
+  },
+  {
+    "message": "B:68.9 /80.0 T0:120.1 /120.0",
+    "time": 1577837840.7678273,
+    "type": "response"
+  },
+  {
+    "message": "B:69.0 /80.0 T0:119.7 /120.0",
+    "time": 1577837841.7711365,
+    "type": "response"
+  },
+  {
+    "message": "B:69.0 /80.0 T0:119.5 /120.0",
+    "time": 1577837842.7751615,
+    "type": "response"
+  },
+  {
+    "message": "B:69.1 /80.0 T0:119.6 /120.0",
+    "time": 1577837843.7778223,
+    "type": "response"
+  },
+  {
+    "message": "B:69.1 /80.0 T0:119.9 /120.0",
+    "time": 1577837844.7821112,
+    "type": "response"
+  },
+  {
+    "message": "B:69.2 /80.0 T0:120.2 /120.0",
+    "time": 1577837845.7871437,
+    "type": "response"
+  },
+  {
+    "message": "B:69.2 /80.0 T0:120.5 /120.0",
+    "time": 1577837846.7890072,
+    "type": "response"
+  },
+  {
+    "message": "B:69.3 /80.0 T0:120.5 /120.0",
+    "time": 1577837847.795956,
+    "type": "response"
+  },
+  {
+    "message": "B:69.3 /80.0 T0:120.3 /120.0",
+    "time": 1577837848.7971218,
+    "type": "response"
+  },
+  {
+    "message": "B:69.3 /80.0 T0:119.9 /120.0",
+    "time": 1577837849.798672,
+    "type": "response"
+  },
+  {
+    "message": "B:69.4 /80.0 T0:119.6 /120.0",
+    "time": 1577837850.8016903,
+    "type": "response"
+  },
+  {
+    "message": "B:69.4 /80.0 T0:119.5 /120.0",
+    "time": 1577837851.805893,
+    "type": "response"
+  },
+  {
+    "message": "B:69.4 /80.0 T0:119.8 /120.0",
+    "time": 1577837852.8058534,
+    "type": "response"
+  },
+  {
+    "message": "B:69.4 /80.0 T0:120.1 /120.0",
+    "time": 1577837853.8094237,
+    "type": "response"
+  },
+  {
+    "message": "B:69.5 /80.0 T0:120.4 /120.0",
+    "time": 1577837854.8159516,
+    "type": "response"
+  },
+  {
+    "message": "B:69.5 /80.0 T0:120.6 /120.0",
+    "time": 1577837855.8170993,
+    "type": "response"
+  },
+  {
+    "message": "B:69.6 /80.0 T0:120.5 /120.0",
+    "time": 1577837856.819616,
+    "type": "response"
+  },
+  {
+    "message": "B:69.6 /80.0 T0:120.2 /120.0",
+    "time": 1577837857.8228598,
+    "type": "response"
+  },
+  {
+    "message": "B:69.7 /80.0 T0:119.8 /120.0",
+    "time": 1577837858.8253126,
+    "type": "response"
+  },
+  {
+    "message": "B:69.7 /80.0 T0:119.6 /120.0",
+    "time": 1577837859.83062,
+    "type": "response"
+  },
+  {
+    "message": "B:69.8 /80.0 T0:119.6 /120.0",
+    "time": 1577837860.8310137,
+    "type": "response"
+  },
+  {
+    "message": "B:69.8 /80.0 T0:119.9 /120.0",
+    "time": 1577837861.8340743,
+    "type": "response"
+  },
+  {
+    "message": "B:69.8 /80.0 T0:120.3 /120.0",
+    "time": 1577837862.837374,
+    "type": "response"
+  },
+  {
+    "message": "B:69.9 /80.0 T0:120.5 /120.0",
+    "time": 1577837863.8409529,
+    "type": "response"
+  },
+  {
+    "message": "B:69.9 /80.0 T0:120.6 /120.0",
+    "time": 1577837864.843064,
+    "type": "response"
+  },
+  {
+    "message": "B:70.0 /80.0 T0:120.4 /120.0",
+    "time": 1577837865.8504894,
+    "type": "response"
+  },
+  {
+    "message": "B:70.0 /80.0 T0:120.1 /120.0",
+    "time": 1577837866.8539524,
+    "type": "response"
+  },
+  {
+    "message": "B:70.1 /80.0 T0:119.7 /120.0",
+    "time": 1577837867.8533328,
+    "type": "response"
+  },
+  {
+    "message": "B:70.1 /80.0 T0:119.6 /120.0",
+    "time": 1577837868.8567638,
+    "type": "response"
+  },
+  {
+    "message": "B:70.2 /80.0 T0:119.7 /120.0",
+    "time": 1577837869.8577762,
+    "type": "response"
+  },
+  {
+    "message": "B:70.2 /80.0 T0:120.0 /120.0",
+    "time": 1577837870.8627186,
+    "type": "response"
+  },
+  {
+    "message": "B:70.3 /80.0 T0:120.3 /120.0",
+    "time": 1577837871.8661976,
+    "type": "response"
+  },
+  {
+    "message": "B:70.4 /80.0 T0:120.5 /120.0",
+    "time": 1577837872.869552,
+    "type": "response"
+  },
+  {
+    "message": "B:70.4 /80.0 T0:120.5 /120.0",
+    "time": 1577837873.8712058,
+    "type": "response"
+  },
+  {
+    "message": "B:70.5 /80.0 T0:120.3 /120.0",
+    "time": 1577837874.8759642,
+    "type": "response"
+  },
+  {
+    "message": "B:70.6 /80.0 T0:120.0 /120.0",
+    "time": 1577837875.877258,
+    "type": "response"
+  },
+  {
+    "message": "B:70.6 /80.0 T0:119.7 /120.0",
+    "time": 1577837876.8798158,
+    "type": "response"
+  },
+  {
+    "message": "B:70.7 /80.0 T0:119.6 /120.0",
+    "time": 1577837877.8827007,
+    "type": "response"
+  },
+  {
+    "message": "B:70.7 /80.0 T0:119.7 /120.0",
+    "time": 1577837878.8862276,
+    "type": "response"
+  },
+  {
+    "message": "B:70.8 /80.0 T0:120.0 /120.0",
+    "time": 1577837879.890728,
+    "type": "response"
+  },
+  {
+    "message": "B:70.8 /80.0 T0:120.2 /120.0",
+    "time": 1577837880.8927236,
+    "type": "response"
+  },
+  {
+    "message": "B:70.9 /80.0 T0:120.4 /120.0",
+    "time": 1577837881.8980289,
+    "type": "response"
+  },
+  {
+    "message": "B:70.9 /80.0 T0:120.4 /120.0",
+    "time": 1577837882.900461,
+    "type": "response"
+  },
+  {
+    "message": "B:71.0 /80.0 T0:120.2 /120.0",
+    "time": 1577837883.90455,
+    "type": "response"
+  },
+  {
+    "message": "B:71.0 /80.0 T0:119.8 /120.0",
+    "time": 1577837884.9099727,
+    "type": "response"
+  },
+  {
+    "message": "B:71.1 /80.0 T0:119.6 /120.0",
+    "time": 1577837885.9118078,
+    "type": "response"
+  },
+  {
+    "message": "B:71.1 /80.0 T0:119.5 /120.0",
+    "time": 1577837886.916976,
+    "type": "response"
+  },
+  {
+    "message": "B:71.2 /80.0 T0:119.7 /120.0",
+    "time": 1577837887.9228513,
+    "type": "response"
+  },
+  {
+    "message": "B:71.2 /80.0 T0:119.9 /120.0",
+    "time": 1577837888.916644,
+    "type": "response"
+  },
+  {
+    "message": "B:71.3 /80.0 T0:120.2 /120.0",
+    "time": 1577837889.9175243,
+    "type": "response"
+  },
+  {
+    "message": "B:71.3 /80.0 T0:120.4 /120.0",
+    "time": 1577837890.921358,
+    "type": "response"
+  },
+  {
+    "message": "B:71.3 /80.0 T0:120.3 /120.0",
+    "time": 1577837891.927133,
+    "type": "response"
+  },
+  {
+    "message": "B:71.4 /80.0 T0:120.1 /120.0",
+    "time": 1577837892.9301867,
+    "type": "response"
+  },
+  {
+    "message": "B:71.4 /80.0 T0:119.8 /120.0",
+    "time": 1577837893.9398546,
+    "type": "response"
+  },
+  {
+    "message": "B:71.4 /80.0 T0:119.6 /120.0",
+    "time": 1577837894.9376159,
+    "type": "response"
+  },
+  {
+    "message": "B:71.5 /80.0 T0:119.5 /120.0",
+    "time": 1577837895.940181,
+    "type": "response"
+  },
+  {
+    "message": "B:71.5 /80.0 T0:119.7 /120.0",
+    "time": 1577837896.9430974,
+    "type": "response"
+  },
+  {
+    "message": "B:71.5 /80.0 T0:120.0 /120.0",
+    "time": 1577837897.9463732,
+    "type": "response"
+  },
+  {
+    "message": "B:71.5 /80.0 T0:120.3 /120.0",
+    "time": 1577837898.9502718,
+    "type": "response"
+  },
+  {
+    "message": "B:71.6 /80.0 T0:120.5 /120.0",
+    "time": 1577837899.9499125,
+    "type": "response"
+  },
+  {
+    "message": "B:71.6 /80.0 T0:120.4 /120.0",
+    "time": 1577837900.958613,
+    "type": "response"
+  },
+  {
+    "message": "B:71.7 /80.0 T0:120.2 /120.0",
+    "time": 1577837901.9604232,
+    "type": "response"
+  },
+  {
+    "message": "B:71.7 /80.0 T0:119.8 /120.0",
+    "time": 1577837902.9655488,
+    "type": "response"
+  },
+  {
+    "message": "B:71.8 /80.0 T0:119.6 /120.0",
+    "time": 1577837903.9667459,
+    "type": "response"
+  },
+  {
+    "message": "B:71.8 /80.0 T0:119.6 /120.0",
+    "time": 1577837904.9688797,
+    "type": "response"
+  },
+  {
+    "message": "B:71.8 /80.0 T0:119.8 /120.0",
+    "time": 1577837905.9756894,
+    "type": "response"
+  },
+  {
+    "message": "B:71.9 /80.0 T0:120.1 /120.0",
+    "time": 1577837906.981326,
+    "type": "response"
+  },
+  {
+    "message": "B:71.9 /80.0 T0:120.3 /120.0",
+    "time": 1577837907.980848,
+    "type": "response"
+  },
+  {
+    "message": "B:72.0 /80.0 T0:120.5 /120.0",
+    "time": 1577837908.9863937,
+    "type": "response"
+  },
+  {
+    "message": "B:72.0 /80.0 T0:120.4 /120.0",
+    "time": 1577837909.9918535,
+    "type": "response"
+  },
+  {
+    "message": "B:72.0 /80.0 T0:120.1 /120.0",
+    "time": 1577837911.0005543,
+    "type": "response"
+  },
+  {
+    "message": "B:72.1 /80.0 T0:119.8 /120.0",
+    "time": 1577837912.00109,
+    "type": "response"
+  },
+  {
+    "message": "B:72.2 /80.0 T0:119.6 /120.0",
+    "time": 1577837913.008496,
+    "type": "response"
+  },
+  {
+    "message": "B:72.2 /80.0 T0:119.6 /120.0",
+    "time": 1577837914.0084057,
+    "type": "response"
+  },
+  {
+    "message": "B:72.3 /80.0 T0:119.8 /120.0",
+    "time": 1577837915.0149853,
+    "type": "response"
+  },
+  {
+    "message": "B:72.3 /80.0 T0:120.0 /120.0",
+    "time": 1577837916.0263102,
+    "type": "response"
+  },
+  {
+    "message": "B:72.3 /80.0 T0:120.3 /120.0",
+    "time": 1577837917.0223165,
+    "type": "response"
+  },
+  {
+    "message": "B:72.4 /80.0 T0:120.4 /120.0",
+    "time": 1577837918.0280192,
+    "type": "response"
+  },
+  {
+    "message": "B:72.4 /80.0 T0:120.3 /120.0",
+    "time": 1577837919.0311248,
+    "type": "response"
+  },
+  {
+    "message": "B:72.4 /80.0 T0:120.0 /120.0",
+    "time": 1577837920.0359156,
+    "type": "response"
+  },
+  {
+    "message": "B:72.5 /80.0 T0:119.7 /120.0",
+    "time": 1577837921.0404015,
+    "type": "response"
+  },
+  {
+    "message": "B:72.5 /80.0 T0:119.5 /120.0",
+    "time": 1577837922.044647,
+    "type": "response"
+  },
+  {
+    "message": "B:72.6 /80.0 T0:119.6 /120.0",
+    "time": 1577837923.0463026,
+    "type": "response"
+  },
+  {
+    "message": "B:72.6 /80.0 T0:119.8 /120.0",
+    "time": 1577837924.0545049,
+    "type": "response"
+  },
+  {
+    "message": "B:72.7 /80.0 T0:120.1 /120.0",
+    "time": 1577837925.0578704,
+    "type": "response"
+  },
+  {
+    "message": "B:72.7 /80.0 T0:120.4 /120.0",
+    "time": 1577837926.0606852,
+    "type": "response"
+  },
+  {
+    "message": "B:72.8 /80.0 T0:120.5 /120.0",
+    "time": 1577837927.0666342,
+    "type": "response"
+  },
+  {
+    "message": "B:72.8 /80.0 T0:120.3 /120.0",
+    "time": 1577837928.0715976,
+    "type": "response"
+  },
+  {
+    "message": "B:72.9 /80.0 T0:120.0 /120.0",
+    "time": 1577837929.073758,
+    "type": "response"
+  },
+  {
+    "message": "B:72.9 /80.0 T0:119.7 /120.0",
+    "time": 1577837930.077038,
+    "type": "response"
+  },
+  {
+    "message": "B:73.0 /80.0 T0:119.6 /120.0",
+    "time": 1577837931.0825438,
+    "type": "response"
+  },
+  {
+    "message": "B:73.0 /80.0 T0:119.6 /120.0",
+    "time": 1577837932.0862768,
+    "type": "response"
+  },
+  {
+    "message": "B:73.0 /80.0 T0:119.9 /120.0",
+    "time": 1577837933.0922217,
+    "type": "response"
+  },
+  {
+    "message": "B:73.1 /80.0 T0:120.3 /120.0",
+    "time": 1577837934.0983942,
+    "type": "response"
+  },
+  {
+    "message": "B:73.1 /80.0 T0:120.4 /120.0",
+    "time": 1577837935.099135,
+    "type": "response"
+  },
+  {
+    "message": "B:73.2 /80.0 T0:120.4 /120.0",
+    "time": 1577837936.1052418,
+    "type": "response"
+  },
+  {
+    "message": "B:73.2 /80.0 T0:120.2 /120.0",
+    "time": 1577837937.1075306,
+    "type": "response"
+  },
+  {
+    "message": "B:73.3 /80.0 T0:119.8 /120.0",
+    "time": 1577837938.1181154,
+    "type": "response"
+  },
+  {
+    "message": "B:73.4 /80.0 T0:119.6 /120.0",
+    "time": 1577837939.1167274,
+    "type": "response"
+  },
+  {
+    "message": "B:73.4 /80.0 T0:119.5 /120.0",
+    "time": 1577837940.12164,
+    "type": "response"
+  },
+  {
+    "message": "B:73.5 /80.0 T0:119.7 /120.0",
+    "time": 1577837941.1270847,
+    "type": "response"
+  },
+  {
+    "message": "B:73.5 /80.0 T0:120.0 /120.0",
+    "time": 1577837942.132014,
+    "type": "response"
+  },
+  {
+    "message": "B:73.6 /80.0 T0:120.4 /120.0",
+    "time": 1577837943.1353137,
+    "type": "response"
+  },
+  {
+    "message": "B:73.6 /80.0 T0:120.5 /120.0",
+    "time": 1577837944.1383834,
+    "type": "response"
+  },
+  {
+    "message": "B:73.7 /80.0 T0:120.4 /120.0",
+    "time": 1577837945.1458678,
+    "type": "response"
+  },
+  {
+    "message": "B:73.7 /80.0 T0:120.0 /120.0",
+    "time": 1577837946.1487162,
+    "type": "response"
+  },
+  {
+    "message": "B:73.8 /80.0 T0:119.7 /120.0",
+    "time": 1577837947.151829,
+    "type": "response"
+  },
+  {
+    "message": "B:73.8 /80.0 T0:119.5 /120.0",
+    "time": 1577837948.1584022,
+    "type": "response"
+  },
+  {
+    "message": "B:73.8 /80.0 T0:119.6 /120.0",
+    "time": 1577837949.1598485,
+    "type": "response"
+  },
+  {
+    "message": "B:73.9 /80.0 T0:119.9 /120.0",
+    "time": 1577837950.1645043,
+    "type": "response"
+  },
+  {
+    "message": "B:73.9 /80.0 T0:120.2 /120.0",
+    "time": 1577837951.1720893,
+    "type": "response"
+  },
+  {
+    "message": "B:73.9 /80.0 T0:120.5 /120.0",
+    "time": 1577837952.1734517,
+    "type": "response"
+  },
+  {
+    "message": "B:73.9 /80.0 T0:120.6 /120.0",
+    "time": 1577837953.1785016,
+    "type": "response"
+  },
+  {
+    "message": "B:74.0 /80.0 T0:120.4 /120.0",
+    "time": 1577837954.182158,
+    "type": "response"
+  },
+  {
+    "message": "B:74.0 /80.0 T0:120.0 /120.0",
+    "time": 1577837955.1886303,
+    "type": "response"
+  },
+  {
+    "message": "B:74.0 /80.0 T0:119.7 /120.0",
+    "time": 1577837956.1916642,
+    "type": "response"
+  },
+  {
+    "message": "B:74.1 /80.0 T0:119.6 /120.0",
+    "time": 1577837957.193491,
+    "type": "response"
+  },
+  {
+    "message": "B:74.1 /80.0 T0:119.7 /120.0",
+    "time": 1577837958.1997507,
+    "type": "response"
+  },
+  {
+    "message": "B:74.2 /80.0 T0:120.0 /120.0",
+    "time": 1577837959.2058046,
+    "type": "response"
+  },
+  {
+    "message": "B:74.3 /80.0 T0:120.4 /120.0",
+    "time": 1577837960.2107072,
+    "type": "response"
+  },
+  {
+    "message": "B:74.4 /80.0 T0:120.5 /120.0",
+    "time": 1577837961.2132769,
+    "type": "response"
+  },
+  {
+    "message": "B:74.5 /80.0 T0:120.4 /120.0",
+    "time": 1577837962.2178512,
+    "type": "response"
+  },
+  {
+    "message": "B:74.5 /80.0 T0:120.1 /120.0",
+    "time": 1577837963.2221637,
+    "type": "response"
+  },
+  {
+    "message": "B:74.6 /80.0 T0:119.8 /120.0",
+    "time": 1577837964.2260885,
+    "type": "response"
+  },
+  {
+    "message": "B:74.6 /80.0 T0:119.6 /120.0",
+    "time": 1577837965.2309449,
+    "type": "response"
+  },
+  {
+    "message": "B:74.6 /80.0 T0:119.5 /120.0",
+    "time": 1577837966.2354796,
+    "type": "response"
+  },
+  {
+    "message": "B:74.7 /80.0 T0:119.8 /120.0",
+    "time": 1577837967.2387578,
+    "type": "response"
+  },
+  {
+    "message": "B:74.7 /80.0 T0:120.0 /120.0",
+    "time": 1577837968.2420516,
+    "type": "response"
+  },
+  {
+    "message": "B:74.8 /80.0 T0:120.4 /120.0",
+    "time": 1577837969.2542355,
+    "type": "response"
+  },
+  {
+    "message": "B:74.8 /80.0 T0:120.5 /120.0",
+    "time": 1577837970.249007,
+    "type": "response"
+  },
+  {
+    "message": "B:74.9 /80.0 T0:120.3 /120.0",
+    "time": 1577837971.2557452,
+    "type": "response"
+  },
+  {
+    "message": "B:74.9 /80.0 T0:120.0 /120.0",
+    "time": 1577837972.2599404,
+    "type": "response"
+  },
+  {
+    "message": "B:74.9 /80.0 T0:119.7 /120.0",
+    "time": 1577837973.2624602,
+    "type": "response"
+  },
+  {
+    "message": "B:75.0 /80.0 T0:119.5 /120.0",
+    "time": 1577837974.267722,
+    "type": "response"
+  },
+  {
+    "message": "B:75.0 /80.0 T0:119.6 /120.0",
+    "time": 1577837975.2716467,
+    "type": "response"
+  },
+  {
+    "message": "B:75.1 /80.0 T0:119.8 /120.0",
+    "time": 1577837976.2752714,
+    "type": "response"
+  },
+  {
+    "message": "B:75.1 /80.0 T0:120.1 /120.0",
+    "time": 1577837977.280596,
+    "type": "response"
+  },
+  {
+    "message": "B:75.1 /80.0 T0:120.4 /120.0",
+    "time": 1577837978.283213,
+    "type": "response"
+  },
+  {
+    "message": "B:75.2 /80.0 T0:120.5 /120.0",
+    "time": 1577837979.2881334,
+    "type": "response"
+  },
+  {
+    "message": "B:75.2 /80.0 T0:120.3 /120.0",
+    "time": 1577837980.2931526,
+    "type": "response"
+  },
+  {
+    "message": "B:75.3 /80.0 T0:120.0 /120.0",
+    "time": 1577837981.297215,
+    "type": "response"
+  },
+  {
+    "message": "B:75.3 /80.0 T0:119.8 /120.0",
+    "time": 1577837982.30255,
+    "type": "response"
+  },
+  {
+    "message": "B:75.3 /80.0 T0:119.6 /120.0",
+    "time": 1577837983.308852,
+    "type": "response"
+  },
+  {
+    "message": "B:75.3 /80.0 T0:119.7 /120.0",
+    "time": 1577837984.3113842,
+    "type": "response"
+  },
+  {
+    "message": "B:75.4 /80.0 T0:119.9 /120.0",
+    "time": 1577837985.3160994,
+    "type": "response"
+  },
+  {
+    "message": "B:75.4 /80.0 T0:120.3 /120.0",
+    "time": 1577837986.3183234,
+    "type": "response"
+  },
+  {
+    "message": "B:75.4 /80.0 T0:120.4 /120.0",
+    "time": 1577837987.3241992,
+    "type": "response"
+  },
+  {
+    "message": "B:75.5 /80.0 T0:120.4 /120.0",
+    "time": 1577837988.328598,
+    "type": "response"
+  },
+  {
+    "message": "B:75.5 /80.0 T0:120.2 /120.0",
+    "time": 1577837989.332518,
+    "type": "response"
+  },
+  {
+    "message": "B:75.5 /80.0 T0:120.0 /120.0",
+    "time": 1577837990.3380191,
+    "type": "response"
+  },
+  {
+    "message": "B:75.6 /80.0 T0:119.8 /120.0",
+    "time": 1577837991.3380756,
+    "type": "response"
+  },
+  {
+    "message": "B:75.6 /80.0 T0:119.6 /120.0",
+    "time": 1577837992.3456612,
+    "type": "response"
+  },
+  {
+    "message": "B:75.6 /80.0 T0:119.7 /120.0",
+    "time": 1577837993.3480551,
+    "type": "response"
+  },
+  {
+    "message": "B:75.7 /80.0 T0:119.9 /120.0",
+    "time": 1577837994.352796,
+    "type": "response"
+  },
+  {
+    "message": "B:75.7 /80.0 T0:120.2 /120.0",
+    "time": 1577837995.3558247,
+    "type": "response"
+  },
+  {
+    "message": "B:75.7 /80.0 T0:120.4 /120.0",
+    "time": 1577837996.3608124,
+    "type": "response"
+  },
+  {
+    "message": "B:75.7 /80.0 T0:120.4 /120.0",
+    "time": 1577837997.3639193,
+    "type": "response"
+  },
+  {
+    "message": "B:75.8 /80.0 T0:120.2 /120.0",
+    "time": 1577837998.3701444,
+    "type": "response"
+  },
+  {
+    "message": "B:75.8 /80.0 T0:119.9 /120.0",
+    "time": 1577837999.3726084,
+    "type": "response"
+  },
+  {
+    "message": "B:75.8 /80.0 T0:119.7 /120.0",
+    "time": 1577838000.3804152,
+    "type": "response"
+  },
+  {
+    "message": "B:75.9 /80.0 T0:119.5 /120.0",
+    "time": 1577838001.380865,
+    "type": "response"
+  },
+  {
+    "message": "B:75.9 /80.0 T0:119.6 /120.0",
+    "time": 1577838002.3885,
+    "type": "response"
+  },
+  {
+    "message": "B:75.9 /80.0 T0:119.9 /120.0",
+    "time": 1577838003.3911412,
+    "type": "response"
+  },
+  {
+    "message": "B:75.9 /80.0 T0:120.2 /120.0",
+    "time": 1577838004.395491,
+    "type": "response"
+  },
+  {
+    "message": "B:76.0 /80.0 T0:120.3 /120.0",
+    "time": 1577838005.3970587,
+    "type": "response"
+  },
+  {
+    "message": "B:76.0 /80.0 T0:120.3 /120.0",
+    "time": 1577838006.404329,
+    "type": "response"
+  },
+  {
+    "message": "B:76.1 /80.0 T0:120.2 /120.0",
+    "time": 1577838007.4053025,
+    "type": "response"
+  },
+  {
+    "message": "B:76.1 /80.0 T0:119.9 /120.0",
+    "time": 1577838008.411262,
+    "type": "response"
+  },
+  {
+    "message": "B:76.1 /80.0 T0:119.6 /120.0",
+    "time": 1577838009.4153886,
+    "type": "response"
+  },
+  {
+    "message": "B:76.1 /80.0 T0:119.6 /120.0",
+    "time": 1577838010.418537,
+    "type": "response"
+  },
+  {
+    "message": "B:76.2 /80.0 T0:119.7 /120.0",
+    "time": 1577838011.4242678,
+    "type": "response"
+  },
+  {
+    "message": "B:76.2 /80.0 T0:120.0 /120.0",
+    "time": 1577838012.4300916,
+    "type": "response"
+  },
+  {
+    "message": "B:76.2 /80.0 T0:120.3 /120.0",
+    "time": 1577838013.4333596,
+    "type": "response"
+  },
+  {
+    "message": "B:76.3 /80.0 T0:120.5 /120.0",
+    "time": 1577838014.4375105,
+    "type": "response"
+  },
+  {
+    "message": "B:76.3 /80.0 T0:120.4 /120.0",
+    "time": 1577838015.4423168,
+    "type": "response"
+  },
+  {
+    "message": "B:76.3 /80.0 T0:120.1 /120.0",
+    "time": 1577838016.4462707,
+    "type": "response"
+  },
+  {
+    "message": "B:76.4 /80.0 T0:119.8 /120.0",
+    "time": 1577838017.4510522,
+    "type": "response"
+  },
+  {
+    "message": "B:76.4 /80.0 T0:119.5 /120.0",
+    "time": 1577838018.4538631,
+    "type": "response"
+  },
+  {
+    "message": "B:76.4 /80.0 T0:119.6 /120.0",
+    "time": 1577838019.459588,
+    "type": "response"
+  },
+  {
+    "message": "B:76.4 /80.0 T0:119.7 /120.0",
+    "time": 1577838020.4666111,
+    "type": "response"
+  },
+  {
+    "message": "B:76.4 /80.0 T0:120.2 /120.0",
+    "time": 1577838021.4675128,
+    "type": "response"
+  },
+  {
+    "message": "B:76.5 /80.0 T0:120.4 /120.0",
+    "time": 1577838022.471068,
+    "type": "response"
+  },
+  {
+    "message": "B:76.5 /80.0 T0:120.5 /120.0",
+    "time": 1577838023.4772673,
+    "type": "response"
+  },
+  {
+    "message": "B:76.5 /80.0 T0:120.3 /120.0",
+    "time": 1577838024.4814222,
+    "type": "response"
+  },
+  {
+    "message": "B:76.5 /80.0 T0:120.0 /120.0",
+    "time": 1577838025.4856505,
+    "type": "response"
+  },
+  {
+    "message": "B:76.5 /80.0 T0:119.6 /120.0",
+    "time": 1577838026.4882426,
+    "type": "response"
+  },
+  {
+    "message": "B:76.6 /80.0 T0:119.5 /120.0",
+    "time": 1577838027.4939635,
+    "type": "response"
+  },
+  {
+    "message": "B:76.6 /80.0 T0:119.6 /120.0",
+    "time": 1577838028.4990954,
+    "type": "response"
+  },
+  {
+    "message": "B:76.6 /80.0 T0:120.0 /120.0",
+    "time": 1577838029.501527,
+    "type": "response"
+  },
+  {
+    "message": "B:76.6 /80.0 T0:120.3 /120.0",
+    "time": 1577838030.5055737,
+    "type": "response"
+  },
+  {
+    "message": "B:76.7 /80.0 T0:120.5 /120.0",
+    "time": 1577838031.5114958,
+    "type": "response"
+  },
+  {
+    "message": "B:76.7 /80.0 T0:120.5 /120.0",
+    "time": 1577838032.5115902,
+    "type": "response"
+  },
+  {
+    "message": "B:76.7 /80.0 T0:120.2 /120.0",
+    "time": 1577838033.5143576,
+    "type": "response"
+  },
+  {
+    "message": "B:76.7 /80.0 T0:119.9 /120.0",
+    "time": 1577838034.519764,
+    "type": "response"
+  },
+  {
+    "message": "B:76.7 /80.0 T0:119.6 /120.0",
+    "time": 1577838035.5242374,
+    "type": "response"
+  },
+  {
+    "message": "B:76.7 /80.0 T0:119.6 /120.0",
+    "time": 1577838036.5300095,
+    "type": "response"
+  },
+  {
+    "message": "B:76.8 /80.0 T0:119.8 /120.0",
+    "time": 1577838037.5299306,
+    "type": "response"
+  },
+  {
+    "message": "B:76.8 /80.0 T0:120.2 /120.0",
+    "time": 1577838038.5350113,
+    "type": "response"
+  },
+  {
+    "message": "B:76.8 /80.0 T0:120.5 /120.0",
+    "time": 1577838039.5407953,
+    "type": "response"
+  },
+  {
+    "message": "B:76.8 /80.0 T0:120.6 /120.0",
+    "time": 1577838040.542505,
+    "type": "response"
+  },
+  {
+    "message": "B:76.8 /80.0 T0:120.4 /120.0",
+    "time": 1577838041.5468078,
+    "type": "response"
+  },
+  {
+    "message": "B:76.8 /80.0 T0:120.1 /120.0",
+    "time": 1577838042.5517921,
+    "type": "response"
+  },
+  {
+    "message": "B:76.9 /80.0 T0:119.8 /120.0",
+    "time": 1577838043.5559607,
+    "type": "response"
+  },
+  {
+    "message": "B:76.9 /80.0 T0:119.6 /120.0",
+    "time": 1577838044.5598028,
+    "type": "response"
+  },
+  {
+    "message": "B:76.9 /80.0 T0:119.7 /120.0",
+    "time": 1577838045.564637,
+    "type": "response"
+  },
+  {
+    "message": "B:76.9 /80.0 T0:119.9 /120.0",
+    "time": 1577838046.572056,
+    "type": "response"
+  },
+  {
+    "message": "B:77.0 /80.0 T0:120.3 /120.0",
+    "time": 1577838047.573519,
+    "type": "response"
+  },
+  {
+    "message": "B:77.0 /80.0 T0:120.5 /120.0",
+    "time": 1577838048.5778494,
+    "type": "response"
+  },
+  {
+    "message": "B:77.0 /80.0 T0:120.5 /120.0",
+    "time": 1577838049.583485,
+    "type": "response"
+  },
+  {
+    "message": "B:77.0 /80.0 T0:120.2 /120.0",
+    "time": 1577838050.5878623,
+    "type": "response"
+  },
+  {
+    "message": "B:77.0 /80.0 T0:119.9 /120.0",
+    "time": 1577838051.5940764,
+    "type": "response"
+  },
+  {
+    "message": "B:77.0 /80.0 T0:119.6 /120.0",
+    "time": 1577838052.595698,
+    "type": "response"
+  },
+  {
+    "message": "B:77.1 /80.0 T0:119.5 /120.0",
+    "time": 1577838053.601843,
+    "type": "response"
+  },
+  {
+    "message": "B:77.1 /80.0 T0:119.7 /120.0",
+    "time": 1577838054.6057758,
+    "type": "response"
+  },
+  {
+    "message": "B:77.1 /80.0 T0:120.2 /120.0",
+    "time": 1577838055.6071818,
+    "type": "response"
+  },
+  {
+    "message": "B:77.1 /80.0 T0:120.5 /120.0",
+    "time": 1577838056.6130922,
+    "type": "response"
+  },
+  {
+    "message": "B:77.1 /80.0 T0:120.6 /120.0",
+    "time": 1577838057.6169841,
+    "type": "response"
+  },
+  {
+    "message": "B:77.2 /80.0 T0:120.4 /120.0",
+    "time": 1577838058.618624,
+    "type": "response"
+  },
+  {
+    "message": "B:77.2 /80.0 T0:120.1 /120.0",
+    "time": 1577838059.6236777,
+    "type": "response"
+  },
+  {
+    "message": "B:77.2 /80.0 T0:119.8 /120.0",
+    "time": 1577838060.629816,
+    "type": "response"
+  },
+  {
+    "message": "B:77.3 /80.0 T0:119.5 /120.0",
+    "time": 1577838061.6317987,
+    "type": "response"
+  },
+  {
+    "message": "B:77.3 /80.0 T0:119.6 /120.0",
+    "time": 1577838062.6455004,
+    "type": "response"
+  },
+  {
+    "message": "B:77.3 /80.0 T0:119.9 /120.0",
+    "time": 1577838063.6473124,
+    "type": "response"
+  },
+  {
+    "message": "B:77.3 /80.0 T0:120.3 /120.0",
+    "time": 1577838064.6503303,
+    "type": "response"
+  },
+  {
+    "message": "B:77.4 /80.0 T0:120.5 /120.0",
+    "time": 1577838065.651153,
+    "type": "response"
+  },
+  {
+    "message": "B:77.4 /80.0 T0:120.6 /120.0",
+    "time": 1577838066.654804,
+    "type": "response"
+  },
+  {
+    "message": "B:77.4 /80.0 T0:120.3 /120.0",
+    "time": 1577838067.6573942,
+    "type": "response"
+  },
+  {
+    "message": "B:77.4 /80.0 T0:120.0 /120.0",
+    "time": 1577838068.660978,
+    "type": "response"
+  },
+  {
+    "message": "B:77.4 /80.0 T0:119.7 /120.0",
+    "time": 1577838069.6662257,
+    "type": "response"
+  },
+  {
+    "message": "B:77.4 /80.0 T0:119.6 /120.0",
+    "time": 1577838070.6719859,
+    "type": "response"
+  },
+  {
+    "message": "B:77.5 /80.0 T0:119.8 /120.0",
+    "time": 1577838071.6769047,
+    "type": "response"
+  },
+  {
+    "message": "B:77.5 /80.0 T0:120.0 /120.0",
+    "time": 1577838072.6826305,
+    "type": "response"
+  },
+  {
+    "message": "B:77.5 /80.0 T0:120.4 /120.0",
+    "time": 1577838073.6876836,
+    "type": "response"
+  },
+  {
+    "message": "B:77.5 /80.0 T0:120.5 /120.0",
+    "time": 1577838074.6901083,
+    "type": "response"
+  },
+  {
+    "message": "B:77.6 /80.0 T0:120.4 /120.0",
+    "time": 1577838075.6952717,
+    "type": "response"
+  },
+  {
+    "message": "B:77.6 /80.0 T0:120.1 /120.0",
+    "time": 1577838076.697978,
+    "type": "response"
+  },
+  {
+    "message": "B:77.6 /80.0 T0:119.8 /120.0",
+    "time": 1577838077.704056,
+    "type": "response"
+  },
+  {
+    "message": "B:77.6 /80.0 T0:119.5 /120.0",
+    "time": 1577838078.70663,
+    "type": "response"
+  },
+  {
+    "message": "B:77.7 /80.0 T0:119.6 /120.0",
+    "time": 1577838079.7093556,
+    "type": "response"
+  },
+  {
+    "message": "B:77.7 /80.0 T0:119.8 /120.0",
+    "time": 1577838080.7146633,
+    "type": "response"
+  },
+  {
+    "message": "B:77.7 /80.0 T0:120.2 /120.0",
+    "time": 1577838081.718049,
+    "type": "response"
+  },
+  {
+    "message": "B:77.7 /80.0 T0:120.4 /120.0",
+    "time": 1577838082.7220936,
+    "type": "response"
+  },
+  {
+    "message": "B:77.8 /80.0 T0:120.5 /120.0",
+    "time": 1577838083.7253056,
+    "type": "response"
+  },
+  {
+    "message": "B:77.8 /80.0 T0:120.2 /120.0",
+    "time": 1577838084.727911,
+    "type": "response"
+  },
+  {
+    "message": "B:77.8 /80.0 T0:119.9 /120.0",
+    "time": 1577838085.7321277,
+    "type": "response"
+  },
+  {
+    "message": "B:77.8 /80.0 T0:119.6 /120.0",
+    "time": 1577838086.737368,
+    "type": "response"
+  },
+  {
+    "message": "B:77.8 /80.0 T0:119.5 /120.0",
+    "time": 1577838087.7414408,
+    "type": "response"
+  },
+  {
+    "message": "B:77.8 /80.0 T0:119.7 /120.0",
+    "time": 1577838088.7459605,
+    "type": "response"
+  },
+  {
+    "message": "B:77.8 /80.0 T0:119.9 /120.0",
+    "time": 1577838089.7509506,
+    "type": "response"
+  },
+  {
+    "message": "B:77.9 /80.0 T0:120.3 /120.0",
+    "time": 1577838090.7574413,
+    "type": "response"
+  },
+  {
+    "message": "B:77.9 /80.0 T0:120.5 /120.0",
+    "time": 1577838091.7627885,
+    "type": "response"
+  },
+  {
+    "message": "B:77.9 /80.0 T0:120.5 /120.0",
+    "time": 1577838092.7664008,
+    "type": "response"
+  },
+  {
+    "message": "B:77.9 /80.0 T0:120.2 /120.0",
+    "time": 1577838093.770036,
+    "type": "response"
+  },
+  {
+    "message": "B:77.9 /80.0 T0:120.0 /120.0",
+    "time": 1577838094.7733862,
+    "type": "response"
+  },
+  {
+    "message": "B:78.0 /80.0 T0:119.8 /120.0",
+    "time": 1577838095.777313,
+    "type": "response"
+  },
+  {
+    "message": "// x_axes: xyz",
+    "time": 1577838096.9472568,
+    "type": "response"
+  },
+  {
+    "message": "// x_axes: xyz",
+    "time": 1577838096.9479048,
+    "type": "response"
+  },
+  {
+    "message": "// x_park = 12.5",
+    "time": 1577838098.1088815,
+    "type": "response"
+  },
+  {
+    "message": "// y_park = 6.5",
+    "time": 1577838098.109026,
+    "type": "response"
+  },
+  {
+    "message": "// z_limit_state: Normal",
+    "time": 1577838098.9701416,
+    "type": "response"
+  },
+  {
+    "message": "// send query_z_align cur_retries:0 oid=5 enable=1 quickSpeed=7500 slowSpeed=30000 risingDist=4000 filterCnt:10",
+    "time": 1577838098.9895296,
+    "type": "response"
+  },
+  {
+    "message": "// usetime:24.913555387000088 z_align_status :{'oid': 5, 'flag': 1, 'deltaError1': 0, '#name': 'z_align_status', '#sent_time': 1321.801706976889, '#receive_time': 1322.232728463}",
+    "time": 1577838123.9082253,
+    "type": "response"
+  },
+  {
+    "message": "// ZDOWN end",
+    "time": 1577838123.9192488,
+    "type": "response"
+  },
+  {
+    "message": "// real_zmax:294.35125",
+    "time": 1577838123.920957,
+    "type": "response"
+  },
+  {
+    "message": "// Making the following Z adjustments:\n// stepper_z = 0.288007\n// stepper_z1 = 0.000000",
+    "time": 1577838125.272565,
+    "type": "response"
+  },
+  {
+    "message": "// [TEST_SWAP]PY_VER=78, PRES_VER=71, STEP_VER=71\n// ---Swap Test Success---",
+    "time": 1577838142.815419,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 133.000,133.000 is z=0.001250 z_compensation=0.024000",
+    "time": 1577838149.8493307,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 133.000,133.000 is z=0.025250",
+    "time": 1577838149.8543873,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 133.000,133.000 is z=-0.001250 z_compensation=0.024000",
+    "time": 1577838151.1187217,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 133.000,133.000 is z=0.022750",
+    "time": 1577838151.1211114,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 133.000,133.000 is z=-0.002500 z_compensation=0.012000",
+    "time": 1577838152.3919477,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 133.000,133.000 is z=0.009500",
+    "time": 1577838152.3970532,
+    "type": "response"
+  },
+  {
+    "message": "// [G28_RE_CHECK]\n// Try Times=1\n// bst_z=0.023 bst_zps=[0.025,0.023,0.009] pro_zs=[0.025,0.023,0.009] pro_idxs=[6,6,3]",
+    "time": 1577838153.2772367,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 133.000,133.000 is z=-0.024000 z_compensation=0.013000",
+    "time": 1577838154.494848,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 133.000,133.000 is z=-0.011000",
+    "time": 1577838154.4950113,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 133.000,133.000 is z=-0.027750 z_compensation=0.017000",
+    "time": 1577838155.7417333,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 133.000,133.000 is z=-0.010750",
+    "time": 1577838155.746557,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 133.000,133.000 is z=-0.025250 z_compensation=0.011000",
+    "time": 1577838157.024444,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 133.000,133.000 is z=-0.014250",
+    "time": 1577838157.0367258,
+    "type": "response"
+  },
+  {
+    "message": "// [G28_RE_CHECK]\n// Try Times=2\n// bst_z=0.023 bst_zps=[0.025,0.023,0.009] pro_zs=[0.025,0.023,0.009] pro_idxs=[6,6,3]\n// bst_z=-0.011 bst_zps=[-0.011,-0.011,-0.014] pro_zs=[-0.011,-0.011,-0.014] pro_idxs=[3,4,3]",
+    "time": 1577838157.9336207,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 133.000,133.000 is z=-0.017750 z_compensation=0.017000",
+    "time": 1577838159.1483686,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 133.000,133.000 is z=-0.000750",
+    "time": 1577838159.1503158,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 133.000,133.000 is z=-0.019000 z_compensation=0.015000",
+    "time": 1577838160.425444,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 133.000,133.000 is z=-0.004000",
+    "time": 1577838160.4271233,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 133.000,133.000 is z=-0.016500 z_compensation=0.012000",
+    "time": 1577838161.7300894,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 133.000,133.000 is z=-0.004500",
+    "time": 1577838161.7326927,
+    "type": "response"
+  },
+  {
+    "message": "// [G28_RE_CHECK]\n// Try Times=3\n// bst_z=0.023 bst_zps=[0.025,0.023,0.009] pro_zs=[0.025,0.023,0.009] pro_idxs=[6,6,3]\n// bst_z=-0.011 bst_zps=[-0.011,-0.011,-0.014] pro_zs=[-0.011,-0.011,-0.014] pro_idxs=[3,4,3]\n// bst_z=-0.004 bst_zps=[-0.001,-0.004,-0.005] pro_zs=[-0.001,-0.004,-0.005] pro_idxs=[4,4,3]",
+    "time": 1577838162.6408253,
+    "type": "response"
+  },
+  {
+    "message": "// za1:279.0 za2:15.54875 z_max:294.54875",
+    "time": 1577838162.7139037,
+    "type": "response"
+  },
+  {
+    "message": "// exist_points[81], config_points[81]",
+    "time": 1577838163.2649968,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 10.000,70.000 is z=0.242000 z_compensation=0.016000",
+    "time": 1577838167.9127152,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 10.000,70.000 is z=0.258000",
+    "time": 1577838167.912833,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 10.000,100.000 is z=0.224500 z_compensation=0.020000",
+    "time": 1577838170.4265797,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 10.000,100.000 is z=0.244500",
+    "time": 1577838170.4281406,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 10.000,130.000 is z=0.165750 z_compensation=0.024000",
+    "time": 1577838172.959352,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 10.000,130.000 is z=0.189750",
+    "time": 1577838172.9628816,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 10.000,160.000 is z=0.082000 z_compensation=0.021000",
+    "time": 1577838175.5415084,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 10.000,160.000 is z=0.103000",
+    "time": 1577838175.5431852,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 10.000,190.000 is z=0.004500 z_compensation=0.020000",
+    "time": 1577838178.1559384,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 10.000,190.000 is z=0.024500",
+    "time": 1577838178.1586692,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 40.000,190.000 is z=-0.031750 z_compensation=0.020000",
+    "time": 1577838180.792396,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 40.000,190.000 is z=-0.011750",
+    "time": 1577838180.8034277,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 40.000,160.000 is z=0.024500 z_compensation=0.020000",
+    "time": 1577838183.3902905,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 40.000,160.000 is z=0.044500",
+    "time": 1577838183.3959358,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 40.000,130.000 is z=0.085750 z_compensation=0.016000",
+    "time": 1577838185.9856236,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 40.000,130.000 is z=0.101750",
+    "time": 1577838185.9970791,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 40.000,100.000 is z=0.143250 z_compensation=0.015000",
+    "time": 1577838188.595421,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 40.000,100.000 is z=0.158250",
+    "time": 1577838188.6023207,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 40.000,70.000 is z=0.178250 z_compensation=0.017000",
+    "time": 1577838191.1303165,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 40.000,70.000 is z=0.195250",
+    "time": 1577838191.1377048,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 70.000,70.000 is z=0.118250 z_compensation=0.022000",
+    "time": 1577838193.667063,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 70.000,70.000 is z=0.140250",
+    "time": 1577838193.6716845,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 70.000,100.000 is z=0.097000 z_compensation=0.015000",
+    "time": 1577838196.2570307,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 70.000,100.000 is z=0.112000",
+    "time": 1577838196.2572129,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 70.000,130.000 is z=0.039500 z_compensation=0.015000",
+    "time": 1577838198.8470695,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 70.000,130.000 is z=0.054500",
+    "time": 1577838198.8490293,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 70.000,160.000 is z=-0.019250 z_compensation=0.024000",
+    "time": 1577838201.4550376,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 70.000,160.000 is z=0.004750",
+    "time": 1577838201.4573019,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 70.000,190.000 is z=-0.065500 z_compensation=0.020000",
+    "time": 1577838204.078389,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 70.000,190.000 is z=-0.045500",
+    "time": 1577838204.0814302,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 100.000,190.000 is z=-0.106750 z_compensation=0.016000",
+    "time": 1577838206.7136326,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 100.000,190.000 is z=-0.090750",
+    "time": 1577838206.7158887,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 100.000,160.000 is z=-0.045500 z_compensation=0.015000",
+    "time": 1577838209.3668876,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 100.000,160.000 is z=-0.030500",
+    "time": 1577838209.3697963,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 100.000,130.000 is z=-0.006750 z_compensation=0.016000",
+    "time": 1577838211.9707549,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 100.000,130.000 is z=0.009250",
+    "time": 1577838211.9747696,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 100.000,100.000 is z=0.073250 z_compensation=0.016000",
+    "time": 1577838214.5452669,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 100.000,100.000 is z=0.089250",
+    "time": 1577838214.5473719,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 100.000,70.000 is z=0.077000 z_compensation=0.016000",
+    "time": 1577838217.1109104,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 100.000,70.000 is z=0.093000",
+    "time": 1577838217.1125727,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 130.000,70.000 is z=0.042000 z_compensation=0.017000",
+    "time": 1577838219.7077215,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 130.000,70.000 is z=0.059000",
+    "time": 1577838219.7197723,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 130.000,100.000 is z=0.027000 z_compensation=0.021000",
+    "time": 1577838222.3065119,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 130.000,100.000 is z=0.048000",
+    "time": 1577838222.3189602,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 130.000,130.000 is z=-0.020500 z_compensation=0.016000",
+    "time": 1577838224.926323,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 130.000,130.000 is z=-0.004500",
+    "time": 1577838224.9285295,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 130.000,160.000 is z=-0.059250 z_compensation=0.016000",
+    "time": 1577838227.554392,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 130.000,160.000 is z=-0.043250",
+    "time": 1577838227.5569835,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 130.000,190.000 is z=-0.136750 z_compensation=0.017000",
+    "time": 1577838230.2010453,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 130.000,190.000 is z=-0.119750",
+    "time": 1577838230.2042508,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 160.000,190.000 is z=-0.100500 z_compensation=0.015000",
+    "time": 1577838232.8687785,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 160.000,190.000 is z=-0.085500",
+    "time": 1577838232.8755748,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 160.000,160.000 is z=-0.031750 z_compensation=0.018000",
+    "time": 1577838235.5227742,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 160.000,160.000 is z=-0.013750",
+    "time": 1577838235.5245054,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 160.000,130.000 is z=-0.035500 z_compensation=0.020000",
+    "time": 1577838238.1608706,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 160.000,130.000 is z=-0.015500",
+    "time": 1577838238.161122,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 160.000,100.000 is z=0.017000 z_compensation=0.021000",
+    "time": 1577838240.7925894,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 160.000,100.000 is z=0.038000",
+    "time": 1577838240.794799,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 160.000,70.000 is z=0.040750 z_compensation=0.015000",
+    "time": 1577838243.3878899,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 160.000,70.000 is z=0.055750",
+    "time": 1577838243.3896334,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 190.000,70.000 is z=0.104500 z_compensation=0.022000",
+    "time": 1577838245.953076,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 190.000,70.000 is z=0.126500",
+    "time": 1577838245.9568646,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 190.000,100.000 is z=0.089500 z_compensation=0.017000",
+    "time": 1577838248.5365827,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 190.000,100.000 is z=0.106500",
+    "time": 1577838248.5467353,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 190.000,130.000 is z=0.068250 z_compensation=0.030000",
+    "time": 1577838251.1054254,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 190.000,130.000 is z=0.098250",
+    "time": 1577838251.1109824,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 190.000,160.000 is z=0.052000 z_compensation=0.016000",
+    "time": 1577838253.7071671,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 190.000,160.000 is z=0.068000",
+    "time": 1577838253.7141898,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 190.000,190.000 is z=-0.041750 z_compensation=0.014000",
+    "time": 1577838256.3178422,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 190.000,190.000 is z=-0.027750",
+    "time": 1577838256.3204114,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 220.000,190.000 is z=0.032000 z_compensation=0.017000",
+    "time": 1577838258.92656,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 220.000,190.000 is z=0.049000",
+    "time": 1577838258.9297616,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 220.000,160.000 is z=0.102000 z_compensation=0.025000",
+    "time": 1577838261.512111,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 220.000,160.000 is z=0.127000",
+    "time": 1577838261.5122445,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 220.000,130.000 is z=0.120750 z_compensation=0.021000",
+    "time": 1577838264.0397987,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 220.000,130.000 is z=0.141750",
+    "time": 1577838264.0439458,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 220.000,100.000 is z=0.177000 z_compensation=0.016000",
+    "time": 1577838266.6234238,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 220.000,100.000 is z=0.193000",
+    "time": 1577838266.6249454,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 220.000,70.000 is z=0.193250 z_compensation=0.016000",
+    "time": 1577838269.155134,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 220.000,70.000 is z=0.209250",
+    "time": 1577838269.1601608,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 250.000,70.000 is z=0.274500 z_compensation=0.025000",
+    "time": 1577838271.6687627,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 250.000,70.000 is z=0.299500",
+    "time": 1577838271.6704051,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 250.000,100.000 is z=0.250750 z_compensation=0.021000",
+    "time": 1577838274.168104,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 250.000,100.000 is z=0.271750",
+    "time": 1577838274.174629,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 250.000,130.000 is z=0.200750 z_compensation=0.021000",
+    "time": 1577838276.6986032,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 250.000,130.000 is z=0.221750",
+    "time": 1577838276.6996474,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 250.000,160.000 is z=0.205750 z_compensation=0.016000",
+    "time": 1577838279.2244406,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 250.000,160.000 is z=0.221750",
+    "time": 1577838279.2259715,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 250.000,190.000 is z=0.128250 z_compensation=0.016000",
+    "time": 1577838281.7629502,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 250.000,190.000 is z=0.144250",
+    "time": 1577838281.7734418,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 100.000,10.000 is z=0.090750 z_compensation=0.017000",
+    "time": 1577838285.0313644,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 100.000,10.000 is z=0.107750",
+    "time": 1577838285.035688,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 70.000,10.000 is z=0.072000 z_compensation=0.020000",
+    "time": 1577838287.6024532,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 70.000,10.000 is z=0.092000",
+    "time": 1577838287.6045902,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 40.000,10.000 is z=0.069500 z_compensation=0.016000",
+    "time": 1577838290.1868308,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 40.000,10.000 is z=0.085500",
+    "time": 1577838290.189513,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 10.000,10.000 is z=0.082000 z_compensation=0.019000",
+    "time": 1577838292.7890465,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 10.000,10.000 is z=0.101000",
+    "time": 1577838292.789995,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 10.000,40.000 is z=0.175750 z_compensation=0.017000",
+    "time": 1577838295.3605692,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 10.000,40.000 is z=0.192750",
+    "time": 1577838295.3641253,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 10.000,70.000 is z=0.245750 z_compensation=0.021000",
+    "time": 1577838297.8952675,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 10.000,70.000 is z=0.266750",
+    "time": 1577838297.90624,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 10.000,100.000 is z=0.234500 z_compensation=0.015000",
+    "time": 1577838300.417957,
+    "type": "response"
+  },
+  {
+    "message": "// probe at 10.000,100.000 is z=0.249500",
+    "time": 1577838300.420908,
+    "type": "response"
+  },
+  {
+    "message": "// Bed Mesh state has been saved to profile [default]\n// for the current session.  The SAVE_CONFIG command will\n// update the printer config file and restart the printer.",
+    "time": 1577838301.479722,
+    "type": "response"
+  },
+  {
+    "message": "// Mesh Leveling Probed Z positions:\n// 0.101000 0.085000 0.092000 0.108000 0.055000 0.052000 0.052000 0.085000 0.017000\n// 0.193000 0.209000 0.120000 0.082000 0.022000 0.034000 0.080000 0.149000 0.048000\n// 0.267000 0.195000 0.140000 0.093000 0.059000 0.056000 0.126000 0.209000 0.299000\n// 0.249000 0.158000 0.112000 0.089000 0.048000 0.038000 0.106000 0.193000 0.272000\n// 0.190000 0.102000 0.054000 0.009000 -0.005000 -0.016000 0.098000 0.142000 0.222000\n// 0.103000 0.044000 0.005000 -0.031000 -0.043000 -0.014000 0.068000 0.127000 0.222000\n// 0.024000 -0.012000 -0.046000 -0.091000 -0.120000 -0.086000 -0.028000 0.049000 0.144000\n// -0.007000 -0.051000 -0.119000 -0.180000 -0.230000 -0.195000 -0.144000 -0.061000 0.072000\n// -0.158000 -0.201000 -0.213000 -0.279000 -0.324000 -0.286000 -0.262000 -0.202000 -0.031000",
+    "time": 1577838301.4989338,
+    "type": "response"
+  },
+  {
+    "message": "Mesh X,Y: 25,25\nSearch Height: 3\nMesh Offsets: X=0.0000, Y=0.0000\nMesh Average: 0.03\nMesh Range: min=-0.3240 max=0.2998\nInterpolation Algorithm: bicubic\nMeasured points:\n  -0.158000  -0.169607  -0.188859  -0.201000  -0.204585  -0.208393  -0.213000  -0.230778  -0.259756  -0.279000  -0.293852  -0.313770  -0.324000  -0.315274  -0.297793  -0.286000  -0.279185  -0.269793  -0.262000  -0.247378  -0.223156  -0.202000  -0.153356  -0.076978  -0.031000\n  -0.117074  -0.128554  -0.147749  -0.160467  -0.168425  -0.179406  -0.188319  -0.206230  -0.234436  -0.253185  -0.268452  -0.289135  -0.299867  -0.291520  -0.274486  -0.262674  -0.253978  -0.241371  -0.231378  -0.214641  -0.187493  -0.164985  -0.118851  -0.047020  -0.003837\n  -0.049304  -0.060558  -0.079628  -0.093267  -0.108345  -0.131009  -0.146926  -0.165010  -0.191882  -0.209770  -0.225662  -0.247517  -0.259022  -0.251298  -0.235012  -0.223170  -0.211354  -0.193417  -0.179778  -0.159564  -0.127613  -0.102904  -0.061011  0.003161  0.041637\n  -0.007000  -0.018052  -0.036926  -0.051000  -0.070037  -0.099207  -0.119000  -0.136993  -0.162807  -0.180000  -0.196030  -0.218237  -0.230000  -0.222644  -0.206844  -0.195000  -0.181215  -0.159919  -0.144000  -0.121711  -0.086933  -0.061000  -0.022089  0.036778  0.072000\n  0.004800  -0.005680  -0.023538  -0.036696  -0.053605  -0.079383  -0.096963  -0.113600  -0.137620  -0.153563  -0.167990  -0.187839  -0.198207  -0.190807  -0.175252  -0.163496  -0.149062  -0.126683  -0.110133  -0.087794  -0.053195  -0.027830  0.007898  0.061560  0.093630\n  0.015400  0.005767  -0.010537  -0.022126  -0.034563  -0.053154  -0.066126  -0.080494  -0.101721  -0.115704  -0.127366  -0.143106  -0.151037  -0.143488  -0.128257  -0.116659  -0.101533  -0.078021  -0.060889  -0.038996  -0.005445  0.018630  0.049723  0.095922  0.123481\n  0.024000  0.014637  -0.001126  -0.012000  -0.021719  -0.035881  -0.046000  -0.058911  -0.078311  -0.091000  -0.100785  -0.113726  -0.120000  -0.112400  -0.097467  -0.086000  -0.070237  -0.045674  -0.028000  -0.006585  0.025941  0.049000  0.077319  0.119104  0.144000\n  0.045281  0.034377  0.016070  0.003644  -0.006350  -0.020578  -0.030585  -0.042739  -0.060826  -0.072511  -0.080738  -0.091312  -0.096200  -0.088757  -0.074361  -0.063007  -0.045466  -0.017967  0.001304  0.021579  0.051816  0.073415  0.101341  0.142790  0.167511\n  0.079230  0.065601  0.042778  0.027511  0.016439  0.001113  -0.009348  -0.020604  -0.036970  -0.047311  -0.053368  -0.060633  -0.063600  -0.056543  -0.043155  -0.032059  -0.011637  0.020641  0.042519  0.060942  0.087481  0.106807  0.134717  0.176637  0.201689\n  0.103000  0.087407  0.061326  0.044000  0.032096  0.015881  0.005000  -0.005844  -0.021356  -0.031000  -0.035785  -0.041104  -0.043000  -0.036622  -0.024556  -0.014000  0.008459  0.044207  0.068000  0.085193  0.109230  0.127000  0.154785  0.196837  0.222000\n  0.128311  0.110405  0.080483  0.060726  0.047880  0.030635  0.019081  0.007461  -0.009157  -0.019444  -0.024042  -0.028998  -0.031089  -0.027900  -0.021017  -0.013215  0.011778  0.052362  0.078948  0.095055  0.116616  0.132667  0.159173  0.199452  0.223570\n  0.165578  0.144245  0.108636  0.085274  0.071016  0.052209  0.039607  0.026639  0.008046  -0.003444  -0.008116  -0.013080  -0.015844  -0.017835  -0.019299  -0.015985  0.012632  0.060269  0.090963  0.105649  0.123861  0.137533  0.161974  0.199303  0.221674\n  0.190000  0.166593  0.127541  0.102000  0.086904  0.067185  0.054000  0.040452  0.021037  0.009000  0.003993  -0.001504  -0.005000  -0.010119  -0.016570  -0.016000  0.014267  0.065289  0.098000  0.112252  0.129259  0.142000  0.165230  0.200726  0.222000\n  0.208481  0.184530  0.144585  0.118519  0.103387  0.083794  0.070933  0.059186  0.042642  0.032052  0.025168  0.016179  0.010489  0.005041  -0.001584  -0.001526  0.025338  0.070925  0.100785  0.117828  0.140173  0.156185  0.179511  0.214440  0.235304\n  0.233585  0.209285  0.168778  0.142415  0.127414  0.108213  0.096000  0.087328  0.075661  0.067548  0.057595  0.042892  0.033711  0.028473  0.022770  0.022637  0.043402  0.079064  0.103659  0.125480  0.157052  0.178770  0.202573  0.237032  0.257496\n  0.249000  0.224741  0.184304  0.158000  0.143037  0.123941  0.112000  0.104941  0.095837  0.089000  0.077230  0.059193  0.048000  0.043037  0.038119  0.038000  0.055052  0.084637  0.106000  0.130689  0.167822  0.193000  0.217230  0.251637  0.272000\n  0.256778  0.233592  0.194907  0.169593  0.154311  0.134387  0.121689  0.112890  0.101055  0.092630  0.081066  0.063773  0.053133  0.048695  0.044541  0.044859  0.061831  0.091177  0.112400  0.137095  0.174323  0.199785  0.225620  0.262649  0.284600\n  0.265133  0.244009  0.208687  0.185274  0.169392  0.147904  0.133778  0.121716  0.104768  0.093415  0.082555  0.067170  0.057867  0.054318  0.051399  0.052519  0.070142  0.100355  0.122000  0.146023  0.182096  0.207148  0.235058  0.275652  0.299778\n  0.267000  0.248081  0.216363  0.195000  0.178489  0.155400  0.140000  0.125993  0.106074  0.093000  0.082333  0.067711  0.059000  0.056133  0.054244  0.056000  0.073867  0.104311  0.126000  0.149489  0.184622  0.209000  0.236126  0.275563  0.299000\n  0.248615  0.236754  0.216565  0.201770  0.182974  0.154524  0.135763  0.121795  0.102576  0.089719  0.077088  0.059212  0.048696  0.046953  0.047306  0.050237  0.066689  0.094480  0.114400  0.137556  0.172007  0.193978  0.206610  0.222371  0.231467\n  0.216274  0.215611  0.213722  0.209385  0.187155  0.150536  0.126726  0.113435  0.096276  0.084304  0.068402  0.044967  0.031326  0.031269  0.035067  0.039763  0.053711  0.076878  0.093733  0.116304  0.149604  0.167578  0.156208  0.132763  0.118111\n  0.193000  0.198704  0.207252  0.209000  0.185644  0.145756  0.120000  0.107837  0.092874  0.082000  0.064252  0.037526  0.022000  0.022830  0.028459  0.034000  0.045941  0.065526  0.080000  0.101770  0.133763  0.149000  0.123363  0.076704  0.048000\n  0.165593  0.169232  0.174621  0.175430  0.158603  0.130016  0.111733  0.104432  0.095886  0.088800  0.071867  0.045491  0.029948  0.030004  0.034157  0.038281  0.046616  0.060389  0.070963  0.089471  0.116965  0.129681  0.104668  0.059690  0.032067\n  0.125119  0.123788  0.121404  0.119193  0.113567  0.104681  0.099378  0.099975  0.101691  0.100711  0.085574  0.060545  0.045407  0.043953  0.045193  0.046741  0.049506  0.054390  0.058993  0.072231  0.092508  0.101652  0.081024  0.044301  0.021778\n  0.101000  0.096511  0.089178  0.085000  0.086207  0.089370  0.092000  0.097378  0.105289  0.108000  0.093993  0.069852  0.055000  0.052607  0.052037  0.052000  0.051422  0.050978  0.052000  0.062052  0.077970  0.085000  0.067341  0.036126  0.017000\n",
+    "time": 1577838301.5185292,
+    "type": "response"
+  },
+  {
+    "message": "// [G29_TIME]Execution time: 138.271 seconds, Time spent at each point: 1.7",
+    "time": 1577838301.5225708,
+    "type": "response"
+  },
+  {
+    "message": "// print prepared",
+    "time": 1577838306.3846717,
+    "type": "response"
+  },
+  {
+    "message": "// SET_PRESSURE_ADVANCE is enabled",
+    "time": 1577838306.4908023,
+    "type": "response"
+  },
+  {
+    "message": "// pressure_advance: 0.072000\n// pressure_advance_smooth_time: 0.040000",
+    "time": 1577838306.4948466,
+    "type": "response"
+  },
+  {
+    "message": "// SET_PRESSURE_ADVANCE is enabled",
+    "time": 1577838306.594851,
+    "type": "response"
+  },
+  {
+    "message": "// pressure_advance: 0.072000\n// pressure_advance_smooth_time: 0.040000",
+    "time": 1577838306.5973957,
+    "type": "response"
+  },
+  {
+    "message": "File opened:CAJA LISTA CARA ADALOVE LISTA PARA IMPRIMIR (1).stl_PETG_6h0m27s.gcode Size:10321936",
+    "time": 1577838306.7181878,
+    "type": "response"
+  },
+  {
+    "message": "File selected",
+    "time": 1577838306.7529936,
+    "type": "response"
+  },
+  {
+    "message": "// print prepared 222",
+    "time": 1577838310.203927,
+    "type": "response"
+  },
+  {
+    "message": "B:82.6 /0.0 T0:69.5 /250.0",
+    "time": 1577838311.6208405,
+    "type": "response"
+  },
+  {
+    "message": "B:82.6 /0.0 T0:69.6 /250.0",
+    "time": 1577838312.6087875,
+    "type": "response"
+  },
+  {
+    "message": "B:82.6 /0.0 T0:70.8 /250.0",
+    "time": 1577838313.6091313,
+    "type": "response"
+  },
+  {
+    "message": "B:82.6 /0.0 T0:73.0 /250.0",
+    "time": 1577838314.6099164,
+    "type": "response"
+  },
+  {
+    "message": "B:82.5 /0.0 T0:76.0 /250.0",
+    "time": 1577838315.6123507,
+    "type": "response"
+  },
+  {
+    "message": "B:82.5 /0.0 T0:81.1 /250.0",
+    "time": 1577838316.6120148,
+    "type": "response"
+  },
+  {
+    "message": "B:82.4 /0.0 T0:85.3 /250.0",
+    "time": 1577838317.612561,
+    "type": "response"
+  },
+  {
+    "message": "B:82.4 /0.0 T0:89.7 /250.0",
+    "time": 1577838318.61612,
+    "type": "response"
+  },
+  {
+    "message": "B:82.4 /0.0 T0:95.7 /250.0",
+    "time": 1577838319.6140022,
+    "type": "response"
+  },
+  {
+    "message": "B:82.3 /0.0 T0:100.2 /250.0",
+    "time": 1577838320.6142669,
+    "type": "response"
+  },
+  {
+    "message": "B:82.3 /0.0 T0:104.7 /250.0",
+    "time": 1577838321.6151824,
+    "type": "response"
+  },
+  {
+    "message": "B:82.3 /0.0 T0:110.5 /250.0",
+    "time": 1577838322.6157534,
+    "type": "response"
+  },
+  {
+    "message": "B:82.2 /0.0 T0:114.8 /250.0",
+    "time": 1577838323.61683,
+    "type": "response"
+  },
+  {
+    "message": "B:82.1 /0.0 T0:119.0 /250.0",
+    "time": 1577838324.6177814,
+    "type": "response"
+  },
+  {
+    "message": "B:82.1 /0.0 T0:124.5 /250.0",
+    "time": 1577838325.6183808,
+    "type": "response"
+  },
+  {
+    "message": "B:82.0 /0.0 T0:128.5 /250.0",
+    "time": 1577838326.6187744,
+    "type": "response"
+  },
+  {
+    "message": "B:82.0 /0.0 T0:132.4 /250.0",
+    "time": 1577838327.6202571,
+    "type": "response"
+  },
+  {
+    "message": "B:81.9 /0.0 T0:137.6 /250.0",
+    "time": 1577838328.6240613,
+    "type": "response"
+  },
+  {
+    "message": "B:81.9 /0.0 T0:141.4 /250.0",
+    "time": 1577838329.6220284,
+    "type": "response"
+  },
+  {
+    "message": "B:81.8 /0.0 T0:145.2 /250.0",
+    "time": 1577838330.6253917,
+    "type": "response"
+  },
+  {
+    "message": "B:81.8 /0.0 T0:150.1 /250.0",
+    "time": 1577838331.6251717,
+    "type": "response"
+  },
+  {
+    "message": "B:81.8 /0.0 T0:153.7 /250.0",
+    "time": 1577838332.6246474,
+    "type": "response"
+  },
+  {
+    "message": "B:81.8 /0.0 T0:157.3 /250.0",
+    "time": 1577838333.6246498,
+    "type": "response"
+  },
+  {
+    "message": "B:81.8 /0.0 T0:162.0 /250.0",
+    "time": 1577838334.625813,
+    "type": "response"
+  },
+  {
+    "message": "B:81.7 /0.0 T0:165.5 /250.0",
+    "time": 1577838335.6264777,
+    "type": "response"
+  },
+  {
+    "message": "B:81.7 /0.0 T0:168.9 /250.0",
+    "time": 1577838336.6303856,
+    "type": "response"
+  },
+  {
+    "message": "B:81.7 /0.0 T0:173.5 /250.0",
+    "time": 1577838337.6300426,
+    "type": "response"
+  },
+  {
+    "message": "B:81.6 /0.0 T0:176.8 /250.0",
+    "time": 1577838338.6305141,
+    "type": "response"
+  },
+  {
+    "message": "B:81.6 /0.0 T0:180.1 /250.0",
+    "time": 1577838339.6297116,
+    "type": "response"
+  },
+  {
+    "message": "B:81.5 /0.0 T0:184.5 /250.0",
+    "time": 1577838340.6320257,
+    "type": "response"
+  },
+  {
+    "message": "B:81.5 /0.0 T0:187.7 /250.0",
+    "time": 1577838341.6327736,
+    "type": "response"
+  },
+  {
+    "message": "B:81.4 /0.0 T0:190.9 /250.0",
+    "time": 1577838342.6318114,
+    "type": "response"
+  },
+  {
+    "message": "B:81.3 /0.0 T0:195.1 /250.0",
+    "time": 1577838343.6330128,
+    "type": "response"
+  },
+  {
+    "message": "B:81.3 /0.0 T0:198.2 /250.0",
+    "time": 1577838344.6346943,
+    "type": "response"
+  },
+  {
+    "message": "B:81.2 /0.0 T0:201.2 /250.0",
+    "time": 1577838345.6342242,
+    "type": "response"
+  },
+  {
+    "message": "B:81.2 /0.0 T0:205.3 /250.0",
+    "time": 1577838346.635404,
+    "type": "response"
+  },
+  {
+    "message": "B:81.1 /0.0 T0:208.2 /250.0",
+    "time": 1577838347.6355684,
+    "type": "response"
+  },
+  {
+    "message": "B:81.0 /0.0 T0:211.2 /250.0",
+    "time": 1577838348.6405408,
+    "type": "response"
+  },
+  {
+    "message": "B:81.0 /0.0 T0:215.1 /250.0",
+    "time": 1577838349.6376863,
+    "type": "response"
+  },
+  {
+    "message": "B:80.9 /0.0 T0:218.0 /250.0",
+    "time": 1577838350.638467,
+    "type": "response"
+  },
+  {
+    "message": "B:80.8 /0.0 T0:220.8 /250.0",
+    "time": 1577838351.6408768,
+    "type": "response"
+  },
+  {
+    "message": "B:80.8 /0.0 T0:224.6 /250.0",
+    "time": 1577838352.640555,
+    "type": "response"
+  },
+  {
+    "message": "B:80.7 /0.0 T0:227.3 /250.0",
+    "time": 1577838353.6409392,
+    "type": "response"
+  },
+  {
+    "message": "B:80.6 /0.0 T0:230.3 /250.0",
+    "time": 1577838354.6417577,
+    "type": "response"
+  },
+  {
+    "message": "B:80.6 /0.0 T0:234.0 /250.0",
+    "time": 1577838355.6422923,
+    "type": "response"
+  },
+  {
+    "message": "B:80.5 /0.0 T0:236.7 /250.0",
+    "time": 1577838356.64278,
+    "type": "response"
+  },
+  {
+    "message": "B:80.5 /0.0 T0:239.0 /250.0",
+    "time": 1577838357.64651,
+    "type": "response"
+  },
+  {
+    "message": "B:80.4 /0.0 T0:241.4 /250.0",
+    "time": 1577838358.6442578,
+    "type": "response"
+  },
+  {
+    "message": "B:80.3 /0.0 T0:242.9 /250.0",
+    "time": 1577838359.6459703,
+    "type": "response"
+  },
+  {
+    "message": "B:80.3 /0.0 T0:244.1 /250.0",
+    "time": 1577838360.6455379,
+    "type": "response"
+  },
+  {
+    "message": "B:80.1 /0.0 T0:245.5 /250.0",
+    "time": 1577838361.6494858,
+    "type": "response"
+  },
+  {
+    "message": "B:80.1 /0.0 T0:246.7 /250.0",
+    "time": 1577838362.6461508,
+    "type": "response"
+  },
+  {
+    "message": "B:80.0 /0.0 T0:247.9 /250.0",
+    "time": 1577838363.6491199,
+    "type": "response"
+  },
+  {
+    "message": "B:79.9 /0.0 T0:249.4 /250.0",
+    "time": 1577838364.6485333,
+    "type": "response"
+  },
+  {
+    "message": "B:79.9 /0.0 T0:250.2 /250.0",
+    "time": 1577838365.6505969,
+    "type": "response"
+  }
+]

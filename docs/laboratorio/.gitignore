@@ -1,0 +1,9 @@
+# Volcados crudos de la impresora real: solo los resúmenes van al repositorio.
+# Un .gitignore no puede filtrar por tamaño; antes de cada commit se revisa que nada pese más de 2 MB
+# (find docs/laboratorio -size +2M) y lo que pese se agrega aquí.
+**/logs/
+**/*.log
+**/*.jsonl
+**/ws_muestra_*
+**/gcode/*.gcode
+**/webcam/

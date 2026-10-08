@@ -1,0 +1,13 @@
+{
+  "size": 5157891,
+  "modified": 1577840922.690002,
+  "uuid": "16e462ad-e589-44a9-8643-c37bea644023",
+  "slicer": "Unknown",
+  "gcode_start_byte": 12788,
+  "gcode_end_byte": 5138686,
+  "object_height": 24.8,
+  "first_layer_height": 0.2,
+  "print_start_time": 1577841775.793623,
+  "job_id": "00007B",
+  "filename": "BOX FINAL lista pa imprimir_PETG_2h5m.gcode"
+}

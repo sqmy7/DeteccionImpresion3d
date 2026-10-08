@@ -345,6 +345,62 @@ página en vivo pide el puntaje combinado una vez por capa analizada.
 `filament_type`), si tiene sensor de filamento expuesto a Klipper, y con varias impresiones reales
 revisar la pestaña "Salud" (hacen falta al menos 6 trabajos parecidos).
 
+## Laboratorio: datos reales con la Creality Hi imprimiendo (2026-10-08)
+
+Sesión en la red SalaSteam_UIS con la impresora imprimiendo el trabajo 43 (`CAJA LISTA CARA ADALOVE...
+PETG_6h0m27s.gcode`, 486 capas). Todo con la impresora fue de solo lectura (GET y suscripciones). Los
+volcados crudos están en `docs/laboratorio/` (los logs y muestras grandes no se versionan); el cierre
+con todas las conclusiones irá en `docs/laboratorio/RESULTADOS.md`.
+
+**Paso 0, estado de PrintWatch.** El listener se conectó a mitad de la impresión (capa 274 de 486) y abrió
+el trabajo 43; llegan muestras cada segundo con posición, temperaturas y sensores, y la bitácora no
+registró ningún evento falso en 11 min de impresión estable. **No hay fotos ni detecciones**: el servicio
+`capture` no está corriendo.
+- **Pausa automática:** no existe interruptor (solo la cuenta regresiva de 15 s que se puede abortar en
+  la web). Mientras `capture` esté apagado no hay detecciones, así que no puede dispararse; arrancarlo
+  durante esta impresión la volvería a activar. No se arrancó.
+- **Docker/WSL:** la sesión `wsl -- sleep infinity` no estaba abierta y WSL se apagaba entre mis comandos,
+  reiniciando los 4 contenedores (3 reinicios del backend en 2 min, sin perder el trabajo: el listener
+  retomó el job abierto). Se abrió esa sesión en segundo plano y no volvió a pasar.
+
+**Paso 1, descubrimiento** (`docs/laboratorio/descubrimiento/`; pasos seguros, descargas a 300 KB/s,
+sin leer el stream de la cámara; medición del WebSocket de 300 s, sin las macros, 45 objetos).
+
+| Pregunta | Respuesta | Evidencia |
+|---|---|---|
+| ¿`motion_report` (posición real)? | **Sí** | `live_position`, `live_velocity`, `live_extruder_velocity` a ~4 Hz. `toolhead.position` va **por delante: mediana ~100 mm, p90 162 mm** (incluye que se actualiza a 1,3 Hz y la otra a 4 Hz) |
+| Metadatos del archivo | **Parcial** | `cur_print_data.metadata` trae `layer_count`, `layer_height`, `filament_type: PETG`, `filament_used_g: ["201.83"]` (lista de cadenas), `slicer: Creality 7.3.0.6149`. **No** trae `estimated_time`, `filament_total` ni `filament_weight_total`. El tiempo estimado solo está en el **nombre del archivo** (`_PETG_6h0m27s`). `/server/files/metadata` es más pobre (sin altura de capa ni material) |
+| ¿Sensor de filamento? | **Sí, cinco** | `filament_sensor` (el del cabezal, `pause_on_runout: true`), `_2` y tres más de las ranuras de la caja CFS (`box.state: "disconnect"`): los 3 a 5 marcan "sin filamento" siempre |
+| Otros objetos | 117 en total | `output_pin fan0` es el ventilador de capa (no existe `fan`), `fanp0`, `board_fan`, `LED`, `heater_fan hotend_fan`, `temperature_sensor mcu_temp`, `bed_mesh` 9×9, `exclude_object` (declarado por el archivo), `custom_macro`, `box`, `motor_control`, `prtouch_v3`, `fan_feedback`, `filament_rack`, `steer` |
+| Cámaras | **Moonraker no publica ninguna** | `/server/webcams/list` devuelve `[]`. No se probó ninguna URL por adivinar (sin escaneos de puertos). Sin comprobar si hay una cámara interna accesible |
+| Potencias de calentadores | **No se pudo comprobar** | `configfile` no trae vatios: solo PID, `max_temp` (320 / 115) y `max_power` de la cama = 1.0. Los supuestos de 50 W y 300 W siguen sin verificar |
+| Límites de ejes | **Distinto de lo supuesto** | X −19..285, Y −7..273, Z −5..310 (recorrido del cabezal, incluye el cortador de filamento en X 279,6). La cama es de 260×260 (malla 10..250) |
+| Macros que se disparan al iniciar | `START_PRINT` | llamada con `EXTRUDER_TEMP` y `BED_TEMP`; usa `BOX_*`, `G28`, `BED_MESH_CALIBRATE`, `M109/M190`. Ver `analisis_config.md` y `macros.cfg` (71 macros) |
+| Reloj de la impresora | **Mal** | 2020-01-01 desde cada arranque (sin RTC ni NTP): -213.636.671 s respecto del local. La corrección por encabezado `Date` lo cubre |
+| Carga de la medición | 4,2 KB/s, 4 Hz, 1.491 mensajes en 300 s | Moonraker usa ~11 % de CPU; `sysload` de la impresora 0,4-1,0 sobre 2 núcleos durante las descargas |
+
+**Paso 2, logs.** Descargados con GET (144 MB; `klippy.log` y 5 rotaciones de mayo, `moonraker.log` y 2 de
+mayo). **No hay rastro del incidente del 25-09** en ninguno: ni el nombre del archivo ni un `Move out of
+range` ni una pausa en la posición ~5,1 MB. Los logs se escriben con el reloj de la impresora (2019-12-31 /
+2020-01-01) y el del incidente ya se perdió. Conclusiones del incidente y su grado de certeza en
+`docs/laboratorio/RESULTADOS.md`.
+
+**Correcciones hechas por lo que mostraron los datos reales** (código; el backend desplegado NO se
+reconstruyó para no reiniciarlo durante la impresión, queda para cuando termine):
+1. **Sensor de filamento en el puntaje combinado:** los sensores de las ranuras CFS siempre dicen "sin
+   filamento"; habrían sumado +0,6 a toda sub-extrusión. Ahora solo cuenta un sensor que haya visto
+   filamento en ese trabajo.
+2. **Tamaño de la cama:** salía de `axis_maximum` (285×273). Ahora sale de la malla (10+250 = 260), que
+   coincide con la ficha; afecta la calibración, el mapa y el reporte.
+3. **Ventilador de capa:** `fan_speed` quedó vacío en las 596 muestras; en la Hi es `output_pin fan0`.
+4. **Metadatos del archivo:** se toma `filament_used_g` y el tiempo estimado del nombre del archivo
+   (marcado como tal en la web y el reporte).
+5. **Video:** el stream servía en silencio un cuadro de hace horas guardado en Redis; ahora muestra
+   "sin señal" si el cuadro tiene más de 15 s.
+6. **Web:** en celular la página real se ensanchaba (grid sin `min-w-0`); el tiempo restante salía de
+   dividir el tiempo desde que se abrió el trabajo (a mitad de impresión) y daba ~16 min cuando
+   faltaban ~70.
+
 ## Pendiente con la impresora
 
 Antes de cualquier prueba: VPN HotspotShield desconectada, sesión `wsl -- sleep infinity` abierta y

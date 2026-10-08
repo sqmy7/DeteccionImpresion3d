@@ -31,6 +31,7 @@ _STREAM_BOUNDARY = "frame"
 # so this endpoint is never the bottleneck; re-sending the same cached frame once in a while
 # is harmless; a browser <img> just repaints an identical frame.
 _STREAM_INTERVAL_SECONDS = 0.12
+_STALE_FRAME_SECONDS = 15.0  # older than this the live view says "no signal"
 _placeholder_jpeg_cache: bytes | None = None
 
 
@@ -39,7 +40,7 @@ def _placeholder_jpeg() -> bytes:
     if _placeholder_jpeg_cache is None:
         image = Image.new("RGB", (640, 480), color=(30, 41, 59))
         draw = ImageDraw.Draw(image)
-        draw.text((20, 230), "Sin señal", fill=(148, 163, 184))
+        draw.text((20, 230), "Sin senal: el servicio de captura no esta enviando video", fill=(148, 163, 184))
         buffer = io.BytesIO()
         image.save(buffer, format="JPEG")
         _placeholder_jpeg_cache = buffer.getvalue()
@@ -134,8 +135,11 @@ async def _mjpeg_frames(request: Request, camera_id: int) -> AsyncIterator[bytes
         # layer changes/inference) as base64 text in Redis - no live camera feed needed on
         # this side, and it reuses the same decode_responses=True client used everywhere
         # else instead of a second binary connection.
-        cached = await redis_client.get(f"latest_frame:{camera_id}")
-        jpeg_bytes = base64.b64decode(cached) if cached else _placeholder_jpeg()
+        cached, taken_at = await redis_client.mget(f"latest_frame:{camera_id}", f"latest_frame_at:{camera_id}")
+        # The frame outlives the capture process in Redis: measured on the real printer, hours-old
+        # frames were shown as live. No timestamp (a capture that predates it): trust the frame.
+        stale = taken_at is not None and time.time() - float(taken_at) > _STALE_FRAME_SECONDS
+        jpeg_bytes = base64.b64decode(cached) if cached and not stale else _placeholder_jpeg()
 
         yield (
             b"--" + boundary + b"\r\n"

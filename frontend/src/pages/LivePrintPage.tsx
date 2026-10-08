@@ -34,17 +34,27 @@ function ProgressCard({
   reading,
   printerId,
   status,
+  first,
 }: {
   job: PrintJob;
   summary: JobSummary | null;
   reading: TelemetryReading | null;
   printerId: number;
   status: Parameters<typeof PrintControls>[0]["status"];
+  first: { t: number; progress: number } | null;
 }) {
   const progress = reading?.progress ?? null;
   const elapsed = secondsBetween(job.started_at, job.ended_at);
-  // Rough: assumes the rest of the file prints at the average pace so far (heating included).
-  const remaining = progress && progress > 0.02 && elapsed ? (elapsed * (1 - progress)) / progress : null;
+  // Rough: assumes the rest of the file prints at the pace seen since PrintWatch's first sample of
+  // this job. (The job may have been picked up mid-print: elapsed time over total progress would
+  // then be far too optimistic. Measured on the real Hi: ~16 min shown, ~70 min left.)
+  let remaining: number | null = null;
+  if (progress != null && first && progress - first.progress > 0.01) {
+    const seen = (Date.now() - first.t) / 1000;
+    remaining = (seen * (1 - progress)) / (progress - first.progress);
+  } else if (progress && progress > 0.02 && elapsed) {
+    remaining = (elapsed * (1 - progress)) / progress;
+  }
   const layer = reading?.layer_number ?? summary?.current_layer ?? null;
 
   return (
@@ -72,7 +82,7 @@ function ProgressCard({
           <div className="h-full rounded-full bg-accent transition-[width] duration-700" style={{ width: `${Math.min(100, (progress ?? 0) * 100)}%` }} />
         </div>
         <div className="grid grid-cols-2 gap-2 text-xs text-muted sm:grid-cols-3">
-          <span className="flex items-center gap-1.5">
+          <span className="flex items-center gap-1.5" title="Tiempo desde que PrintWatch abrió este trabajo (puede ser a mitad de la impresión)">
             <Clock size={13} className="text-faint" />
             {formatDuration(elapsed)}
           </span>
@@ -150,6 +160,11 @@ export function LivePrintPage() {
     return [...stored, ...fresh];
   }, [history.data, recent, jobId]);
 
+  const firstProgress = useMemo(() => {
+    const point = points.find((item) => item.progress != null);
+    return point ? { t: Date.parse(point.ts), progress: point.progress as number } : null;
+  }, [points]);
+
   const markers = useMemo(
     () => [...eventMarkers(allEvents), ...defectMarkers(layers.data ?? [], entries)],
     [allEvents, layers.data, entries],
@@ -177,7 +192,7 @@ export function LivePrintPage() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex min-w-0 flex-col gap-4">
       <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <Card
           title={
@@ -198,9 +213,9 @@ export function LivePrintPage() {
           </div>
         </Card>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex min-w-0 flex-col gap-4">
           {job ? (
-            <ProgressCard job={job} summary={summary.data} reading={live} printerId={printer.id} status={printer.last_known_status} />
+            <ProgressCard job={job} summary={summary.data} reading={live} printerId={printer.id} status={printer.last_known_status} first={firstProgress} />
           ) : (
             <Card title="Sin impresión en curso">
               <p className="text-sm text-muted">
@@ -282,7 +297,7 @@ export function LivePrintPage() {
           {entries.length === 0 ? (
             <EmptyState title="Todavía no hay capas" description="Cada cambio de capa toma una foto y la analiza." />
           ) : (
-            <div className="flex flex-col gap-4">
+            <div className="flex min-w-0 flex-col gap-4">
               <LayerStrip
                 entries={entries}
                 selected={selectedLayer}

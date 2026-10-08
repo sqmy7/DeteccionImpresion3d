@@ -1,0 +1,191 @@
+{
+  "inicio_utc": "2026-10-08T19:24:15+00:00",
+  "url": "http://192.168.10.22:7125",
+  "solo_lectura": true,
+  "pasos": {
+    "logs": {
+      "ok": true,
+      "logs": [
+        {
+          "archivo": "klippy.log",
+          "tamano": 22050769,
+          "modificado_utc": "2020-01-01T03:53:04+00:00",
+          "descargado": 22050769,
+          "cortado": false
+        },
+        {
+          "archivo": "klippy.log.2026-05-04",
+          "tamano": 29388763,
+          "modificado_utc": "2020-01-01T04:01:42+00:00",
+          "descargado": 29388763,
+          "cortado": false
+        },
+        {
+          "archivo": "klippy.log.2026-05-08",
+          "tamano": 11781714,
+          "modificado_utc": "2020-01-01T01:16:53+00:00",
+          "descargado": 11781714,
+          "cortado": false
+        },
+        {
+          "archivo": "klippy.log.2026-05-12",
+          "tamano": 48983074,
+          "modificado_utc": "2026-05-13T04:59:59+00:00",
+          "descargado": 48983074,
+          "cortado": false
+        },
+        {
+          "archivo": "klippy.log.2026-05-21",
+          "tamano": 4822349,
+          "modificado_utc": "2020-01-01T00:11:28+00:00",
+          "descargado": 4822349,
+          "cortado": false
+        },
+        {
+          "archivo": "klippy.log.2026-05-27",
+          "tamano": 33421350,
+          "modificado_utc": "2020-01-01T00:30:44+00:00",
+          "descargado": 33421350,
+          "cortado": false
+        },
+        {
+          "archivo": "moonraker.log",
+          "tamano": 205808,
+          "modificado_utc": "2020-01-01T03:53:04+00:00",
+          "descargado": 213901,
+          "cortado": false
+        },
+        {
+          "archivo": "moonraker.log.2026-05-21",
+          "tamano": 34375,
+          "modificado_utc": "2020-01-01T00:11:26+00:00",
+          "descargado": 34375,
+          "cortado": false
+        },
+        {
+          "archivo": "moonraker.log.2026-05-27",
+          "tamano": 51256,
+          "modificado_utc": "2020-01-01T00:30:18+00:00",
+          "descargado": 51256,
+          "cortado": false
+        }
+      ],
+      "incidente_en_klippy_log": false,
+      "posicion_del_error_en_el_gcode": null,
+      "extractos": [
+        "logs/extracto_moonraker_incidente.txt"
+      ]
+    }
+  },
+  "reloj_impresora_menos_local_s": -213636671.4,
+  "fin_utc": "2026-10-08T19:32:45+00:00",
+  "peticiones": [
+    {
+      "url": "http://192.168.10.22:7125/printer/info",
+      "params": null,
+      "utc": "2026-10-08T19:24:15+00:00",
+      "status": 200,
+      "bytes": 394,
+      "ms": 94
+    },
+    {
+      "url": "http://192.168.10.22:7125/server/info",
+      "params": null,
+      "utc": "2026-10-08T19:24:15+00:00",
+      "status": 200,
+      "bytes": 683,
+      "ms": 0
+    },
+    {
+      "url": "http://192.168.10.22:7125/server/files/list",
+      "params": {
+        "root": "logs"
+      },
+      "utc": "2026-10-08T19:24:15+00:00",
+      "status": 200,
+      "bytes": 931,
+      "ms": 62
+    },
+    {
+      "url": "http://192.168.10.22:7125/server/files/logs/klippy.log",
+      "headers": null,
+      "utc": "2026-10-08T19:24:15+00:00",
+      "status": 200,
+      "content_type": "text/plain",
+      "bytes": 22050769,
+      "ms": 74578
+    },
+    {
+      "url": "http://192.168.10.22:7125/server/files/logs/klippy.log.2026-05-04",
+      "headers": null,
+      "utc": "2026-10-08T19:25:30+00:00",
+      "status": 200,
+      "content_type": "application/octet-stream",
+      "bytes": 29388763,
+      "ms": 99579
+    },
+    {
+      "url": "http://192.168.10.22:7125/server/files/logs/klippy.log.2026-05-08",
+      "headers": null,
+      "utc": "2026-10-08T19:27:09+00:00",
+      "status": 200,
+      "content_type": "application/octet-stream",
+      "bytes": 11781714,
+      "ms": 39890
+    },
+    {
+      "url": "http://192.168.10.22:7125/server/files/logs/klippy.log.2026-05-12",
+      "headers": null,
+      "utc": "2026-10-08T19:27:49+00:00",
+      "status": 200,
+      "content_type": "application/octet-stream",
+      "bytes": 48983074,
+      "ms": 165438
+    },
+    {
+      "url": "http://192.168.10.22:7125/server/files/logs/klippy.log.2026-05-21",
+      "headers": null,
+      "utc": "2026-10-08T19:30:34+00:00",
+      "status": 200,
+      "content_type": "application/octet-stream",
+      "bytes": 4822349,
+      "ms": 16328
+    },
+    {
+      "url": "http://192.168.10.22:7125/server/files/logs/klippy.log.2026-05-27",
+      "headers": null,
+      "utc": "2026-10-08T19:30:51+00:00",
+      "status": 200,
+      "content_type": "application/octet-stream",
+      "bytes": 33421350,
+      "ms": 112750
+    },
+    {
+      "url": "http://192.168.10.22:7125/server/files/logs/moonraker.log",
+      "headers": null,
+      "utc": "2026-10-08T19:32:44+00:00",
+      "status": 200,
+      "content_type": "text/plain",
+      "bytes": 213901,
+      "ms": 797
+    },
+    {
+      "url": "http://192.168.10.22:7125/server/files/logs/moonraker.log.2026-05-21",
+      "headers": null,
+      "utc": "2026-10-08T19:32:44+00:00",
+      "status": 200,
+      "content_type": "application/octet-stream",
+      "bytes": 34375,
+      "ms": 172
+    },
+    {
+      "url": "http://192.168.10.22:7125/server/files/logs/moonraker.log.2026-05-27",
+      "headers": null,
+      "utc": "2026-10-08T19:32:45+00:00",
+      "status": 200,
+      "content_type": "application/octet-stream",
+      "bytes": 51256,
+      "ms": 219
+    }
+  ]
+}

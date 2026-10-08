@@ -239,6 +239,7 @@ export interface BedGeometry {
   // What the slicer wrote about the file (Moonraker's metadata); only in newer jobs.
   file?: {
     estimated_time?: number;
+    estimated_time_source?: "filename";
     filament_total?: number;
     filament_weight_total?: number;
     filament_type?: string;

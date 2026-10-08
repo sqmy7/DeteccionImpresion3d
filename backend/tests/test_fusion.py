@@ -92,6 +92,25 @@ def test_signals_combine_as_noisy_or():
     assert outcome["score"] < 1
 
 
+def test_box_slot_sensors_that_never_saw_filament_do_not_count_as_a_runout():
+    """Measured on the real Hi: sensors 3-5 (the CFS box slots) read "no filament" all the time."""
+    sensors = {
+        "filament_switch_sensor filament_sensor.filament_detected": True,
+        "filament_switch_sensor filament_sensor_3.filament_detected": False,
+        "filament_switch_sensor filament_sensor_4.filament_detected": False,
+    }
+    samples = [_sample(4, extra=sensors) for _ in range(12)]
+    active = fusion.active_filament_sensors(samples)
+    assert active == {"filament_switch_sensor filament_sensor.filament_detected"}
+    assert not _signals(fusion.evaluate("under_extrusion", 0.6, fusion.window_stats(samples, active), {}))["no_filament"]["met"]
+    # Without the filter every box slot would add the "strong" weight to every under-extrusion.
+    assert fusion.window_stats(samples)["filament_out"] is True
+
+    ran_out = [_sample(4, extra={**sensors, "filament_switch_sensor filament_sensor.filament_detected": False}) for _ in range(12)]
+    stats = fusion.window_stats(ran_out, active)
+    assert _signals(fusion.evaluate("under_extrusion", 0.6, stats, {}))["no_filament"]["met"]
+
+
 def test_flow_change_of_one_calibration_step_counts_even_as_stored_in_real_columns():
     raised = fusion.window_stats([_sample(4, extrude_factor=_float32(1.05)) for _ in range(12)])
     lowered = fusion.window_stats([_sample(4, extrude_factor=_float32(0.95)) for _ in range(12)])

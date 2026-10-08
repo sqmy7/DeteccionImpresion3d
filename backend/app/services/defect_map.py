@@ -30,11 +30,29 @@ def calibration_from_row(row: CameraCalibration) -> bed_map.Calibration:
     )
 
 
+def bed_dimensions(geometry: dict | None) -> tuple[float, float]:
+    """Width and depth of the bed in mm. Klipper's axis limits are the head's travel, not the bed:
+    on the Creality Hi they are 285 x 273 (the filament cutter sits past the bed), against a
+    260 x 260 bed. The bed mesh is symmetric about the bed, so mesh_min + mesh_max gives its size
+    (10 + 250 = 260, the same as the spec sheet); without a mesh, the spec size, never more than the
+    head can travel."""
+    geometry = geometry or {}
+    maximum = geometry.get("axis_maximum") or []
+    mesh = geometry.get("bed_mesh") or {}
+    sizes = []
+    for axis in (0, 1):
+        travel = float(maximum[axis]) if len(maximum) > axis and maximum[axis] else None
+        try:
+            size = float(mesh["mesh_min"][axis]) + float(mesh["mesh_max"][axis])
+        except (KeyError, IndexError, TypeError, ValueError):
+            size = _DEFAULT_BED_MM
+        sizes.append(min(size, travel) if travel else size)
+    return sizes[0], sizes[1]
+
+
 def default_bed_points(geometry: dict | None) -> list[tuple[float, float]]:
-    """The bed corners from Klipper's axis limits: (0,0) is the front-left corner."""
-    maximum = (geometry or {}).get("axis_maximum") or []
-    width = float(maximum[0]) if len(maximum) > 1 and maximum[0] else _DEFAULT_BED_MM
-    depth = float(maximum[1]) if len(maximum) > 1 and maximum[1] else _DEFAULT_BED_MM
+    """The bed corners: (0,0) is the front-left corner."""
+    width, depth = bed_dimensions(geometry)
     return [(0.0, 0.0), (width, 0.0), (width, depth), (0.0, depth)]
 
 
@@ -230,7 +248,7 @@ async def printer_heatmap(db: AsyncSession, printer_id: int, cell_mm: float, cla
                 unreliable += 1
 
     geometry = await printer_geometry(db, printer_id)
-    _, _, (width, depth), _ = default_bed_points(geometry)
+    width, depth = bed_dimensions(geometry)
     return {
         "printer_id": printer_id,
         "cell_mm": cell_mm,
