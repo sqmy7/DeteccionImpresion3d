@@ -300,3 +300,23 @@ vivo» al Panel (un navegador abre pocas conexiones por servidor y el flujo es u
 (c) el cuadro de relleno de «sin señal» si en ese momento `capture` estaba apagado. Plan: reproducirlo con el
 entorno de demostración y un navegador (sin usar la cuenta real), medir el tamaño real de la imagen y los
 `GET .../stream` abiertos, corregir lo que salga y dejar una prueba.
+
+## La C922 no está conectada: el video sale negro (2026-10-08, ~18:55 hora de Colombia = 23:55 UTC)
+
+Samuel mandó una captura de «En vivo» con el video negro. Comprobado (solo lectura):
+- El último cuadro en Redis es fresco (`latest_frame_at` avanza cada ~2 s) pero **completamente negro**: media 0,
+  máximo 0, 1280×720, JPEG de 15 KB (un cuadro real pesa ~100 KB). A las 23:28 UTC aún era una imagen real de la
+  C922 (se dibujaron las marcas de la calibración 2 sobre ella).
+- Windows: la **C922 (Logitech) figura como no presente** (`Present = False`, tres entradas «C922 Pro Stream
+  Webcam» y su micrófono). La única cámara presente es una «USB Camera» genérica (VID 5258, PID 4A55), más una
+  «Integrated Camera» en estado de error. `capture` abre la cámara por **índice 0** (`source_uri = 0`), y ahora el
+  índice 0 es esa otra cámara, que entrega negro. El registro de `capture` muestra dos fallos de lectura
+  («Failed to read frame from USB camera '0'») con reapertura automática.
+- La causa probable es que la C922 se desconectó del USB (cable o puerto) después de moverla para la calibración;
+  no se verificó físicamente.
+- **Efecto sobre la Etapa B:** la comprobación «cuadros frescos» de la línea base midió solo la hora, no el contenido,
+  y ya no vale: con esta cámara no habría fotos útiles por capa ni detecciones reales. Hay que reconectar la C922
+  y reiniciar `capture` (hoy tiene abierta la cámara equivocada) antes de iniciar la impresión.
+- **Mejoras propuestas (no hechas):** que `capture` trate un cuadro todo negro como «sin señal» (hoy la web lo
+  muestra como video vivo porque el cuadro es reciente) y que identifique la cámara por nombre o identificador en
+  vez de por índice (el índice cambia al desconectar o conectar otra cámara).
