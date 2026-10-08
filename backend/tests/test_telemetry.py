@@ -49,8 +49,7 @@ def test_sample_reads_creality_layer_and_live_position():
         "temperature_sensor chamber.temperature": 31.2,
         "heater_fan hotend_fan.speed": 1.0,
         "filament_switch_sensor filament_sensor.filament_detected": True,
-        "filament_switch_sensor filament_sensor.enabled": True,
-    }
+    }  # `enabled` is a setting, not stored with each sample
 
 
 def test_sample_tolerates_missing_objects_and_odd_values():
@@ -143,7 +142,9 @@ def test_hi_file_metadata_gets_the_weight_from_filament_used_g_and_the_time_from
 def test_hi_part_cooling_fan_is_the_output_pin_fan0():
     sample = sample_from_status(REAL_HI_STATUS)
     assert sample["fan_speed"] == 0.3549
-    assert sample["extra"]["output_pin LED.value"] == 1.0
-    assert build_subscription(["fan", "output_pin fan0"])["output_pin fan0"] == ["value"]
+    assert sample["extra"] == {"output_pin fan0.value": 0.3549}  # the chamber LED is not a reading worth storing
+    subscription = build_subscription(["fan", "output_pin fan0", "output_pin fanp0", "output_pin LED", "output_pin board_fan"])
+    assert subscription["output_pin fan0"] == ["value"] and subscription["output_pin fanp0"] == ["value"]
+    assert "output_pin LED" not in subscription and "output_pin board_fan" not in subscription
     with_fan = {**REAL_HI_STATUS, "fan": {"speed": 0.5}}
     assert sample_from_status(with_fan)["fan_speed"] == 0.5  # a standard fan object wins

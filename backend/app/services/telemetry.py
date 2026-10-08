@@ -33,11 +33,12 @@ _PREFIXED_SUBSCRIPTION: dict[str, list[str]] = {
     "heater_fan ": ["speed", "rpm"],
     "controller_fan ": ["speed", "rpm"],
     "fan_generic ": ["speed", "rpm"],
-    # Creality's printers have no `fan` object: the part-cooling fan is `output_pin fan0` (the
-    # others are the aux fan and the board fan; LED is the chamber light).
-    "output_pin ": ["value"],
-    "filament_switch_sensor ": ["filament_detected", "enabled"],
-    "filament_motion_sensor ": ["filament_detected", "enabled"],
+    # Creality's printers have no `fan` object: the part-cooling fan is `output_pin fan0` (and
+    # `fanp0` the aux fan). Other output pins (the chamber LED, the board fan) are left out.
+    "output_pin fan": ["value"],
+    # `enabled` is a setting, not a reading: on the Hi it was stored 5 x per sample, always true.
+    "filament_switch_sensor ": ["filament_detected"],
+    "filament_motion_sensor ": ["filament_detected"],
 }
 
 # Columns of telemetry_samples filled from the status (besides job, time and extra).
