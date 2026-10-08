@@ -12,10 +12,20 @@ import { useApi } from "../lib/useApi";
 import { ApiError } from "../services/apiClient";
 import { createCalibration, fetchSnapshot, getBedHeatmap, getPrinterGeometry, listCalibrations, type Snapshot } from "../services/bedMap";
 import { listCamerasForPrinter } from "../services/cameras";
-import type { BedGeometry, Camera, CameraCalibration } from "../types/api";
+import type { BedGeometry, Camera, CameraCalibration, MarkError } from "../types/api";
 
 const CORNER_NAMES = ["Frente izquierda", "Frente derecha", "Fondo derecha", "Fondo izquierda"];
 const STALE_FRAME_SECONDS = 10;
+
+// The C922's diagonal field of view; mirrors DEFAULT_DIAGONAL_FOV_DEGREES in app/services/bed_map.py.
+const C922_DIAGONAL_FOV_DEGREES = 78;
+// A mark farther than this fraction of the bed from where the camera model puts it is flagged
+// (mirrors FAR_MARK_FRACTION in app/services/bed_map.py).
+const FAR_MARK_FRACTION = 0.045;
+
+function typicalFocalPx(width: number, height: number): number {
+  return Math.hypot(width, height) / 2 / Math.tan((C922_DIAGONAL_FOV_DEGREES / 2) * (Math.PI / 180));
+}
 
 const WARNINGS: Record<string, string> = {
   bed_was_moving:
@@ -24,6 +34,60 @@ const WARNINGS: Record<string, string> = {
     "No se pudo estimar la posición de la cámara: los defectos se ubicarán sin corregir el paralaje (más error en piezas altas).",
   focal_assumed:
     "La vista es casi perpendicular a la cama: la focal se tomó del campo de visión típico de la C922 (78°) en vez de calcularse.",
+  focal_fixed: "La focal se fijó con el valor conocido de la cámara (no se estimó de las marcas).",
+  focal_unusual:
+    "La focal que salió de las marcas está muy lejos de la típica de la C922. Puede que una marca no esté en su esquina, que la cámara use otro campo de visión, o que la placa no mida lo que se supone. Fija la focal conocida y mira qué marca no encaja.",
+  mark_far_from_corner:
+    "Con esa focal, una marca queda muy lejos de su esquina: el modelo de cámara no puede explicar las cuatro marcas a la vez. La marca con más error es la que conviene revisar.",
+  mark_far_at_typical_focal:
+    "Con la focal conocida de la C922 una marca no encajaría (ver la tabla de abajo). La que más se aleja es la primera sospechosa de estar mal puesta; si todas están bien puestas, la cámara no trabaja con ese campo de visión.",
+};
+
+const CORNER_ERROR_LABELS = ["Frente izquierda", "Frente derecha", "Fondo derecha", "Fondo izquierda"];
+
+function bedSizeOf(calibration: CameraCalibration): number {
+  const xs = calibration.bed_points.map(([x]) => x);
+  const ys = calibration.bed_points.map(([, y]) => y);
+  return Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys));
+}
+
+function MarkErrorsTable({ title, marks, farMm }: { title: string; marks: MarkError[]; farMm: number }) {
+  const worst = marks.reduce((best, mark, index) => (mark.error_mm > marks[best].error_mm ? index : best), 0);
+  return (
+    <div className="flex flex-col gap-1.5">
+      <p className="text-xs font-medium text-fg">{title}</p>
+      <table className="w-full max-w-md text-xs">
+        <thead>
+          <tr className="text-left text-faint">
+            <th className="py-0.5 pr-2 font-medium">Marca</th>
+            <th className="py-0.5 pr-2 text-right font-medium">Error (px)</th>
+            <th className="py-0.5 text-right font-medium">Error en la cama (mm)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {marks.map((mark, index) => {
+            const far = mark.error_mm > farMm;
+            return (
+              <tr key={index} className={far ? "text-danger-fg" : "text-muted"}>
+                <td className="py-0.5 pr-2">
+                  {index + 1} · {CORNER_ERROR_LABELS[index]}
+                  {far && index === worst ? " (la más lejos)" : ""}
+                </td>
+                <td className="py-0.5 pr-2 text-right tabular">{formatNumber(mark.error_px, 1)}</td>
+                <td className="py-0.5 text-right tabular">{formatNumber(mark.error_mm, 1)}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+const FOCAL_SOURCE_LABELS: Record<string, string> = {
+  estimated: "estimada de las marcas",
+  assumed: "supuesta (campo de visión de la C922)",
+  fixed: "fijada por ti",
 };
 
 function describeCameraPosition(calibration: CameraCalibration): string | null {
@@ -44,14 +108,33 @@ function CalibrationResult({ calibration }: { calibration: CameraCalibration }) 
         </Badge>
         {formatDateTime(calibration.created_at)} ·{" "}
         {calibration.bed_moves_in_image ? `cama móvil, Y de referencia ${formatNumber(calibration.reference_y, 1)} mm` : "cámara solidaria a la cama"}
-        {calibration.focal_px ? ` · focal ${formatNumber(calibration.focal_px, 0)} px` : ""}
+        {calibration.focal_px
+          ? ` · focal ${formatNumber(calibration.focal_px, 0)} px${calibration.focal_source ? ` (${FOCAL_SOURCE_LABELS[calibration.focal_source]})` : ""}`
+          : ""}
+        {calibration.typical_focal_px ? ` · la de la C922 a esta resolución: ${formatNumber(calibration.typical_focal_px, 0)} px` : ""}
       </p>
       {position && <p className="text-muted">{position}</p>}
-      {calibration.warnings.map((code) => (
-        <p key={code} className="rounded-lg border border-warn/40 bg-warn/10 px-3 py-2 text-warn-fg">
-          {WARNINGS[code] ?? code}
-        </p>
-      ))}
+      {calibration.warnings
+        .filter((code) => code !== "focal_fixed")
+        .map((code) => (
+          <p key={code} className="rounded-lg border border-warn/40 bg-warn/10 px-3 py-2 text-warn-fg">
+            {WARNINGS[code] ?? code}
+          </p>
+        ))}
+      {calibration.marks && (
+        <MarkErrorsTable
+          title={`Error de cada marca con la focal en uso (${formatNumber(calibration.focal_px, 0)} px)`}
+          marks={calibration.marks}
+          farMm={FAR_MARK_FRACTION * bedSizeOf(calibration)}
+        />
+      )}
+      {calibration.marks_at_typical_focal && (
+        <MarkErrorsTable
+          title={`Error de cada marca con la focal conocida de la C922 (${formatNumber(calibration.typical_focal_px, 0)} px)`}
+          marks={calibration.marks_at_typical_focal}
+          farMm={FAR_MARK_FRACTION * bedSizeOf(calibration)}
+        />
+      )}
     </div>
   );
 }
@@ -75,6 +158,8 @@ function CalibrationWizard({
   const [dragging, setDragging] = useState<number | null>(null);
   const [bedMoves, setBedMoves] = useState<"yes" | "no">("yes");
   const [referenceY, setReferenceY] = useState("");
+  const [focalMode, setFocalMode] = useState<"estimate" | "c922" | "custom">("estimate");
+  const [customFocal, setCustomFocal] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -125,6 +210,9 @@ function CalibrationWizard({
   }, [size, points, bedWidth, bedDepth]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const crossed = points.length === 4 && !isConvexInOrder(points);
+  const typicalFocal = size ? typicalFocalPx(size.width, size.height) : null;
+  const knownFocal = focalMode === "c922" ? typicalFocal : focalMode === "custom" && customFocal !== "" ? Number(customFocal) : null;
+  const focalMissing = focalMode !== "estimate" && !(knownFocal && knownFocal > 0);
 
   const save = async () => {
     if (!token || !size || points.length !== 4) return;
@@ -138,6 +226,7 @@ function CalibrationWizard({
         image_height: size.height,
         bed_moves_in_image: bedMoves === "yes",
         reference_y: bedMoves === "yes" && referenceY !== "" ? Number(referenceY) : null,
+        focal_px: focalMode === "estimate" ? null : knownFocal,
       });
       onSaved(calibration);
       setSnapshot(null);
@@ -299,12 +388,43 @@ function CalibrationWizard({
           )}
         </div>
 
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-medium text-fg">Focal de la cámara</p>
+          <Segmented
+            label="Focal"
+            value={focalMode}
+            onChange={setFocalMode}
+            options={[
+              { value: "estimate", label: "Estimarla" },
+              { value: "c922", label: typicalFocal ? `C922 (${formatNumber(typicalFocal, 0)} px)` : "C922" },
+              { value: "custom", label: "Otro valor" },
+            ]}
+          />
+          {focalMode === "custom" && (
+            <input
+              type="number"
+              min="1"
+              step="1"
+              value={customFocal}
+              onChange={(event) => setCustomFocal(event.target.value)}
+              placeholder="focal en píxeles"
+              aria-label="Focal en píxeles"
+              className="h-9 rounded-md border border-line bg-surface-2 px-2 text-sm tabular text-fg"
+            />
+          )}
+          <p className="text-xs text-faint">
+            {focalMode === "estimate"
+              ? "Con una sola vista de la cama, la focal sale mal si las esquinas del fondo son difíciles de ubicar. Si sale muy distinta de la de la C922, fija la conocida."
+              : "La focal no se calcula: se usa tal cual y al guardar verás cuánto se aleja cada marca de su esquina. Si una queda muy lejos, esa marca está mal puesta (o la cámara no tiene ese campo de visión)."}
+          </p>
+        </div>
+
         {error && <ErrorNote>{error}</ErrorNote>}
         <Button
           variant="primary"
           icon={<Crosshair size={15} />}
           onClick={save}
-          disabled={busy || points.length !== 4 || crossed || (bedMoves === "yes" && referenceY === "")}
+          disabled={busy || points.length !== 4 || crossed || (bedMoves === "yes" && referenceY === "") || focalMissing}
         >
           {busy ? "Guardando…" : "Guardar calibración"}
         </Button>

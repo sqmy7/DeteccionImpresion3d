@@ -261,6 +261,18 @@ export interface CameraCalibration {
   focal_px: number | null;
   camera_position: [number, number, number] | null;
   warnings: string[];
+  /** "estimated" from the marks, "assumed" (C922 field of view) or "fixed" (given by the user). */
+  focal_source: "estimated" | "assumed" | "fixed" | null;
+  typical_focal_px: number | null;
+  /** Per mark, in order: how far the camera model puts that corner from where it was marked. */
+  marks: MarkError[] | null;
+  /** The same with the camera's known focal, when the focal in use is another one. */
+  marks_at_typical_focal: MarkError[] | null;
+}
+
+export interface MarkError {
+  error_px: number;
+  error_mm: number;
 }
 
 export interface CalibrationCreate {
@@ -270,6 +282,8 @@ export interface CalibrationCreate {
   image_height: number;
   bed_moves_in_image: boolean;
   reference_y?: number | null;
+  /** The camera's known focal length in pixels, used as is instead of estimating it. */
+  focal_px?: number | null;
 }
 
 export interface LocatedDefect {

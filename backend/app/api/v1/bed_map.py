@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_current_user, require_admin
 from app.db.models import Camera, CameraCalibration, Printer, PrintJob, User
 from app.db.session import get_db
-from app.schemas.bed_map import BedHeatmapRead, CalibrationCreate, CalibrationRead, JobBedMapRead
+from app.schemas.bed_map import BedHeatmapRead, CalibrationCreate, CalibrationRead, JobBedMapRead, MarkErrorRead
 from app.services import bed_map, defect_map, telemetry
 
 router = APIRouter(tags=["bed-map"], dependencies=[Depends(get_current_user)])
@@ -21,8 +21,54 @@ async def _get_camera_or_404(camera_id: int, db: AsyncSession) -> Camera:
     return camera
 
 
+def _mark_errors(marks) -> list[MarkErrorRead] | None:
+    return [MarkErrorRead(error_px=round(m.error_px, 1), error_mm=round(m.error_mm, 1)) for m in marks] if marks else None
+
+
+def _describe(row: CameraCalibration, extra_warnings: tuple[str, ...] = ()) -> CalibrationRead:
+    """The stored calibration plus what is derived from it every time (no migration: the marks, the
+    bed corners and the focal in use are all stored): the focal's source, the marks' reprojection
+    error and the warnings."""
+    read = CalibrationRead.model_validate(row)
+    try:
+        calibration = defect_map.calibration_from_row(row)
+    except ValueError:
+        return read.model_copy(update={"warnings": list(extra_warnings)})
+    camera = calibration.camera
+    typical = bed_map.typical_focal_px(row.image_width, row.image_height)
+    at_typical = None
+    if camera is not None and abs(camera.focal_px - typical) > 1.0:
+        try:
+            check = bed_map.build_calibration(
+                [tuple(point) for point in row.image_points],
+                [tuple(point) for point in row.bed_points],
+                row.image_width,
+                row.image_height,
+                row.bed_moves_in_image,
+                row.reference_y,
+                fixed_focal_px=typical,
+            )
+            at_typical = _mark_errors(check.marks)
+        except ValueError:
+            at_typical = None
+    warnings = [*extra_warnings, *bed_map.calibration_warnings(calibration)]
+    # With a focal other than the C922's, say which marks the known focal would not accept.
+    far_mm = bed_map.FAR_MARK_FRACTION * calibration.bed_size
+    if at_typical and any(mark.error_mm > far_mm for mark in at_typical) and "mark_far_from_corner" not in warnings:
+        warnings.append("mark_far_at_typical_focal")
+    return read.model_copy(
+        update={
+            "warnings": warnings,
+            "focal_source": camera.focal_source if camera else None,
+            "typical_focal_px": round(typical, 1),
+            "marks": _mark_errors(calibration.marks),
+            "marks_at_typical_focal": at_typical,
+        }
+    )
+
+
 @router.get("/cameras/{camera_id}/calibration", response_model=CalibrationRead)
-async def get_calibration(camera_id: int, db: AsyncSession = Depends(get_db)) -> CameraCalibration:
+async def get_calibration(camera_id: int, db: AsyncSession = Depends(get_db)) -> CalibrationRead:
     await _get_camera_or_404(camera_id, db)
     calibration = await db.scalar(
         select(CameraCalibration)
@@ -32,18 +78,18 @@ async def get_calibration(camera_id: int, db: AsyncSession = Depends(get_db)) ->
     )
     if calibration is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Camera not calibrated")
-    return calibration
+    return _describe(calibration)
 
 
 @router.get("/cameras/{camera_id}/calibrations", response_model=list[CalibrationRead])
-async def list_calibrations(camera_id: int, db: AsyncSession = Depends(get_db)) -> list[CameraCalibration]:
+async def list_calibrations(camera_id: int, db: AsyncSession = Depends(get_db)) -> list[CalibrationRead]:
     await _get_camera_or_404(camera_id, db)
     result = await db.execute(
         select(CameraCalibration)
         .where(CameraCalibration.camera_id == camera_id)
         .order_by(CameraCalibration.created_at.desc(), CameraCalibration.id.desc())
     )
-    return list(result.scalars().all())
+    return [_describe(row) for row in result.scalars().all()]
 
 
 @router.post("/cameras/{camera_id}/calibration", response_model=CalibrationRead, status_code=status.HTTP_201_CREATED)
@@ -57,7 +103,7 @@ async def create_calibration(
     camera = await _get_camera_or_404(camera_id, db)
     geometry = await defect_map.printer_geometry(db, camera.printer_id)
     bed_points = payload.bed_points or defect_map.default_bed_points(geometry)
-    warnings: list[str] = []
+    warnings: list[str] = []  # only what depends on this moment; the rest is derived by _describe
 
     reference_y = payload.reference_y if payload.bed_moves_in_image else None
     if payload.bed_moves_in_image and reference_y is None:
@@ -79,16 +125,12 @@ async def create_calibration(
             payload.image_height,
             payload.bed_moves_in_image,
             reference_y,
+            fixed_focal_px=payload.focal_px,
         )
     except ValueError as error:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(error)) from error
 
     camera_model = calibration.camera
-    if camera_model is None:
-        warnings.append("camera_not_estimated")
-    elif not camera_model.focal_estimated:
-        warnings.append("focal_assumed")
-
     row = CameraCalibration(
         camera_id=camera.id,
         created_by=user.id,
@@ -104,7 +146,7 @@ async def create_calibration(
     db.add(row)
     await db.commit()
     await db.refresh(row)
-    return CalibrationRead.model_validate(row).model_copy(update={"warnings": warnings})
+    return _describe(row, tuple(warnings))
 
 
 @router.get("/print-jobs/{job_id}/bed-map", response_model=JobBedMapRead)

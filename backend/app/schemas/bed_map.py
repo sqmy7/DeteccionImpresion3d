@@ -17,6 +17,10 @@ class CalibrationCreate(BaseModel):
     bed_moves_in_image: bool = True
     # Toolhead Y when the frame was taken; by default the latest reading.
     reference_y: float | None = None
+    # The camera's known focal length in pixels at this resolution (the C922 at 1280x720 is ~907).
+    # When given it is used as is instead of being estimated from the marks, which a single view of
+    # a plane estimates badly when the far corners are hard to place.
+    focal_px: float | None = Field(default=None, gt=0, le=100000)
 
     @field_validator("image_points")
     @classmethod
@@ -24,6 +28,11 @@ class CalibrationCreate(BaseModel):
         if any(not (0.0 <= u <= 1.0 and 0.0 <= v <= 1.0) for u, v in points):
             raise ValueError("image points must be normalized to 0..1")
         return points
+
+
+class MarkErrorRead(BaseModel):
+    error_px: float
+    error_mm: float
 
 
 class CalibrationRead(BaseModel):
@@ -43,6 +52,14 @@ class CalibrationRead(BaseModel):
     camera_position: list[float] | None
     # Codes the web explains: "bed_was_moving", "camera_not_estimated", "focal_assumed".
     warnings: list[str] = Field(default_factory=list)
+    # "estimated" from the marks, "assumed" (field of view of the C922) or "fixed" (given by the user).
+    focal_source: str | None = None
+    typical_focal_px: float | None = None
+    # Per mark, in order: how far the camera model puts the corner from where it was marked.
+    marks: list[MarkErrorRead] | None = None
+    # The same with the camera's known focal, shown when the one in use is a different one: it tells
+    # which mark is off before recalibrating.
+    marks_at_typical_focal: list[MarkErrorRead] | None = None
 
 
 class LocatedDefect(BaseModel):

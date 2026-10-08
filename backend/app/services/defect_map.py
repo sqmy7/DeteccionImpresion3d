@@ -20,7 +20,10 @@ _MAX_PATH_POINTS = 1500
 
 
 def calibration_from_row(row: CameraCalibration) -> bed_map.Calibration:
-    return bed_map.build_calibration(
+    """Rebuilds a stored calibration. The row keeps the focal that was used: when it differs from
+    what the marks give on their own it was a known focal fixed by the user, so it is fixed again
+    (otherwise the location would silently go back to the estimated one)."""
+    args = (
         [tuple(point) for point in row.image_points],
         [tuple(point) for point in row.bed_points],
         row.image_width,
@@ -28,6 +31,10 @@ def calibration_from_row(row: CameraCalibration) -> bed_map.Calibration:
         row.bed_moves_in_image,
         row.reference_y,
     )
+    free = bed_map.build_calibration(*args)
+    if row.focal_px is not None and (free.camera is None or abs(free.camera.focal_px - row.focal_px) > 1.0):
+        return bed_map.build_calibration(*args, fixed_focal_px=float(row.focal_px))
+    return free
 
 
 def bed_dimensions(geometry: dict | None) -> tuple[float, float]:

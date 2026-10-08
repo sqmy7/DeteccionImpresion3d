@@ -152,3 +152,88 @@ def test_calibrate_then_place_defects_on_the_bed(mock_moonraker, with_db):
     assert (grid["located"], grid["unreliable"], grid["skipped_boxes"]) == (1, 1, 1)
     assert grid["counts"][130 // 20][95 // 20] == 1
     assert len(grid["counts"]) == 13 and len(grid["counts"][0]) == 13
+
+
+def test_calibrating_with_a_known_focal_keeps_it_and_reports_the_marks(mock_moonraker, with_db):
+    """A fixed focal is stored, comes back as such when the calibration is read again (the stored row is
+    all there is: no new column), is rejected when implausible, and a mark far off its corner is
+    flagged with the error of each mark."""
+
+    known = 520.0  # not the simulator's 560: a known focal equal to the estimate would read back as estimated
+
+    def marks(offset_third: tuple[float, float] = (0.0, 0.0)) -> list[list[float]]:
+        points = [list(mock_moonraker.camera_project(x, y, 0.0, 75.0)) for x, y in BED]
+        points = [[u / WIDTH, v / HEIGHT] for u, v in points]
+        points[2][0] += offset_third[0]
+        points[2][1] += offset_third[1]
+        return points
+
+    async def scenario(session_factory):
+        async with session_factory() as db:
+            user = User(
+                username=f"tester-{uuid.uuid4().hex[:8]}",
+                email=f"{uuid.uuid4().hex[:8]}@test.local",
+                hashed_password="x",
+                role=UserRole.admin,
+            )
+            printer = Printer(
+                name="Simulada", octoprint_url="http://mock", octoprint_api_key_encrypted="",
+                integration_type=IntegrationType.moonraker,
+            )
+            db.add_all([user, printer])
+            await db.flush()
+            camera = Camera(
+                printer_id=printer.id, name="C922", source_type=CameraSourceType.usb, source_uri="0",
+                role=CameraRole.primary,
+            )
+            db.add(camera)
+            await db.commit()
+
+        async def test_db():
+            async with session_factory() as session:
+                yield session
+
+        app.dependency_overrides[get_db] = test_db
+        app.dependency_overrides[get_current_user] = lambda: user
+        app.dependency_overrides[require_admin] = lambda: user
+        base = {"image_width": WIDTH, "image_height": HEIGHT, "bed_moves_in_image": True, "reference_y": 75.0}
+        url = f"/api/v1/cameras/{camera.id}/calibration"
+        try:
+            async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+                estimated = await client.post(url, json={**base, "image_points": marks()})
+                absurd = await client.post(url, json={**base, "image_points": marks(), "focal_px": 5.0})
+                fixed = await client.post(
+                    url, json={**base, "image_points": marks(), "focal_px": known}
+                )
+                off = await client.post(
+                    url,
+                    json={**base, "image_points": marks((-0.10, 0.09)), "focal_px": known},
+                )
+                listed = await client.get(f"/api/v1/cameras/{camera.id}/calibrations")
+        finally:
+            app.dependency_overrides.clear()
+        return estimated, absurd, fixed, off, listed
+
+    estimated, absurd, fixed, off, listed = with_db(scenario)
+
+    assert estimated.status_code == 201 and estimated.json()["focal_source"] == "estimated"
+    assert absurd.status_code == 422 and "focal" in absurd.json()["detail"]
+
+    assert fixed.status_code == 201, fixed.text
+    body = fixed.json()
+    assert body["focal_source"] == "fixed" and body["focal_px"] == known
+    assert "focal_fixed" in body["warnings"] and "mark_far_from_corner" not in body["warnings"]
+    assert len(body["marks"]) == 4 and all(mark["error_mm"] < 5.0 for mark in body["marks"])
+    assert body["typical_focal_px"] == 494.0  # the C922's focal at 640x480
+
+    flagged = off.json()
+    assert "mark_far_from_corner" in flagged["warnings"]
+    errors = [mark["error_mm"] for mark in flagged["marks"]]
+    assert errors.index(max(errors)) == 2
+
+    # Read again from the stored row: the fixed focal is still fixed, and the list carries the errors.
+    again = {row["id"]: row for row in listed.json()}
+    assert again[body["id"]]["focal_source"] == "fixed"
+    assert again[body["id"]]["focal_px"] == known
+    assert again[estimated.json()["id"]]["focal_source"] == "estimated"
+    assert "mark_far_from_corner" in again[flagged["id"]]["warnings"]

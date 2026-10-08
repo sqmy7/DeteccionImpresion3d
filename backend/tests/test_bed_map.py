@@ -4,11 +4,14 @@ import pytest
 
 from app.services.bed_map import (
     apply_homography,
+    FAR_MARK_FRACTION,
     build_calibration,
+    calibration_warnings,
     invert_homography,
     is_convex_in_order,
     locate,
     solve_homography,
+    typical_focal_px,
 )
 
 BED = [(0.0, 0.0), (260.0, 0.0), (260.0, 260.0), (0.0, 260.0)]
@@ -125,3 +128,58 @@ def test_bed_size_comes_from_the_mesh_not_from_the_head_travel():
     idle = {"axis_maximum": [285.0, 273.0, 310.0, 0.0], "bed_mesh": {"mesh_min": [0.0, 0.0], "mesh_max": [0.0, 0.0], "probed_matrix": [[0.0]]}}
     assert bed_dimensions(idle) == (260.0, 260.0)
     assert default_bed_points(idle)[1] == (260.0, 0.0)
+
+def test_a_known_focal_is_used_as_is_and_the_marks_fit_it(mock_moonraker):
+    reference_y = mock_moonraker.NOZZLE_WORLD_Y
+    clicks = _clicks(mock_moonraker, reference_y)
+    calibration = build_calibration(
+        clicks, BED, WIDTH, HEIGHT, True, reference_y, fixed_focal_px=mock_moonraker.CAMERA_FOCAL_PX
+    )
+
+    camera = calibration.camera
+    assert camera.focal_source == "fixed" and camera.focal_estimated is False
+    assert camera.focal_px == mock_moonraker.CAMERA_FOCAL_PX
+    assert camera.center == pytest.approx(mock_moonraker.CAMERA_POSITION, abs=1.0)
+    assert all(mark.error_px < 0.5 and mark.error_mm < 0.5 for mark in calibration.marks)
+    assert "focal_fixed" in calibration_warnings(calibration)
+    assert "mark_far_from_corner" not in calibration_warnings(calibration)
+
+
+def test_the_mark_that_is_off_has_the_largest_error_and_is_flagged(mock_moonraker):
+    reference_y = mock_moonraker.NOZZLE_WORLD_Y
+    clicks = _clicks(mock_moonraker, reference_y)
+    u, v = clicks[2]
+    clicks[2] = (u - 60 / WIDTH, v + 45 / HEIGHT)  # the back-right corner marked ~75 px away
+    calibration = build_calibration(
+        clicks, BED, WIDTH, HEIGHT, True, reference_y, fixed_focal_px=mock_moonraker.CAMERA_FOCAL_PX
+    )
+
+    errors = [mark.error_mm for mark in calibration.marks]
+    assert errors.index(max(errors)) == 2
+    assert max(errors) > FAR_MARK_FRACTION * calibration.bed_size
+    assert "mark_far_from_corner" in calibration_warnings(calibration)
+
+
+def test_an_implausible_known_focal_is_rejected(mock_moonraker):
+    clicks = _clicks(mock_moonraker, mock_moonraker.NOZZLE_WORLD_Y)
+    for focal in (10.0, 100000.0):
+        with pytest.raises(ValueError, match="focal"):
+            build_calibration(clicks, BED, WIDTH, HEIGHT, True, 0.0, fixed_focal_px=focal)
+
+
+# The marks of the C922 calibration of 2026-10-08 on the real Creality Hi (1280x720): the corners are
+# well placed on the plate, yet the focal they give is ~1.65 times the camera's.
+REAL_MARKS = [(0.1681770385400989, 0.6654221218781855), (0.9618919318426145, 0.4259683995922528),
+              (0.543458955959292, 0.18883941370412843), (0.006034320576220168, 0.27020717858053006)]
+
+
+def test_the_real_calibration_is_flagged_for_its_unusual_focal_and_for_the_far_corners_at_the_known_one():
+    estimated = build_calibration(REAL_MARKS, BED, 1280, 720, True, 260.0)
+    assert 1400 < estimated.camera.focal_px < 1600 and typical_focal_px(1280, 720) == pytest.approx(906.8, abs=0.1)
+    assert calibration_warnings(estimated) == ["focal_unusual"]  # the model explains the marks (<= 6 mm)
+    assert max(mark.error_mm for mark in estimated.marks) < 8
+
+    fixed = build_calibration(REAL_MARKS, BED, 1280, 720, True, 260.0, fixed_focal_px=typical_focal_px(1280, 720))
+    errors = [mark.error_mm for mark in fixed.marks]
+    assert errors.index(max(errors)) == 2 and max(errors) > 40  # the back-right corner is the one that does not fit
+    assert "mark_far_from_corner" in calibration_warnings(fixed)

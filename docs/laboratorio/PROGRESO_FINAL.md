@@ -135,7 +135,7 @@ Orden: frente izquierda, frente derecha, fondo derecha, fondo izquierda; esquina
 - **Las marcas están bien puestas.** Dibujadas sobre el cuadro actual caen sobre las cuatro esquinas visibles
   de la placa (la cámara ya no está donde estaba a las 17:26: ahora ve la placa completa desde el frente
   izquierdo y abajo). Por eso no es un error de clic.
-- **Con una focal fija de 907 px las marcas no cuadran** (calibración 2, error de reproyección por mark,
+- **Con una focal fija de 907 px las marcas no cuadran** (calibración 2, error de reproyección por marca,
   1 a 4): 3,8 / 18,3 / **63,5** / 39,8 mm sobre la cama (8,6 / 18,7 / 45,2 / 31,9 px); la 3 (fondo derecha) es
   la que más se aleja. Con la focal estimada el error es de 0,6 a 5,9 mm: el modelo de cámara con ~1.500 px
   explica bien las cuatro marcas; con 907 px no. Las cifras vienen de ajustar la pose por mínimos cuadrados
@@ -156,3 +156,33 @@ Orden: frente izquierda, frente derecha, fondo derecha, fondo izquierda; esquina
   (en `standby` no se guarda telemetría y la bitácora no registra posiciones), pero tampoco hubo ningún evento
   de la bitácora desde las 23:20:33 UTC y el estado seguía en `standby`. La Y distinta entre las dos
   calibraciones (130 y 260) la compensa `reference_y`.
+
+## Focal fija y error de reproyección en la calibración (2026-10-08)
+
+Pedido de Samuel: poder fijar la focal conocida en vez de estimarla, ver el error de reproyección de las
+cuatro marcas y recibir un aviso si una marca queda muy lejos de su esquina.
+
+- **Focal fija:** `focal_px` opcional al guardar (`POST /cameras/{id}/calibration`); en la web, «Focal de la
+  cámara»: *Estimarla*, *C922 (907 px a esta resolución)* u *Otro valor*. Se rechaza lo implausible
+  (menos de 0,2 o más de 5 veces la diagonal de la imagen). Con focal fija solo se calcula la posición de la
+  cámara.
+- **Error de reproyección:** la homografía de cuatro puntos ajusta las marcas exactamente (error 0 por
+  construcción), así que el error se mide con el modelo de cámara: con la focal en uso se ajusta la pose
+  (rotación y traslación) por mínimos cuadrados sobre las cuatro marcas y se compara cada esquina
+  reproyectada con su marca, en píxeles y en milímetros sobre la cama. La marca con más error es la
+  sospechosa. (Un primer intento que no ajustaba la pose dejaba siempre la marca 1 en 0 y repartía mal la
+  culpa; se descartó.) Se calcula al leer, a partir de lo ya guardado: **sin migración**.
+- **Avisos** (códigos que explica la web): `focal_unusual` (focal estimada a más de 25 % de la típica),
+  `focal_fixed`, `mark_far_from_corner` (error mayor que 4,5 % de la cama, unos 12 mm: tres veces el error
+  típico de un clic) y `mark_far_at_typical_focal` (con la focal de la C922 una marca no encajaría, aunque la
+  focal en uso sea otra). La lista de calibraciones ahora también trae los avisos (antes solo la respuesta
+  al guardar) y la tabla de errores de la focal en uso y de la focal conocida.
+- **Se conserva la focal fija al ubicar defectos:** `calibration_from_row` vuelve a fijarla si la guardada
+  difiere en más de 1 px de la que dan las marcas solas. Límite: una focal fija igual (±1 px) a la estimada
+  se muestra como «estimada»; no cambia ningún cálculo.
+- **Con las marcas reales de hoy** (calibración 2): focal estimada 1.499 px (aviso `focal_unusual`, errores
+  de 0,6 a 5,9 mm); con 907 px fijos, errores de 3,8 / 18,3 / 63,5 / 39,8 mm y `mark_far_from_corner`; la
+  marca 3 (fondo derecha) es la más lejana. Hay una prueba con esas marcas.
+- No hay vista previa del error antes de guardar: se ve al guardar, y recalibrar crea otra fila (la vigente es
+  la última; las anteriores quedan en el historial).
+- Pruebas: 21 de matemática de la cama, 2 de la API; suite completa 149 pasan.
