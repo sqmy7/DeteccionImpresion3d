@@ -1,4 +1,4 @@
-import { BarChart3, CheckCircle2, Clock, Disc3, Hand, Layers } from "lucide-react";
+import { BarChart3, CheckCircle2, Clock, Coins, Disc3, Hand, Layers } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -10,7 +10,7 @@ import { classColor, classLabel } from "../config/defectClasses";
 import { ORIGIN_INFO } from "../config/events";
 import { JOB_STATUS } from "../config/status";
 import { usePrinters } from "../context/PrintersContext";
-import { formatDate, formatDuration, formatNumber, formatPercent } from "../lib/format";
+import { formatDate, formatDuration, formatMoney, formatNumber, formatPercent } from "../lib/format";
 import { useApi } from "../lib/useApi";
 import { getAnalyticsSummary } from "../services/analytics";
 import { getBedHeatmap } from "../services/bedMap";
@@ -172,7 +172,7 @@ export function AnalyticsPage() {
         </Card>
       ) : (
         <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-7">
             <Kpi label="Trabajos" value={data.totals.jobs} icon={<Layers size={14} />} />
             <Kpi
               label="Tasa de éxito"
@@ -190,6 +190,14 @@ export function AnalyticsPage() {
             />
             <Kpi label="Intervenciones" value={data.totals.interventions ?? 0} icon={<Hand size={14} />} hint="Consola y externas" />
             <Kpi label="Filamento" value={formatNumber(data.totals.filament_m, 1)} unit="m" icon={<Disc3 size={14} />} hint="Trabajos con telemetría" />
+            <Kpi
+              label="Costo estimado"
+              value={formatMoney(data.totals.cost, data.currency ?? "COP")}
+              icon={<Coins size={14} />}
+              hint={data.cost_settings_are_default ? "Precios de ejemplo" : "Filamento + energía"}
+              tone={data.cost_settings_are_default ? "warn" : "neutral"}
+              title="Estimación: suma del costo de cada trabajo con telemetría (filamento usado y energía de los calentadores a los precios configurados; ver la página de cada trabajo)."
+            />
           </div>
 
           <div className="grid gap-4 lg:grid-cols-3">
@@ -244,6 +252,7 @@ export function AnalyticsPage() {
                     <Th>Interv.</Th>
                     <Th>Boquilla ±</Th>
                     <Th>Filamento</Th>
+                    <Th title="Estimación: filamento + energía de los calentadores">Costo*</Th>
                   </tr>
                 </thead>
                 <tbody>
@@ -265,6 +274,7 @@ export function AnalyticsPage() {
                       <Td className="tabular">{Object.values(job.interventions).reduce((sum, count) => sum + count, 0)}</Td>
                       <Td className="tabular">{job.nozzle_error_mean_c == null ? "—" : `${formatNumber(job.nozzle_error_mean_c, 1)} °C`}</Td>
                       <Td className="tabular">{job.filament_m == null ? "—" : `${formatNumber(job.filament_m, 1)} m`}</Td>
+                      <Td className="whitespace-nowrap tabular">{formatMoney(job.cost, data.currency ?? "COP")}</Td>
                     </tr>
                   ))}
                 </tbody>

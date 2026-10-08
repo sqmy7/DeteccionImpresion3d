@@ -12,6 +12,8 @@ class AnalyticsTotals(BaseModel):
     defect_rate: float | None = None
     interventions: int | None = None
     filament_m: float | None = None
+    # Sum of the jobs' cost estimates (filament + heater energy) at the configured prices.
+    cost: float | None = None
 
 
 class JobAnalytics(BaseModel):
@@ -33,6 +35,7 @@ class JobAnalytics(BaseModel):
     nozzle_error_max_c: float | None
     bed_error_mean_c: float | None
     filament_m: float | None
+    cost: float | None = None  # estimate: filament + heater energy (one sample per second)
 
 
 class AnalyticsSummaryRead(BaseModel):
@@ -41,3 +44,5 @@ class AnalyticsSummaryRead(BaseModel):
     defects_by_class: dict[str, int]
     interventions_by_origin: dict[str, int]
     jobs: list[JobAnalytics]
+    currency: str | None = None
+    cost_settings_are_default: bool | None = None

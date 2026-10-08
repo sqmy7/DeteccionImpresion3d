@@ -47,6 +47,7 @@ class CalibrationRead(BaseModel):
 
 class LocatedDefect(BaseModel):
     detection_id: int
+    box_index: int  # position of the box in the detection's raw_output["detections"]
     capture_id: int
     camera_id: int
     calibration_id: int

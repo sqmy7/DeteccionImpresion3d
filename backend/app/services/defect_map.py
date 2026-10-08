@@ -132,7 +132,7 @@ async def locate_job_defects(db: AsyncSession, job: PrintJob) -> tuple[list[dict
         calibration = calibrations.for_capture(capture.camera_id, capture.captured_at)
         snapshot = layer.telemetry or {}
         frame = (detection.raw_output or {}).get("frame")
-        for box_entry in (detection.raw_output or {}).get("detections", []):
+        for box_index, box_entry in enumerate((detection.raw_output or {}).get("detections", [])):
             box = full_frame_box(box_entry.get("box") or [], frame)
             if box is None or calibration is None:
                 skipped += 1
@@ -153,6 +153,7 @@ async def locate_job_defects(db: AsyncSession, job: PrintJob) -> tuple[list[dict
             located.append(
                 {
                     "detection_id": detection.id,
+                    "box_index": box_index,
                     "capture_id": capture.id,
                     "camera_id": capture.camera_id,
                     "calibration_id": row.id,

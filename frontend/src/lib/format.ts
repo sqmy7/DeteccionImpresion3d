@@ -70,6 +70,17 @@ export function formatNumber(value: number | null | undefined, digits = 1, unit 
   return unit ? `${text} ${unit}` : text;
 }
 
+/** "$ 12.345" for COP (whole pesos from 100 up); other currencies with their code. */
+export function formatMoney(value: number | null | undefined, currency: string): string {
+  if (value == null || !Number.isFinite(value)) return "—";
+  const digits = Math.abs(value) >= 100 ? 0 : 2;
+  try {
+    return value.toLocaleString(LOCALE, { style: "currency", currency, minimumFractionDigits: digits, maximumFractionDigits: digits });
+  } catch {
+    return `${formatNumber(value, digits)} ${currency}`;
+  }
+}
+
 export function formatPercent(fraction: number | null | undefined, digits = 0): string {
   if (fraction == null || !Number.isFinite(fraction)) return "—";
   return `${(fraction * 100).toLocaleString(LOCALE, { maximumFractionDigits: digits, minimumFractionDigits: digits })} %`;

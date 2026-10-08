@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class FusionSignal(BaseModel):
@@ -116,3 +116,48 @@ class PrinterHealthRead(BaseModel):
     jobs_with_telemetry: int
     heaters: list[HealthHeater]
     method: HealthMethod
+
+class CostSettings(BaseModel):
+    """What the team sets for the cost estimate. Bounds only catch typos."""
+
+    currency: str = Field(min_length=1, max_length=8)
+    filament_price_per_kg: float = Field(ge=0, le=10_000_000)
+    energy_price_per_kwh: float = Field(ge=0, le=100_000)
+    extruder_heater_w: float = Field(ge=0, le=1000)
+    bed_heater_w: float = Field(ge=0, le=3000)
+    filament_diameter_mm: float = Field(ge=1.0, le=3.5)
+    default_density_g_cm3: float = Field(ge=0.5, le=3.0)
+
+
+class CostSettingsRead(CostSettings):
+    is_default: bool  # nobody saved values yet: the prices are examples
+    updated_at: datetime | None
+
+
+class FilamentCost(BaseModel):
+    used_mm: float | None  # print_stats.filament_used: what the printer commanded to extrude
+    used_g: float | None
+    method: str | None  # "slicer" (its grams per mm) or "density" (material density x diameter)
+    density: float | None
+    material: str | None
+    cost: float | None
+    estimated_mm: float | None  # the slicer's estimate for the whole file
+    estimated_g: float | None
+
+
+class EnergyCost(BaseModel):
+    extruder_wh: float
+    bed_wh: float
+    total_kwh: float
+    covered_seconds: int  # time covered by telemetry (gaps over 5 s are not counted)
+    cost: float
+
+
+class JobCostRead(BaseModel):
+    job_id: int
+    currency: str
+    filament: FilamentCost
+    energy: EnergyCost | None
+    total_cost: float | None
+    settings: CostSettings
+    settings_are_default: bool

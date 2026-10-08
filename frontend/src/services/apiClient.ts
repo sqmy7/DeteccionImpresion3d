@@ -67,5 +67,18 @@ export const api = {
   postForm: <T>(path: string, body: Record<string, string>, token?: string | null) =>
     request<T>("POST", path, { body, token, form: true }),
   patch: <T>(path: string, body?: unknown, token?: string | null) => request<T>("PATCH", path, { body, token }),
+  put: <T>(path: string, body?: unknown, token?: string | null) => request<T>("PUT", path, { body, token }),
   del: (path: string, token?: string | null) => request<void>("DELETE", path, { token }),
 };
+
+/** Downloads an authenticated file (a PDF report) under the given name. */
+export async function downloadFile(path: string, token: string, filename: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}${path}`, { headers: { Authorization: `Bearer ${token}` } });
+  if (!response.ok) throw new ApiError(response.status, response.statusText);
+  const url = URL.createObjectURL(await response.blob());
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}

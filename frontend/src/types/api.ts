@@ -236,6 +236,14 @@ export interface BedGeometry {
   axis_maximum: number[] | null;
   bed_mesh: BedMesh | null;
   objects: BedObject[];
+  // What the slicer wrote about the file (Moonraker's metadata); only in newer jobs.
+  file?: {
+    estimated_time?: number;
+    filament_total?: number;
+    filament_weight_total?: number;
+    filament_type?: string;
+    slicer?: string;
+  } | null;
 }
 
 export interface CameraCalibration {
@@ -314,6 +322,7 @@ export interface JobAnalytics {
   nozzle_error_max_c: number | null;
   bed_error_mean_c: number | null;
   filament_m: number | null;
+  cost?: number | null; // estimate: filament + heater energy
 }
 
 export interface AnalyticsSummary {
@@ -326,11 +335,14 @@ export interface AnalyticsSummary {
     defect_rate?: number | null;
     interventions?: number | null;
     filament_m?: number | null;
+    cost?: number | null;
   };
   status_counts: Record<string, number>;
   defects_by_class: Record<string, number>;
   interventions_by_origin: Record<string, number>;
   jobs: JobAnalytics[];
+  currency?: string | null;
+  cost_settings_are_default?: boolean | null;
 }
 
 export interface BedHeatmap {
@@ -445,4 +457,39 @@ export interface PrinterHealth {
   jobs_with_telemetry: number;
   heaters: HealthHeater[];
   method: HealthMethod;
+}
+// --- Cost estimate (Fase 5) ---
+
+export interface CostSettings {
+  currency: string;
+  filament_price_per_kg: number;
+  energy_price_per_kwh: number;
+  extruder_heater_w: number;
+  bed_heater_w: number;
+  filament_diameter_mm: number;
+  default_density_g_cm3: number;
+}
+
+export interface CostSettingsRead extends CostSettings {
+  is_default: boolean;
+  updated_at: string | null;
+}
+
+export interface JobCost {
+  job_id: number;
+  currency: string;
+  filament: {
+    used_mm: number | null;
+    used_g: number | null;
+    method: "slicer" | "density" | null;
+    density: number | null;
+    material: string | null;
+    cost: number | null;
+    estimated_mm: number | null;
+    estimated_g: number | null;
+  };
+  energy: { extruder_wh: number; bed_wh: number; total_kwh: number; covered_seconds: number; cost: number } | null;
+  total_cost: number | null;
+  settings: CostSettings;
+  settings_are_default: boolean;
 }

@@ -9,6 +9,7 @@ from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import Detection, JobStatus, Layer, LayerCapture, PrinterEvent, PrintJob, TelemetrySample
+from app.services import costs
 
 # Event types that are someone acting on the print (see app/integrations/moonraker/interventions.py).
 INTERVENTION_TYPES = (
@@ -81,11 +82,15 @@ async def analytics_summary(db: AsyncSession, printer_id: int | None, since: dat
             func.avg(bed_error).filter(printing, TelemetrySample.bed_target > 0),
             func.max(TelemetrySample.filament_used),
             func.count(),
+            # One sample per second: the sum of the PWM is heater-seconds at full power.
+            func.sum(TelemetrySample.extruder_power),
+            func.sum(TelemetrySample.bed_power),
         )
         .where(TelemetrySample.print_job_id.in_(job_ids))
         .group_by(TelemetrySample.print_job_id)
     )
     telemetry = {row[0]: row[1:] for row in telemetry_rows.all()}
+    cost_settings = await costs.get_settings(db)
 
     status_counts: dict[str, int] = defaultdict(int)
     defects_by_class: dict[str, int] = defaultdict(int)
@@ -102,8 +107,22 @@ async def analytics_summary(db: AsyncSession, printer_id: int | None, since: dat
                 defects_by_class[name] += 1
         for origin, count in interventions.get(job.id, {}).items():
             origins[origin] += count
-        nozzle_mean, nozzle_max, bed_mean, filament, samples = telemetry.get(job.id, (None, None, None, None, 0))
+        nozzle_mean, nozzle_max, bed_mean, filament, samples, extruder_pwm, bed_pwm = telemetry.get(
+            job.id, (None, None, None, None, 0, None, None)
+        )
         layers = layer_counts.get(job.id, 0)
+        cost = None
+        if samples:
+            grams = costs.filament_grams(float(filament or 0), (job.geometry or {}).get("file") or {}, cost_settings)["grams"]
+            energy_kwh = (
+                float(extruder_pwm or 0) * float(cost_settings["extruder_heater_w"])
+                + float(bed_pwm or 0) * float(cost_settings["bed_heater_w"])
+            ) / 3_600_000
+            cost = round(
+                grams / 1000 * float(cost_settings["filament_price_per_kg"])
+                + energy_kwh * float(cost_settings["energy_price_per_kwh"]),
+                2,
+            )
         rows.append(
             {
                 "id": job.id,
@@ -123,6 +142,7 @@ async def analytics_summary(db: AsyncSession, printer_id: int | None, since: dat
                 "nozzle_error_max_c": None if nozzle_max is None else round(float(nozzle_max), 2),
                 "bed_error_mean_c": None if bed_mean is None else round(float(bed_mean), 2),
                 "filament_m": None if filament is None else round(float(filament) / 1000, 2),
+                "cost": cost,
             }
         )
 
@@ -139,9 +159,14 @@ async def analytics_summary(db: AsyncSession, printer_id: int | None, since: dat
             "defect_rate": round(defective / total_layers, 4) if total_layers else None,
             "interventions": sum(origins.values()),
             "filament_m": round(sum(row["filament_m"] or 0 for row in rows), 2),
+            "cost": round(sum(row["cost"] for row in rows if row["cost"] is not None), 2)
+            if any(row["cost"] is not None for row in rows)
+            else None,
         },
         "status_counts": dict(status_counts),
         "defects_by_class": dict(defects_by_class),
         "interventions_by_origin": dict(origins),
         "jobs": rows,
+        "currency": cost_settings["currency"],
+        "cost_settings_are_default": cost_settings["is_default"],
     }

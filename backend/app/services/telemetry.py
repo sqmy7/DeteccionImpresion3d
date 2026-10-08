@@ -68,9 +68,33 @@ latest_readings: dict[int, dict] = {}
 latest_geometry: dict[int, dict] = {}
 
 
+# What the slicer wrote about the file, as Moonraker parses it (Creality puts it in
+# virtual_sdcard.cur_print_data.metadata): estimates for the report and the cost.
+_FILE_METADATA_KEYS = (
+    "estimated_time",  # s
+    "filament_total",  # mm
+    "filament_weight_total",  # g
+    "filament_type",
+    "filament_name",
+    "nozzle_diameter",
+    "layer_height",
+    "first_layer_height",
+    "object_height",
+    "slicer",
+    "slicer_version",
+)
+
+
+def file_metadata(status: dict) -> dict | None:
+    metadata = ((status.get("virtual_sdcard") or {}).get("cur_print_data") or {}).get("metadata") or {}
+    selected = {key: metadata[key] for key in _FILE_METADATA_KEYS if metadata.get(key) not in (None, "")}
+    return selected or None
+
+
 def geometry_from_status(status: dict) -> dict:
     """The bed as Klipper describes it: axis limits, the active bed mesh and the objects the file
-    declared (exclude_object). Changes rarely: on homing, mesh calibration or a new print."""
+    declared (exclude_object), plus the slicer's metadata of the file being printed. Changes
+    rarely: on homing, mesh calibration or a new print."""
     toolhead = status.get("toolhead") or {}
     mesh = status.get("bed_mesh") or {}
     exclude_object = status.get("exclude_object") or {}
@@ -83,6 +107,7 @@ def geometry_from_status(status: dict) -> dict:
             else None
         ),
         "objects": exclude_object.get("objects") or [],
+        "file": file_metadata(status),
     }
 
 

@@ -1,4 +1,4 @@
-import { Download, FileText, MapPin, Pause, Play, ScrollText, SkipBack } from "lucide-react";
+import { Download, FileDown, FileText, MapPin, Pause, Play, ScrollText, SkipBack } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
 import { BedMapView, BedPositionNote, MeshLegend } from "../components/bed/BedMapView";
@@ -15,7 +15,9 @@ import { formatDateTime, formatDuration, formatTime } from "../lib/format";
 import { defectMarkers, eventMarkers } from "../lib/markers";
 import { useApi } from "../lib/useApi";
 import { getJobBedMap } from "../services/bedMap";
-import { getJobFusion } from "../services/insights";
+import { downloadJobReport, getJobCost, getJobFusion } from "../services/insights";
+import { JobCostCard } from "../components/insights/CostCard";
+import { useAuth } from "../hooks/useAuth";
 import { getJobSummary, getJobTimeline, getPrintJob } from "../services/printJobs";
 import { getJobTelemetry, listJobEvents, listJobLayers } from "../services/telemetry";
 import type { TimelineEntry } from "../types/api";
@@ -61,6 +63,11 @@ export function JobReplayPage() {
   const events = useApi((token) => listJobEvents(token, jobId), [jobId]);
   const bedMap = useApi((token) => getJobBedMap(token, jobId), [jobId]);
   const fusion = useApi((token) => getJobFusion(token, jobId), [jobId]);
+  const [costVersion, setCostVersion] = useState(0);
+  const cost = useApi((token) => getJobCost(token, jobId), [jobId, costVersion]);
+  const { token } = useAuth();
+  const [reportBusy, setReportBusy] = useState(false);
+  const [reportError, setReportError] = useState<string | null>(null);
 
   const start = job.data ? Date.parse(job.data.started_at) : 0;
   const end = job.data ? (job.data.ended_at ? Date.parse(job.data.ended_at) : Date.now()) : 0;
@@ -127,6 +134,19 @@ export function JobReplayPage() {
       setT(Date.parse(layer.detected_at));
     }
   };
+  const estimatedTime = bedMap.data?.geometry?.file?.estimated_time;
+  const downloadReport = async () => {
+    if (!token) return;
+    setReportBusy(true);
+    setReportError(null);
+    try {
+      await downloadJobReport(token, jobId);
+    } catch {
+      setReportError("No se pudo generar el reporte. Intenta de nuevo.");
+    } finally {
+      setReportBusy(false);
+    }
+  };
   const exportCsv = () => {
     const url = URL.createObjectURL(new Blob([timelineCsv(entries)], { type: "text/csv" }));
     const link = document.createElement("a");
@@ -148,13 +168,23 @@ export function JobReplayPage() {
         }
         subtitle={`Trabajo #${job.data.id} · ${formatDateTime(job.data.started_at)} → ${job.data.ended_at ? formatDateTime(job.data.ended_at) : "en curso"}`}
         actions={
-          <Button size="sm" icon={<Download size={14} />} onClick={exportCsv} disabled={entries.length === 0}>
-            Capas (CSV)
-          </Button>
+          <>
+            <Button size="sm" icon={<FileDown size={14} />} onClick={downloadReport} disabled={reportBusy}>
+              {reportBusy ? "Generando…" : "Reporte (PDF)"}
+            </Button>
+            <Button size="sm" icon={<Download size={14} />} onClick={exportCsv} disabled={entries.length === 0}>
+              Capas (CSV)
+            </Button>
+          </>
         }
       >
+        {reportError && <ErrorNote>{reportError}</ErrorNote>}
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <Kpi label="Duración" value={formatDuration((end - start) / 1000)} />
+          <Kpi
+            label="Duración"
+            value={formatDuration((end - start) / 1000)}
+            hint={estimatedTime ? `laminador: ${formatDuration(estimatedTime)}` : undefined}
+          />
           <Kpi label="Capas registradas" value={summary.data?.total_layers_recorded ?? "—"} hint={job.data.estimated_layers ? `de ${job.data.estimated_layers}` : undefined} />
           <Kpi label="Capas con defecto" value={summary.data?.layers_with_defect ?? "—"} tone={summary.data?.layers_with_defect ? "danger" : "ok"} />
           <Kpi label="Eventos en la bitácora" value={allEvents.length} />
@@ -252,7 +282,7 @@ export function JobReplayPage() {
         subtitle="Haz clic en la gráfica para ir a ese momento"
       />
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid items-start gap-4 lg:grid-cols-2">
         <Card
           title={
             <span className="flex items-center gap-2">
@@ -275,7 +305,10 @@ export function JobReplayPage() {
             </div>
           )}
         </Card>
-        <JobAlertsPanel jobId={jobId} />
+        <div className="flex flex-col gap-4">
+          <JobAlertsPanel jobId={jobId} />
+          {cost.data && <JobCostCard cost={cost.data} onChanged={() => setCostVersion((value) => value + 1)} />}
+        </div>
       </div>
     </div>
   );

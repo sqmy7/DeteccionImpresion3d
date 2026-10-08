@@ -322,3 +322,15 @@ class PrinterEvent(Base):
     detail: Mapped[dict | None] = mapped_column(JSONB)
     prev_hash: Mapped[str | None] = mapped_column(String(64))
     hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+
+
+class AppSetting(Base):
+    """Settings the team edits from the web, one JSON value per key (for now "costs": the prices
+    and heater wattages of the cost estimate)."""
+
+    __tablename__ = "app_settings"
+
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    value: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    updated_by: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))

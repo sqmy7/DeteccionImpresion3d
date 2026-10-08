@@ -13,7 +13,10 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 SCRIPTS_DIR = Path(__file__).resolve().parents[1] / "scripts"
-_TABLES = "printer_events, telemetry_samples, alerts, detections, layer_captures, layers, print_jobs, cameras, printers"
+_TABLES = (
+    "printer_events, telemetry_samples, alerts, detections, layer_captures, layers, print_jobs, cameras, printers, "
+    "app_settings"
+)
 
 
 def load_script(name: str):
