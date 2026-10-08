@@ -131,11 +131,11 @@ No afecta a las alertas (ver punto 3: `stringing` suelto no genera alerta), pero
 
 ## 7. Telemetría y bitácora de eventos
 
-**Estado:** implementado y probado contra la impresora simulada (`backend/scripts/mock_moonraker.py`) y Postgres. Falta verificarlo con la Creality Hi real (ver `docs/PROGRESO_TELEMETRIA.md`).
+**Estado:** probado contra la impresora simulada y, desde el 2026-10-08, **observado con la Creality Hi real imprimiendo** (muestras, sensores, bitácora estable y cadena íntegra; ver `docs/laboratorio/RESULTADOS.md`). Sin comprobar con la real: la atribución a consola/archivo/externo (exige órdenes) y la secuencia de inicio de una impresión. Antes: (ver `docs/PROGRESO_TELEMETRIA.md`).
 
 El listener de Moonraker guarda una muestra por segundo (posición, velocidad, temperaturas y potencia de boquilla y cama, ventilador, factores de velocidad y flujo, desfase de Z, progreso, filamento y los sensores extra que tenga la impresora) mientras hay un trabajo abierto, guarda con cada capa una foto de esos valores y registra en la bitácora los cambios de estado y las intervenciones (temperaturas objetivo, velocidad, flujo, ventiladores, desfase de Z, objetos excluidos, sensores de filamento, comandos de consola) con su origen.
 
-- **Volumen medido en la simulada, no en la Hi:** ~2 KB/s de WebSocket, 0,08 % de un núcleo para el listener y ~2,7 MB en Postgres por impresión de 2 h. La Hi puede reportar más o menos campos; se confirma con `moonraker_discovery.py --only-ws` durante una impresión.
+- **Volumen medido en la Hi real (2026-10-08) y, antes, en la simulada:** el WebSocket dio 4,2 KB/s con 45 objetos (1.491 mensajes en 300 s; la suscripción de PrintWatch es menor), el backend 0,35 % de un núcleo y 115 MiB, y Postgres 1.036 bytes por muestra (714 de ellos el campo de sensores extra; la Hi tiene 5 sensores de filamento): ~7,5 MB por cada 2 h de impresión, antes de quitar las claves constantes `enabled`. En la simulada fueron ~2 KB/s, 0,08 % y ~2,7 MB. Lo anterior era: ~2 KB/s de WebSocket, 0,08 % de un núcleo para el listener y ~2,7 MB en Postgres por impresión de 2 h. La Hi puede reportar más o menos campos; se confirma con `moonraker_discovery.py --only-ws` durante una impresión.
 - **Sin trabajo abierto no se guarda serie.** La lectura en vivo (evento `telemetry.sample` y `/printers/{id}/telemetry/latest`) sigue llegando, pero no queda histórico fuera de las impresiones. La última lectura vive en la memoria del backend: tras un reinicio vuelve en ~1 s si la impresora está conectada.
 - **Las muestras se insertan en lotes de 10.** Si la base falla, ese lote se pierde (como mucho ~10 s de telemetría) y queda anotado en el log.
 - **Qué se puede saber del origen de un cambio y qué no** (`app/integrations/moonraker/interventions.py`). Cada cambio se atribuye solo con evidencia:
@@ -145,7 +145,7 @@ El listener de Moonraker guarda una muestra por segundo (posición, velocidad, t
   - `external`: sin evidencia. **No distingue** entre la pantalla de la impresora, los botones de pausa/reanudar/cancelar de Fluidd (usan una API que no deja rastro en la consola) u otra aplicación. El inicio de cada impresión sale así por la misma razón. Se marca "externo" en vez de inventar un origen.
   - `printer`: errores de Klipper, fin del archivo, sensor de filamento y estado de Klippy. `monitor`: conexión y desconexión de PrintWatch con la impresora.
 - **La atribución al archivo es heurística.** De las macros solo se resuelven los `{params.X}`; cualquier otra expresión de la plantilla y todas las ramas de un `{% if %}` cuentan como "puede cambiar este valor". La posición se compara en bytes con 256 bytes de tolerancia; si Klipper contara caracteres y el archivo tuviera muchos comentarios con tildes, la posición podría correrse.
-- **Ventiladores:** los cambios programados en el archivo no se registran (los laminadores los cambian todo el tiempo; la curva está en la telemetría), y los que no tienen explicación solo se registran si se pudo revisar el archivo; sin él, la mayoría serían falsos "externos".
+- **Ventiladores:** en la Hi no existe el objeto `fan`; el ventilador de capa es `output_pin fan0` (se guarda en la telemetría, pero sus cambios no se vigilan en la bitácora). Los cambios programados en el archivo no se registran (los laminadores los cambian todo el tiempo; la curva está en la telemetría), y los que no tienen explicación solo se registran si se pudo revisar el archivo; sin él, la mayoría serían falsos "externos".
 - **Los eventos sin evidencia inmediata se registran con demora:** esperan ~5 s por si aparece el comando de consola, y hasta 3 min si el archivo todavía se está indexando. La hora guardada es la del cambio, no la del registro, así que el orden de la cadena puede no coincidir con el cronológico.
 - **Hora de los comandos de consola:** Moonraker los marca con el reloj de la impresora; se corrigen con la diferencia de relojes estimada a partir del encabezado `Date` de sus respuestas (resolución de 1 s, se afina con cada consulta). Al principio de una conexión puede haber medio segundo de error, y un comando puede aparecer justo después del cambio que provocó.
 - **Lo escrito en la consola antes de que PrintWatch se conectara no se registra** (la primera consulta solo marca el punto de partida).
@@ -159,6 +159,7 @@ El listener de Moonraker guarda una muestra por segundo (posición, velocidad, t
 
 Cómo funciona (`app/services/bed_map.py`): el usuario marca las cuatro esquinas de la cama sobre una foto de la cámara. Eso da la homografía imagen-cama; de ella se estima la focal y la posición de la cámara, y con eso cada caja de defecto se lleva a milímetros de la cama corrigiendo el paralaje con la altura de la capa. La Creality Hi es de cama móvil: si la cámara está fija al marco o a la mesa, la cama se desplaza en la imagen y se compensa con la posición Y del cabezal en la foto de la capa. Contra la cámara simulada, el error es menor a 1 mm; en la real hay que sumar:
 
+- **El tamaño de la cama no es el recorrido de los ejes:** Klipper reporta X −19..285 e Y −7..273 en la Hi (incluye el cortador de filamento, en X 279,6); la cama es de 260 × 260 y la malla va de 10 a 250. Medido con la impresora real. El tamaño se toma ahora de la malla (10 + 250); sin malla, 260 mm sin pasar del recorrido. Antes se tomaba el recorrido y la calibración habría quedado torcida.
 - **Las marcas a mano:** se estima ~1,5 % del tamaño de la cama (~4 mm).
 - **La distorsión del lente**, que no se modela. La C922 deforma un poco los bordes de la imagen; cerca de las esquinas puede sumar varios milímetros.
 - **La altura supuesta:** se asume que el defecto está en la superficie de la capa actual. Un hilo de spaghetti que cayó a la cama queda sobrecorregido.
@@ -180,7 +181,7 @@ Cómo funciona (`app/services/bed_map.py`): el usuario marca las cuatro esquinas
 - **No todas las clases tienen señales.** El spaghetti y, casi, el desplazamiento de capa no tienen una lectura de la impresora que los explique; su puntaje es el del modelo.
 - **La ventana es la capa recién impresa** (más hasta dos anteriores si tiene menos de 10 muestras). En capas muy rápidas (pocos segundos) la ventana puede quedar con menos muestras; en trabajos sin telemetría por segundo se usa la foto de telemetría de la capa.
 - **No distingue el origen del cambio.** Un flujo bajado por el archivo cuenta igual que uno bajado desde la consola: lo que importa para el defecto es el valor.
-- **El sensor de filamento** solo cuenta si la impresora lo expone; no está verificado que la Hi lo publique.
+- **El sensor de filamento:** la Hi expone cinco (`filament_sensor` del cabezal, `_2` y tres de la caja CFS). Los de la caja marcan "sin filamento" todo el tiempo cuando la caja no está conectada, así que solo cuenta un sensor que haya visto filamento en ese trabajo (con la lógica anterior habrían sumado +0,6 a toda sub-extrusión). Si algún día se conecta la caja, sus ranuras vacías seguirían sin contar.
 
 **Salud de la impresora (`app/services/health.py`).**
 
@@ -197,7 +198,7 @@ Cómo funciona (`app/services/bed_map.py`): el usuario marca las cuatro esquinas
 - **El hash impreso solo protege si el PDF se guarda fuera de la base.** Sirve para comprobar después que la cadena de eventos sigue conteniendo ese hash (que nadie borró los últimos eventos ni la reescribió entera).
 - **Gráficas reducidas** a 600 puntos (promedios por tramos) y bitácora limitada a 150 eventos por reporte; el resto está en la web.
 - **Texto en Latin-1** (fuentes básicas de PDF, sin incrustar tipografías): el español sale completo, pero símbolos como σ o → se escriben con letras.
-- **Tiempo estimado:** sale de los metadatos del laminador que publica la impresora (`virtual_sdcard.cur_print_data.metadata` en la Creality). Solo existe para los trabajos posteriores a este cambio y no está verificado que la Hi publique `estimated_time`; si no, el reporte lo dice.
+- **Tiempo estimado:** la Hi **no publica `estimated_time`** en ningún objeto ni en los metadatos (medido en la impresora real); Creality Print lo escribe en el nombre del archivo (`..._PETG_6h0m27s.gcode`) y de ahí se toma, marcado como tal en la web y el reporte. Un archivo con otro nombre no tiene estimación y el reporte lo dice. Solo existe para los trabajos posteriores a este cambio.
 
 **Costo estimado (`app/services/costs.py`).**
 
