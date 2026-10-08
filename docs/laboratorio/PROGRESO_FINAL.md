@@ -111,3 +111,48 @@ historial de Moonraker es el 86 (el mismo). No se inventó ninguna pausa y no se
 - **Pendiente (descubrimiento completo y logs):** no se corrió nada pesado contra Moonraker. El descubrimiento
   completo y la descarga de `klippy.log`/`moonraker.log` del tramo de la pausa esperan: lo primero, a `standby`;
   lo segundo, a que haya una pausa real que acotar (5 minutos antes de la hora exacta).
+
+## Recalibración de la C922 (2026-10-08, 18:26 hora de Colombia = 23:26 UTC)
+
+Solo lectura (`SELECT`, `GET` de la posición, y una imagen del cuadro actual con las marcas dibujadas encima).
+
+| | Calibración 1 (22:56 UTC) | Calibración 2 (23:26 UTC) |
+|---|---|---|
+| Y de referencia | 130 mm | **260 mm** |
+| Focal estimada | 1.490,1 px | **1.498,6 px** |
+| Cámara, altura | 10,5 cm | 11,1 cm |
+| Cámara, distancia al borde frontal | 27,2 cm delante | 26,1 cm delante |
+| Cámara, X | −5,8 cm | −4,4 cm |
+| Marcas en la imagen (px, de 1280×720) | (184,433) (1156,277) (696,126) (30,177) | **(215,479) (1231,307) (696,136) (8,195)** |
+
+(Calibración 2, puntos normalizados: [0,1682; 0,6654], [0,9619; 0,4260], [0,5435; 0,1888], [0,0060; 0,2702].
+Orden: frente izquierda, frente derecha, fondo derecha, fondo izquierda; esquinas de la cama
+(0,0), (260,0), (260,260), (0,260) mm.)
+
+- **La focal NO se acerca a ~907 px: sigue en ~1.500 px (1,65 veces la típica).** Cambió 0,6 % entre las dos
+  calibraciones aunque la cama estaba en otra Y y las marcas se pusieron de nuevo, así que la estimación es
+  estable. Posición de la cámara casi igual (altura 10,5 a 11,1 cm, 26 a 27 cm delante).
+- **Las marcas están bien puestas.** Dibujadas sobre el cuadro actual caen sobre las cuatro esquinas visibles
+  de la placa (la cámara ya no está donde estaba a las 17:26: ahora ve la placa completa desde el frente
+  izquierdo y abajo). Por eso no es un error de clic.
+- **Con una focal fija de 907 px las marcas no cuadran** (calibración 2, error de reproyección por mark,
+  1 a 4): 3,8 / 18,3 / **63,5** / 39,8 mm sobre la cama (8,6 / 18,7 / 45,2 / 31,9 px); la 3 (fondo derecha) es
+  la que más se aleja. Con la focal estimada el error es de 0,6 a 5,9 mm: el modelo de cámara con ~1.500 px
+  explica bien las cuatro marcas; con 907 px no. Las cifras vienen de ajustar la pose por mínimos cuadrados
+  con el código nuevo (aún sin desplegar).
+- **Posibles causas, sin verificar** (que sean ~1.500 px no significa que el lente lo sea): (1) la cámara no
+  trabaja con su campo completo de 78° en este modo (recorte o zoom digital de la cámara o de Windows);
+  (2) la placa que se marcó no mide exactamente 260 × 260 mm (la placa se ve más grande que el área
+  imprimible); (3) distorsión del lente, que este modelo ignora; (4) una vista casi rasante, en la que la
+  focal se estima mal con cuatro puntos. Una forma de separarlas: medir la placa con una regla, y comparar
+  con un objeto de tamaño conocido en el cuadro.
+- **Lo que importa para ubicar defectos** (el mapa de la cama) es la transformación imagen → cama, que no
+  depende de la focal. La focal solo afecta a la posición de la cámara y, con ella, a la corrección de
+  paralaje de las piezas altas.
+- **Y de la cama:** al tomar la foto de la calibración 2 la web guardó Y = 260 mm (la última lectura en vivo
+  en ese momento; la 1 guardó 130 mm: la cama estaba a mitad de recorrido). Ahora, tres lecturas de
+  `motion_report.live_position` dan Y = 260,0 mm, y `toolhead.position` también. **Coinciden: no hay señal de
+  que la cama se moviera entre la foto y el guardado.** Límite: no se puede ver lo que pasó en el intervalo
+  (en `standby` no se guarda telemetría y la bitácora no registra posiciones), pero tampoco hubo ningún evento
+  de la bitácora desde las 23:20:33 UTC y el estado seguía en `standby`. La Y distinta entre las dos
+  calibraciones (130 y 260) la compensa `reference_y`.
