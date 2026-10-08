@@ -105,6 +105,14 @@ def test_redact_hides_serials_and_mac_addresses(discovery):
     assert redacted["network"]["wlan0"] == {"mac_address": "<oculto>", "ip": []}
 
 
+def test_redact_also_hides_addresses_derived_from_the_mac(discovery):
+    data = {"ip_addresses": [{"family": "ipv6", "address": "fe80::1234:56ff:fe78:9abc"}, {"family": "ipv4", "address": "192.168.10.22"}],
+            "note": "radio aa:bb:cc:dd:ee:ff up at 12:30:45"}
+    redacted = discovery._redact(data)
+    assert redacted["ip_addresses"] == [{"family": "ipv6", "address": "<oculto>"}, {"family": "ipv4", "address": "192.168.10.22"}]
+    assert redacted["note"] == "radio <oculto> up at 12:30:45"
+
+
 def test_discovery_steps_against_the_simulated_printer(discovery, mock_moonraker, tmp_path):
     printer = mock_moonraker.printer
     printer.start(mock_moonraker.MOCK_FILE)

@@ -47,7 +47,8 @@ function toRows(points: TimedValues[]): ChartRow[] {
       row[key] = PERCENT_KEYS.includes(key as keyof TelemetryValues) ? value * 100 : value;
     }
     for (const [key, value] of Object.entries(point.extra ?? {})) {
-      if (typeof value === "number") row[`extra:${key}`] = value;
+      // print_stats.* is bookkeeping (the clock the remaining-time estimate uses), not a sensor.
+      if (typeof value === "number" && !key.startsWith("print_stats.")) row[`extra:${key}`] = value;
     }
     return row;
   });

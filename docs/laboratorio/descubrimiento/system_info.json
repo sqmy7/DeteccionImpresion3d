@@ -63,7 +63,7 @@
           },
           {
             "family": "ipv6",
-            "address": "fe80::3a54:39ff:fe23:1507",
+            "address": "<oculto>",
             "is_link_local": true
           }
         ]

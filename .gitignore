@@ -37,3 +37,6 @@ docs/moonraker_discovery/ws_muestra_*.jsonl
 
 # Pruebas
 .pytest_cache/
+
+# Material de trabajo de la herramienta de desarrollo (prompts y salidas), no es parte del proyecto
+Claude outputs/

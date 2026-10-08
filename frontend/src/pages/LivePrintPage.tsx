@@ -24,7 +24,10 @@ import { listCamerasForPrinter } from "../services/cameras";
 import { getJobSummary, getJobTimeline, listPrintJobsForPrinter } from "../services/printJobs";
 import { getJobTelemetry, listJobEvents, listJobLayers } from "../services/telemetry";
 import type { JobSummary, PrintJob, PrinterEvent, TelemetryReading } from "../types/api";
-import type { DetectionResultEvent, LayerCapturedEvent, PrinterEventEvent } from "../types/ws";
+import type { DetectionBox, DetectionResultEvent, LayerCapturedEvent, PrinterEventEvent } from "../types/ws";
+import { detectionBoxes } from "../lib/boxes";
+import { remaining as remainingTime } from "../lib/eta";
+import { listDetectionsForCapture } from "../services/layers";
 
 const TRAIL_SECONDS = 120;
 
@@ -35,6 +38,7 @@ function ProgressCard({
   printerId,
   status,
   first,
+  estimatedTotalS,
 }: {
   job: PrintJob;
   summary: JobSummary | null;
@@ -42,19 +46,21 @@ function ProgressCard({
   printerId: number;
   status: Parameters<typeof PrintControls>[0]["status"];
   first: { t: number; progress: number } | null;
+  estimatedTotalS: number | null;
 }) {
   const progress = reading?.progress ?? null;
   const elapsed = secondsBetween(job.started_at, job.ended_at);
-  // Rough: assumes the rest of the file prints at the pace seen since PrintWatch's first sample of
-  // this job. (The job may have been picked up mid-print: elapsed time over total progress would
-  // then be far too optimistic. Measured on the real Hi: ~16 min shown, ~70 min left.)
-  let remaining: number | null = null;
-  if (progress != null && first && progress - first.progress > 0.01) {
-    const seen = (Date.now() - first.t) / 1000;
-    remaining = (seen * (1 - progress)) / (progress - first.progress);
-  } else if (progress && progress > 0.02 && elapsed) {
-    remaining = (elapsed * (1 - progress)) / progress;
-  }
+  // The slicer's total minus the print time when the file has an estimate (measured: 1 min of error on
+  // a 6 h print); otherwise the pace of the file's progress. See lib/eta.ts.
+  const runningRaw = reading?.extra?.["print_stats.print_duration"];
+  const estimate = remainingTime({
+    estimatedTotalS,
+    runningS: typeof runningRaw === "number" ? runningRaw : null,
+    first,
+    nowMs: Date.now(),
+    progress,
+  });
+  const remaining = estimate.seconds;
   const layer = reading?.layer_number ?? summary?.current_layer ?? null;
 
   return (
@@ -86,8 +92,15 @@ function ProgressCard({
             <Clock size={13} className="text-faint" />
             {formatDuration(elapsed)}
           </span>
-          <span title="Estimación: supone que lo que falta se imprime al ritmo promedio de lo hecho">
+          <span
+            title={
+              estimate.source === "slicer"
+                ? "Estimación: el tiempo total que calculó el laminador (va en el nombre del archivo) menos lo que lleva imprimiendo. En la impresión de 6 h medida, el error medio fue de 1 min."
+                : "Estimación: supone que lo que falta se imprime al ritmo con que avanzó el archivo desde que PrintWatch lo sigue. Es poco precisa: el archivo no avanza parejo en el tiempo."
+            }
+          >
             Restan ~{formatDuration(remaining)}
+            {estimate.source === "progress" && " (poco precisa)"}
           </span>
           {summary && (
             <span className={summary.layers_with_defect ? "text-danger-fg" : ""}>
@@ -160,6 +173,17 @@ export function LivePrintPage() {
     return [...stored, ...fresh];
   }, [history.data, recent, jobId]);
 
+  // The boxes of the newest analyzed layer, so the video shows them from the moment the page opens.
+  const lastCaptureId = useMemo(() => [...entries].reverse().find((entry) => entry.capture_id)?.capture_id ?? null, [entries]);
+  const lastDetections = useApi((token) => (lastCaptureId ? listDetectionsForCapture(token, lastCaptureId) : null), [lastCaptureId]);
+  const lastBoxes = useMemo<DetectionBox[]>(
+    () =>
+      (lastDetections.data ?? [])
+        .flatMap(detectionBoxes)
+        .map((box) => ({ class: box.className, confidence: box.confidence, x1: box.x1, y1: box.y1, x2: box.x2, y2: box.y2 })),
+    [lastDetections.data],
+  );
+
   const firstProgress = useMemo(() => {
     const point = points.find((item) => item.progress != null);
     return point ? { t: Date.parse(point.ts), progress: point.progress as number } : null;
@@ -206,7 +230,7 @@ export function LivePrintPage() {
         >
           <div className="p-3">
             {camera ? (
-              <LiveCameraView cameraId={camera.id} />
+              <LiveCameraView cameraId={camera.id} initialBoxes={lastBoxes} />
             ) : (
               <EmptyState title="Sin cámara configurada" description="Agrega una cámara a esta impresora para ver el video y detectar defectos." />
             )}
@@ -215,7 +239,7 @@ export function LivePrintPage() {
 
         <div className="flex min-w-0 flex-col gap-4">
           {job ? (
-            <ProgressCard job={job} summary={summary.data} reading={live} printerId={printer.id} status={printer.last_known_status} first={firstProgress} />
+            <ProgressCard job={job} summary={summary.data} reading={live} printerId={printer.id} status={printer.last_known_status} first={firstProgress} estimatedTotalS={mapGeometry?.file?.estimated_time ?? null} />
           ) : (
             <Card title="Sin impresión en curso">
               <p className="text-sm text-muted">

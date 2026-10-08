@@ -401,6 +401,20 @@ reconstruyó para no reiniciarlo durante la impresión, queda para cuando termin
    dividir el tiempo desde que se abrió el trabajo (a mitad de impresión) y daba ~16 min cuando
    faltaban ~70.
 
+### Cierre de la sesión de laboratorio (rama `lab-ausente`, 2026-10-08 por la tarde)
+
+El trabajo 43 terminó (`completed`, 16:58). Lo medido con el final real, en
+`docs/laboratorio/RESULTADOS.md` (sección 1b) y `analisis_trabajo_43.md`:
+- **Tiempo restante:** el total del laminador (nombre del archivo) menos `print_duration` tuvo 1,0 min de error
+  medio; el avance del archivo, 22,7 min; el ritmo de capas, 53,5 (una capa tardó 24 min al final). Es el que usa
+  la web ahora; `print_duration` queda en el campo `extra` de la telemetría.
+- **Filamento:** 68.220 mm → 208,4 g por densidad contra 201,83 g del laminador (+3,1 %); se mantiene la densidad.
+- **Reporte PDF** con datos reales corregido; guardia contra reanudaciones duplicadas; cajas al abrir la vista en
+  vivo; modelo (9.457.164 parámetros, ≈ 21,3 GFLOPs; `docs/laboratorio/MODELO.md`); preguntas para el profesor.
+- **La impresora .21 no respondió**: sin descubrimiento ni cámara; herramientas listas
+  (`docs/laboratorio/impresora_21/RESULTADOS.md`).
+- Pendiente de Samuel (desplegar, `capture`, calibrar, precios, historial de git): `docs/laboratorio/PROGRESO_HORA.md`.
+
 ## Pendiente con la impresora
 
 Antes de cualquier prueba: VPN HotspotShield desconectada, sesión `wsl -- sleep infinity` abierta y

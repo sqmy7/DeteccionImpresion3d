@@ -30,7 +30,7 @@ function extraValue(key: string, value: number | boolean): string {
 
 /** The printer's current readings as figures, with their targets next to them. */
 export function LiveKpis({ values }: { values: TelemetryValues }) {
-  const extra = Object.entries(values.extra ?? {}).filter(([key]) => !key.endsWith(".enabled"));
+  const extra = Object.entries(values.extra ?? {}).filter(([key]) => !key.endsWith(".enabled") && !key.startsWith("print_stats."));
   return (
     <div className="flex flex-col gap-3">
       <div className="grid grid-cols-2 gap-3">

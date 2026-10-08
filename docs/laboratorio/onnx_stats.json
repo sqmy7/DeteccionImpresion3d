@@ -1,0 +1,38 @@
+[
+  {
+    "file": "best_fp32.onnx",
+    "size_mb": 37.94,
+    "nodes": 320,
+    "initializers": 196,
+    "parameters": 9457164,
+    "gflops": null,
+    "gflops_partial": 21.31,
+    "conv_matmul_counted": 88,
+    "conv_matmul_without_shape": 2,
+    "declared_shapes": 332
+  },
+  {
+    "file": "best_int8.onnx",
+    "size_mb": 9.92,
+    "nodes": 843,
+    "initializers": 894,
+    "parameters": 9457862,
+    "gflops": null,
+    "gflops_partial": null,
+    "conv_matmul_counted": 0,
+    "conv_matmul_without_shape": 2,
+    "declared_shapes": 332
+  },
+  {
+    "file": "yolo11s_dummy.onnx",
+    "size_mb": 37.99,
+    "nodes": 320,
+    "initializers": 119,
+    "parameters": 9471690,
+    "gflops": null,
+    "gflops_partial": 21.47,
+    "conv_matmul_counted": 88,
+    "conv_matmul_without_shape": 2,
+    "declared_shapes": 332
+  }
+]

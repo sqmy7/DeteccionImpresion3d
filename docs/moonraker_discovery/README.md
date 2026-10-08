@@ -1,9 +1,10 @@
 # Descubrimiento de Moonraker/Klipper en la Creality Hi-3422
 
-**Estado: plantilla sin verificar.** El descubrimiento todavía no se corrió contra la impresora real
-(se preparó fuera del laboratorio). La tabla de abajo sale de la documentación de Klipper y Moonraker
-y de lo que ya se midió en la Hi-3422 (marcado *medido*). Al correr el script se completa con lo que
-la impresora devuelva de verdad; lo que siga marcado *sin verificar* no se debe tomar como hecho.
+**Estado: medido en la impresora real el 2026-10-08, imprimiendo** (volcados en
+`docs/laboratorio/descubrimiento/`, conclusiones en `docs/laboratorio/RESULTADOS.md`). La tabla de abajo
+sale de la documentación de Klipper y Moonraker y de lo medido en la Hi-3422 (marcado *medido*); lo que
+siga marcado *sin verificar* no se midió y no se debe tomar como hecho. Los archivos de este directorio
+son de una corrida anterior, con la impresora sin imprimir.
 
 ## Cómo correr el descubrimiento
 
@@ -64,37 +65,40 @@ cambiaron, así que "~4 Hz" significa "mientras el valor cambia".
 | Altura de capa | `virtual_sdcard.cur_print_data.metadata.layer_height` | mm | al empezar | Sí (*medido*) | Z de cada capa |
 | Capa según Klipper estándar | `print_stats.info.current_layer` | capa | — | No: siempre `null` (*medido*) | No se usa |
 | Z reportada | `print_stats.z_pos` (propio de Creality) | mm | — | No: va con retraso (*medido*) | No se usa; Z = capa × altura |
-| Posición comandada | `toolhead.position` [x, y, z, e] | mm | ~4 Hz | sin verificar | Telemetría |
-| Posición real estimada | `motion_report.live_position` [x, y, z, e] | mm | ~4 Hz | sin verificar | Mapa de la cama y trayectoria |
-| Velocidad real | `motion_report.live_velocity` | mm/s | ~4 Hz | sin verificar | Telemetría |
-| Velocidad del extrusor | `motion_report.live_extruder_velocity` | mm/s de filamento | ~4 Hz | sin verificar | Fusión de sensores |
-| Factor de velocidad | `gcode_move.speed_factor` | 1,0 = 100 % | al cambiar | sin verificar | Bitácora |
-| Factor de flujo | `gcode_move.extrude_factor` | 1,0 = 100 % | al cambiar | sin verificar | Bitácora |
-| Desfase de Z (babystepping) | `gcode_move.homing_origin[2]` | mm | al cambiar | sin verificar | Bitácora |
-| Temperatura de la boquilla | `extruder.temperature`, `.target`, `.power` | °C, °C, 0–1 | ~4 Hz | sin verificar | Telemetría, bitácora, salud |
-| Temperatura de la cama | `heater_bed.temperature`, `.target`, `.power` | °C, °C, 0–1 | ~4 Hz | sin verificar | Telemetría, bitácora, salud |
-| Ventilador de capa | `fan.speed` | 0–1 | al cambiar | sin verificar | Telemetría, bitácora |
-| Otros ventiladores | `heater_fan *`, `controller_fan *` | 0–1 | al cambiar | sin verificar | Salud |
-| Sensores extra | `temperature_sensor *` | °C | ~4 Hz | sin verificar | Salud |
-| Malla de la cama | `bed_mesh.probed_matrix`, `mesh_min`, `mesh_max` | mm | al calibrar | sin verificar | Mapa de la cama |
+| Posición comandada | `toolhead.position` [x, y, z, e] | mm | 1,3 Hz | Sí (*medido*), pero **va ~100 mm por delante del cabezal** (mediana; p90 162 mm) | No se usa para la posición |
+| Posición real estimada | `motion_report.live_position` [x, y, z, e] | mm | 4 Hz | Sí (*medido*) | Mapa de la cama y trayectoria |
+| Velocidad real | `motion_report.live_velocity` | mm/s | 2,6 Hz | Sí (*medido*; hasta 300 mm/s) | Telemetría |
+| Velocidad del extrusor | `motion_report.live_extruder_velocity` | mm/s de filamento | 2,9 Hz | Sí (*medido*) | Fusión de sensores |
+| Factor de velocidad | `gcode_move.speed_factor` | 1,0 = 100 % | al cambiar | Valor medido (1,0); cambios no observados | Bitácora |
+| Factor de flujo | `gcode_move.extrude_factor` | 1,0 = 100 % | al cambiar | Valor medido (1,0); cambios no observados | Bitácora |
+| Desfase de Z (babystepping) | `gcode_move.homing_origin[2]` | mm | al cambiar | Valor medido (0); cambios no observados | Bitácora |
+| Temperatura de la boquilla | `extruder.temperature`, `.target`, `.power` | °C, °C, 0–1 | 3,1 Hz | Sí (*medido*) | Telemetría, bitácora, salud |
+| Temperatura de la cama | `heater_bed.temperature`, `.target`, `.power` | °C, °C, 0–1 | 2,7 Hz | Sí (*medido*) | Telemetría, bitácora, salud |
+| Ventilador de capa | **`output_pin fan0.value`** (no existe el objeto `fan`) | 0–1 | al cambiar | Sí (*medido*: 0,35) | Telemetría |
+| Otros ventiladores | `heater_fan hotend_fan` (sin RPM), `output_pin fanp0`, `board_fan`, `fan_feedback` (propio de Creality) | 0–1 | al cambiar | Sí (*medido*); no hay `controller_fan` | Salud |
+| Sensores extra | `temperature_sensor mcu_temp` | °C | 3,2 Hz | Sí (*medido*; 55 °C durante la impresión) | Salud |
+| Malla de la cama | `bed_mesh.probed_matrix`, `mesh_min`, `mesh_max` | mm | al calibrar | Sí (*medido*: 9×9, de 10 a 250 mm, de −0,32 a +0,30 mm); **de ahí sale el tamaño de la cama (260×260)** | Mapa de la cama |
 | Objetos de la placa | `exclude_object.objects`, `.current_object`, `.excluded_objects` | — | al cambiar | Depende de que el laminador los declare | Mapa de la cama, bitácora |
-| Sensor de filamento | `filament_switch_sensor *.filament_detected` | sí/no | al cambiar | sin verificar | Bitácora |
-| Progreso | `virtual_sdcard.progress` | 0–1 | ~4 Hz | sin verificar | Telemetría |
-| Filamento usado | `print_stats.filament_used` | mm | ~4 Hz | sin verificar | Costo estimado |
+| Sensor de filamento | `filament_switch_sensor *.filament_detected` | sí/no | al cambiar | Sí (*medido*): **cinco**; el 1 y el 2 detectan, los 3 a 5 (caja CFS desconectada) siempre dicen no | Bitácora, puntaje combinado |
+| Progreso | `virtual_sdcard.progress` | 0–1 | 1,3 Hz | Sí (*medido*), pero es la fracción del archivo leída, **no lineal en el tiempo**; `display_status.progress` (el de la pantalla) es distinto | Telemetría |
+| Filamento usado | `print_stats.filament_used` | mm | 1,3 Hz | Sí (*medido*), **parece contar también las retracciones** (sobrestima el peso) | Costo estimado |
 | Duraciones | `print_stats.print_duration`, `.total_duration` | s | ~4 Hz | Sí (*medido*: `total_duration` coincidió con la base de datos a 0,2 s) | Telemetría |
-| Carga del equipo | `system_stats`, `notify_proc_stat_update` | — | 1 Hz | sin verificar | Salud |
-| Consola | `notify_gcode_response`, `/server/gcode_store` | texto | al ocurrir | sin verificar | Bitácora (comandos externos) |
-| Historial | `/server/history/list`, `notify_history_changed` | — | al empezar/terminar | sin verificar | Contraste con nuestros trabajos |
-| Cámara interna | `/server/webcams/list` | — | — | sin verificar | Segunda cámara |
+| Carga del equipo | `system_stats`, `notify_proc_stat_update` | — | 1 Hz | Sí (*medido*: Moonraker ~11 % de CPU, `sysload` 0,4-1,0 sobre 2 núcleos) | Salud |
+| Consola | `notify_gcode_response`, `/server/gcode_store` | texto | al ocurrir | `gcode_store` sí (*medido*; solo desde el último arranque, con el reloj en 2020); `notify_gcode_response` no se observó | Bitácora (comandos externos) |
+| Historial | `/server/history/list`, `notify_history_changed` | — | al empezar/terminar | Sí (*medido*: 100 trabajos) | Contraste con nuestros trabajos |
+| Cámara interna | `/server/webcams/list` | — | — | **No publica ninguna** (`webcams: []`) en la .22 (*medido*) | Segunda cámara |
 
-### Lo que no sabemos todavía
+### Lo que se contestó y lo que sigue sin saberse
 
-- Qué objetos propios de Creality expone la Hi (por ejemplo el sistema de filamentos CFS o un sensor
-  de cámara) y qué significan sus campos.
-- Si el laminador declara los objetos (`EXCLUDE_OBJECT_DEFINE`); sin eso, `exclude_object` llega vacío.
-- Si los ventiladores reportan RPM.
-- Si la cámara interna existe y con qué resolución y cuadros por segundo.
-- El volumen real de datos de una impresión, que define la frecuencia de muestreo de la Fase 1.
+- Objetos propios de Creality que expone la Hi: `custom_macro`, `fan_feedback`, `filament_rack`, `box`
+  (la caja CFS, desconectada), `motor_control`, `prtouch_v3`, `steer`. Sus campos están en
+  `docs/laboratorio/descubrimiento/resumen_descubrimiento.md`; qué significa cada uno no está documentado.
+- El archivo en curso **sí declara los objetos** (`exclude_object.objects` trae uno); el de la configuración
+  no tiene sección `exclude_object`, pero Klipper lo activa por el archivo.
+- Los ventiladores **no reportan RPM** (`hotend_fan.rpm` es `null`); `fan_feedback` da una lectura propia.
+- Cámara interna: Moonraker no la publica; no se probó ninguna URL por no adivinar (ver
+  `docs/laboratorio/impresora_21/` si se exploró la segunda impresora).
+- Volumen de datos de una impresión: medido, ver `docs/laboratorio/RESULTADOS.md`.
 
 ## Incidente de reanudación del 25-09-2026
 
