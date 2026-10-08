@@ -101,9 +101,10 @@ function MetricPanel({ metric }: { metric: HealthMetric }) {
               <Tooltip content={<ChartTooltip metric={metric} />} cursor={{ stroke: CHART_COLORS.axis, strokeWidth: 1 }} />
               {baseline && (
                 <>
+                  {/* extendDomain: the control limits stay in view even when every point is well inside them. */}
                   <ReferenceLine y={scale(metric, baseline.mean)} stroke={CHART_COLORS.axis} strokeDasharray="4 3" />
-                  <ReferenceLine y={scale(metric, baseline.upper)} stroke={CHART_COLORS.orange} strokeDasharray="2 3" strokeOpacity={0.8} />
-                  <ReferenceLine y={scale(metric, baseline.lower)} stroke={CHART_COLORS.orange} strokeDasharray="2 3" strokeOpacity={0.8} />
+                  <ReferenceLine y={scale(metric, baseline.upper)} stroke={CHART_COLORS.orange} strokeDasharray="2 3" strokeOpacity={0.8} ifOverflow="extendDomain" />
+                  <ReferenceLine y={scale(metric, baseline.lower)} stroke={CHART_COLORS.orange} strokeDasharray="2 3" strokeOpacity={0.8} ifOverflow="extendDomain" />
                 </>
               )}
               <Line type="linear" dataKey="y" stroke={CHART_COLORS.sky} strokeWidth={1.5} dot={<FlaggedDot />} isAnimationActive={false} />

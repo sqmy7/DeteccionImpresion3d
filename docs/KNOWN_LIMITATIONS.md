@@ -165,9 +165,9 @@ Cómo funciona (`app/services/bed_map.py`): el usuario marca las cuatro esquinas
 - **Detecciones anteriores:** las cajas de las primeras 16 detecciones (formato viejo, en píxeles) no se pueden ubicar y se cuentan aparte. Las detecciones previas a este cambio no guardaban el ROI; se asume el cuadro completo, que es lo que se usó siempre (nunca se configuró un ROI).
 - **Antigüedad de la foto para calibrar:** `capture` ahora guarda la hora de cada cuadro y el backend la informa (`X-Frame-Age-Seconds`); hay que reiniciar `capture` para que empiece a hacerlo. Sin eso, la foto puede ser la última que quedó en Redis de una sesión anterior.
 
-## 9. Análisis derivados: puntaje combinado y salud de la impresora
+## 9. Análisis derivados: puntaje combinado, salud, reporte y costo
 
-**Estado:** implementados y probados con datos sintéticos y con la impresora simulada; ninguno se ha contrastado con impresiones reales de la Creality Hi (todavía no hay trabajos con telemetría real). En la web llevan la marca "Estimación" con la explicación de cómo se calculan.
+**Estado:** implementados y probados con datos sintéticos y con la impresora simulada; ninguno se ha contrastado con impresiones reales de la Creality Hi (todavía no hay trabajos con telemetría real). En la web y en el reporte llevan la marca "Estimación" con la explicación de cómo se calculan.
 
 **Puntaje combinado (modelo + telemetría, `app/services/fusion.py`).** Solo se muestra: las alertas y la pausa automática siguen usando únicamente el modelo.
 
@@ -186,3 +186,18 @@ Cómo funciona (`app/services/bed_map.py`): el usuario marca las cuatro esquinas
 - **Las reglas de la carta de control** (±3σ, 2 de 3 más allá de 2σ, 8 seguidos del mismo lado) suponen mediciones independientes y con ruido parecido al normal; con pocos trabajos la desviación de la línea base es poco precisa. Cuando la línea base casi no varía, se usa como mínimo la resolución del dato para no convertir diferencias ínfimas en anomalías.
 - **La velocidad de calentamiento solo se mide en arranques en frío** (cuando la impresión empieza por debajo del 20 % del camino entre 25 °C y el objetivo). Si se precalienta antes de lanzar la impresión, ese trabajo no aporta el dato.
 - **Costo:** la primera consulta después de reiniciar el backend lee las muestras de cada trabajo (hasta 100 trabajos); los resultados de los trabajos terminados quedan en memoria. Medido en la simulada: ver `docs/PROGRESO_TELEMETRIA.md`.
+
+**Reporte PDF por trabajo (`app/services/report.py`).**
+
+- **Se genera al pedirlo, con los datos de ese momento.** No se archiva solo al terminar el trabajo: si después se reconoce una alerta o se recalibra la cámara, un reporte nuevo lo refleja. Para conservar una versión, hay que descargarla.
+- **El hash impreso solo protege si el PDF se guarda fuera de la base.** Sirve para comprobar después que la cadena de eventos sigue conteniendo ese hash (que nadie borró los últimos eventos ni la reescribió entera).
+- **Gráficas reducidas** a 600 puntos (promedios por tramos) y bitácora limitada a 150 eventos por reporte; el resto está en la web.
+- **Texto en Latin-1** (fuentes básicas de PDF, sin incrustar tipografías): el español sale completo, pero símbolos como σ o → se escriben con letras.
+- **Tiempo estimado:** sale de los metadatos del laminador que publica la impresora (`virtual_sdcard.cur_print_data.metadata` en la Creality). Solo existe para los trabajos posteriores a este cambio y no está verificado que la Hi publique `estimated_time`; si no, el reporte lo dice.
+
+**Costo estimado (`app/services/costs.py`).**
+
+- **Filamento:** es lo que la impresora mandó extruir (`print_stats.filament_used`), no un pesaje. Incluye purgas y líneas de limpieza que estén en el archivo; no incluye lo que se pierde fuera de él. Los gramos salen de los gramos por milímetro del laminador si el archivo los trae; si no, de una densidad típica por material (PLA 1,24; PETG 1,27; ABS 1,04; ASA 1,07; TPU 1,21 g/cm³) y el diámetro configurado.
+- **Energía: solo los calentadores**, como PWM × potencia nominal. No cuenta motores, ventiladores, electrónica, pantalla ni cámara (decenas de vatios), ni el consumo en espera. La potencia de la cama depende del voltaje: 1000 W a 220 V según la ficha, ~300 W a 120 V (supuesto de la configuración por defecto) y ~250 W a 110 V. Los huecos de más de 5 s en la telemetría no se cuentan.
+- **Precios únicos** para toda la instalación (no por material ni por impresora), configurables en la web por un administrador. Hasta que alguien los configure, son valores de ejemplo y la web lo avisa.
+- **En la analítica** el costo de cada trabajo se calcula con una muestra = 1 s (la frecuencia del muestreo); en la página del trabajo se usa el tiempo real entre muestras. La diferencia es mínima, pero las cifras pueden no coincidir al último peso.

@@ -22,7 +22,7 @@ Lo que necesita la impresora real queda preparado para correrlo después y anota
 | 2. Bitácora de intervenciones | Terminada y desplegada (pantalla en la Fase 4); falta verla con una impresión real |
 | 3. Mapa de la cama | Terminada y desplegada (pantalla en la Fase 4); falta calibrar la cámara real |
 | 4. Rediseño de la web | Terminada; probada con la impresora simulada (modo demostración) |
-| 5. Innovación | En curso: puntaje combinado y salud hechos; faltan el reporte PDF y el costo |
+| 5. Innovación | Terminada y desplegada; probada con la impresora simulada |
 
 ## Fase 0: descubrimiento
 
@@ -291,7 +291,59 @@ calibración real) y desde el celular en la red del laboratorio.
 - Los resultados de salud de los trabajos terminados quedan en memoria del backend; los del
   puntaje se calculan en cada consulta (13-33 ms por trabajo en la demo).
 
-**Pendiente:** 3. reporte PDF por trabajo; 4. estimación de costo (filamento y energía).
+3. **Reporte PDF por trabajo** (`app/services/report.py`, `GET /print-jobs/{id}/report.pdf`, botón
+   "Reporte (PDF)" en la página del trabajo). Resumen (inicio, fin, duración real contra la
+   estimada por el laminador, capas, clases, alertas, intervenciones por origen, pausas automáticas,
+   filamento usado contra el estimado, energía y costo), gráficas de temperaturas y de velocidad,
+   flujo y ventilador con las capas con defecto, las intervenciones y las pausas marcadas, mapa de
+   defectos en la cama, tabla de defectos con su puntaje combinado y las señales a favor, bitácora
+   del trabajo, estado de la cadena de hashes con el hash del último evento y cómo se calcula cada
+   estimación. Si las detecciones son de la demostración, lo dice.
+4. **Costo estimado** (`app/services/costs.py`, `GET /print-jobs/{id}/cost`, tarjeta en la página
+   del trabajo, columna y total en la analítica). Filamento usado por precio por kg, más la energía
+   de los dos calentadores (PWM por potencia nominal, integrado segundo a segundo) por precio por
+   kWh. Precios, potencias, diámetro y densidad por defecto se guardan en la tabla nueva
+   `app_settings` y los cambia un administrador desde la web (`GET/PUT /settings/costs`).
+- Migración `e7b3c2a91f04` (a mano, solo agrega `app_settings`): probada en `printwatch_test`
+  (subir, `alembic check`, bajar, subir) y aplicada a la base real el 2026-10-08 después de
+  respaldarla en `storage/respaldo_antes_costos_2026-10-08.sql`. Backend desplegado reconstruido
+  (con `fpdf2`).
+- El listener guarda en la geometría del trabajo los metadatos del laminador que publica la
+  impresora (tiempo y filamento estimados, material, laminador); los usan el reporte y el costo.
+- Pruebas: 119.
+
+**Mediciones (demo):** reporte de un trabajo de 60 capas: 16 KB, ~0,25 s; puntaje combinado:
+13-33 ms por trabajo; costo: una consulta por trabajo. Salud: 36-57 ms la primera consulta con 8-11
+trabajos cortos y 17 ms después (los trabajos terminados quedan en memoria); el cálculo de un trabajo
+de 2 h (7.200 muestras) toma ~23 ms de CPU, así que con 100 trabajos largos la primera consulta
+después de reiniciar el backend tomaría unos segundos (estimado, sin medir con datos reales). La
+página en vivo pide el puntaje combinado una vez por capa analizada.
+- En la demostración, `--health` detectó el desgaste simulado: potencia para mantener la boquilla
+  0,28 → 0,34 → 0,38 y calentamiento de la cama 2,85 → 1,9 °C/s, ambos en "Atención". También
+  marcó un falso aviso en una impresión normal (calentamiento 2,79 contra 2,85 ± 0,02 °C/s): con la
+  simulada, que casi no tiene ruido, la línea base queda muy estrecha. Con datos reales la
+  variación natural será mayor.
+- De paso: el indicador "Intervenciones" de la analítica contaba también los cambios programados en
+  el archivo; ahora cuenta solo los hechos por alguien (consola, PrintWatch o sin identificar), como
+  el reporte.
+
+**Decisiones (3 y 4):**
+- El reporte se genera al pedirlo, con los datos de ese momento, en vez de guardarse al terminar:
+  siempre refleja lo último (alertas reconocidas, recalibraciones) y no ocupa disco. Quien quiera
+  conservarlo lo descarga; por eso lleva el hash del último evento.
+- `fpdf2` (Python puro) dibujando las gráficas y el mapa con primitivas vectoriales: sin
+  matplotlib ni librerías de sistema en el contenedor, y el PDF pesa ~15 KB.
+- Potencias por defecto de la Creality Hi: boquilla 50 W (repuesto del hotend de la Hi); cama
+  1000 W a 220 V según la ficha, que a 120 V (red de Colombia) rinde ~300 W porque la potencia de
+  una resistencia va con el cuadrado del voltaje; coincide con los 390 W nominales de la impresora a
+  110 V. Los precios por defecto son de ejemplo y la web lo avisa hasta que alguien los cambie.
+- Los gramos usan los gramos por milímetro del laminador cuando el archivo los trae (ya incluyen su
+  densidad y diámetro); si no, una densidad típica por material.
+
+**Pendiente con la impresora (Fase 5):** ver qué metadatos publica la Hi en
+`cur_print_data.metadata` (`estimated_time`, `filament_total`, `filament_weight_total`,
+`filament_type`), si tiene sensor de filamento expuesto a Klipper, y con varias impresiones reales
+revisar la pestaña "Salud" (hacen falta al menos 6 trabajos parecidos).
 
 ## Pendiente con la impresora
 
@@ -317,3 +369,8 @@ Antes de cualquier prueba: VPN HotspotShield desconectada, sesión `wsl -- sleep
 5. Fase 4: durante esa impresión, recorrer las pantallas en el computador y en el celular (misma red):
    video en vivo, lecturas que cambian cada segundo, marcas de la bitácora en las gráficas, tira de
    capas con fotos y, al terminar, la repetición y la analítica del trabajo.
+6. Fase 5: al terminar esa impresión, descargar el reporte PDF y revisar que traiga el tiempo
+   estimado por el laminador (si sale "el archivo no trae la estimación", la Hi no publica
+   `estimated_time` en `cur_print_data.metadata`); configurar los precios reales (filamento y kWh) en
+   "Precios y potencias"; mirar el puntaje combinado de las detecciones que haya, y después de unas 6
+   impresiones parecidas, la pestaña "Salud".

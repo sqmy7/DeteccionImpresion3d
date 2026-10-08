@@ -401,7 +401,7 @@ async def main() -> None:
     parser.add_argument("--live", action="store_true", help="en vez del escenario completo, una sola impresión en curso")
     parser.add_argument(
         "--health", action="store_true",
-        help="en vez del escenario, 8 impresiones cortas con desgaste simulado al final (usar con --layers 20 --layer-seconds 2)",
+        help="en vez del escenario, 8 impresiones cortas con desgaste simulado al final (usar con --layers 30 --layer-seconds 2)",
     )
     args = parser.parse_args()
 

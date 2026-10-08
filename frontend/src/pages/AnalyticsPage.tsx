@@ -33,6 +33,11 @@ const ORIGIN_COLORS: Record<string, string> = {
   monitor: CHART_COLORS.axis,
 };
 
+/** Changes someone made (console, PrintWatch, unidentified), leaving out the ones the file programmed. */
+function byPeople(counts: Record<string, number>): number {
+  return Object.entries(counts).reduce((sum, [origin, count]) => (origin === "gcode_file" ? sum : sum + count), 0);
+}
+
 function SimpleTooltip({ active, payload, unit = "" }: { active?: boolean; payload?: { payload: { label: string; value: number } }[]; unit?: string }) {
   if (!active || !payload?.length) return null;
   const { label, value } = payload[0].payload;
@@ -179,17 +184,23 @@ export function AnalyticsPage() {
               value={formatPercent(data.totals.success_rate)}
               icon={<CheckCircle2 size={14} />}
               tone={data.totals.success_rate != null && data.totals.success_rate < 0.8 ? "warn" : "ok"}
-              hint="Completados sobre terminados"
+              hint="Completados / terminados"
             />
-            <Kpi label="Horas de impresión" value={formatNumber(data.totals.print_hours, 1)} unit="h" icon={<Clock size={14} />} />
+            <Kpi label="Horas" value={formatNumber(data.totals.print_hours, 1)} unit="h" icon={<Clock size={14} />} hint="De impresión" />
             <Kpi
               label="Capas con defecto"
               value={formatPercent(data.totals.defect_rate, 1)}
               hint={`${data.totals.layers_with_defect ?? 0} de ${data.totals.layers ?? 0}`}
               tone={data.totals.layers_with_defect ? "danger" : "ok"}
             />
-            <Kpi label="Intervenciones" value={data.totals.interventions ?? 0} icon={<Hand size={14} />} hint="Consola y externas" />
-            <Kpi label="Filamento" value={formatNumber(data.totals.filament_m, 1)} unit="m" icon={<Disc3 size={14} />} hint="Trabajos con telemetría" />
+            <Kpi
+              label="Intervenciones"
+              value={byPeople(data.interventions_by_origin)}
+              icon={<Hand size={14} />}
+              hint="Sin lo programado"
+              title="Cambios hechos por alguien (consola, PrintWatch o sin identificar); no cuenta los programados en el archivo G-code."
+            />
+            <Kpi label="Filamento" value={formatNumber(data.totals.filament_m, 1)} unit="m" icon={<Disc3 size={14} />} hint="Con telemetría" />
             <Kpi
               label="Costo estimado"
               value={formatMoney(data.totals.cost, data.currency ?? "COP")}
@@ -271,7 +282,7 @@ export function AnalyticsPage() {
                       <Td className="tabular">
                         {job.layers_with_defect}/{job.layers}
                       </Td>
-                      <Td className="tabular">{Object.values(job.interventions).reduce((sum, count) => sum + count, 0)}</Td>
+                      <Td className="tabular">{byPeople(job.interventions)}</Td>
                       <Td className="tabular">{job.nozzle_error_mean_c == null ? "—" : `${formatNumber(job.nozzle_error_mean_c, 1)} °C`}</Td>
                       <Td className="tabular">{job.filament_m == null ? "—" : `${formatNumber(job.filament_m, 1)} m`}</Td>
                       <Td className="whitespace-nowrap tabular">{formatMoney(job.cost, data.currency ?? "COP")}</Td>
