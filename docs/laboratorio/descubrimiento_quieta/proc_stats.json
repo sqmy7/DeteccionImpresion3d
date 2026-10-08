@@ -1,0 +1,244 @@
+{
+  "moonraker_stats": [
+    {
+      "time": 1577862180.8553555,
+      "cpu_usage": 3.96,
+      "memory": 25032,
+      "mem_units": "kB"
+    },
+    {
+      "time": 1577862181.8625777,
+      "cpu_usage": 5.07,
+      "memory": 25032,
+      "mem_units": "kB"
+    },
+    {
+      "time": 1577862182.8601532,
+      "cpu_usage": 9.71,
+      "memory": 25032,
+      "mem_units": "kB"
+    },
+    {
+      "time": 1577862183.8629177,
+      "cpu_usage": 4.95,
+      "memory": 25032,
+      "mem_units": "kB"
+    },
+    {
+      "time": 1577862184.863954,
+      "cpu_usage": 5.53,
+      "memory": 25032,
+      "mem_units": "kB"
+    },
+    {
+      "time": 1577862185.8666785,
+      "cpu_usage": 3.19,
+      "memory": 25032,
+      "mem_units": "kB"
+    },
+    {
+      "time": 1577862186.869859,
+      "cpu_usage": 3.2,
+      "memory": 25032,
+      "mem_units": "kB"
+    },
+    {
+      "time": 1577862187.8724763,
+      "cpu_usage": 5.16,
+      "memory": 25032,
+      "mem_units": "kB"
+    },
+    {
+      "time": 1577862188.8771079,
+      "cpu_usage": 4.21,
+      "memory": 25032,
+      "mem_units": "kB"
+    },
+    {
+      "time": 1577862189.876177,
+      "cpu_usage": 4.88,
+      "memory": 25032,
+      "mem_units": "kB"
+    },
+    {
+      "time": 1577862190.8927488,
+      "cpu_usage": 3.82,
+      "memory": 25032,
+      "mem_units": "kB"
+    },
+    {
+      "time": 1577862191.8784642,
+      "cpu_usage": 6.14,
+      "memory": 25032,
+      "mem_units": "kB"
+    },
+    {
+      "time": 1577862192.8791542,
+      "cpu_usage": 3.17,
+      "memory": 25032,
+      "mem_units": "kB"
+    },
+    {
+      "time": 1577862193.8806605,
+      "cpu_usage": 7.43,
+      "memory": 25032,
+      "mem_units": "kB"
+    },
+    {
+      "time": 1577862194.8819644,
+      "cpu_usage": 3.85,
+      "memory": 25032,
+      "mem_units": "kB"
+    },
+    {
+      "time": 1577862195.8841095,
+      "cpu_usage": 3.14,
+      "memory": 25032,
+      "mem_units": "kB"
+    },
+    {
+      "time": 1577862196.88533,
+      "cpu_usage": 5.31,
+      "memory": 25032,
+      "mem_units": "kB"
+    },
+    {
+      "time": 1577862197.885968,
+      "cpu_usage": 3.73,
+      "memory": 25032,
+      "mem_units": "kB"
+    },
+    {
+      "time": 1577862198.8869705,
+      "cpu_usage": 6.09,
+      "memory": 25032,
+      "mem_units": "kB"
+    },
+    {
+      "time": 1577862199.8893423,
+      "cpu_usage": 5.18,
+      "memory": 25032,
+      "mem_units": "kB"
+    },
+    {
+      "time": 1577862200.8901534,
+      "cpu_usage": 3.75,
+      "memory": 25032,
+      "mem_units": "kB"
+    },
+    {
+      "time": 1577862201.89149,
+      "cpu_usage": 3.85,
+      "memory": 25032,
+      "mem_units": "kB"
+    },
+    {
+      "time": 1577862202.8931286,
+      "cpu_usage": 5.22,
+      "memory": 25032,
+      "mem_units": "kB"
+    },
+    {
+      "time": 1577862203.895065,
+      "cpu_usage": 5.16,
+      "memory": 25032,
+      "mem_units": "kB"
+    },
+    {
+      "time": 1577862204.8965764,
+      "cpu_usage": 8.12,
+      "memory": 25032,
+      "mem_units": "kB"
+    },
+    {
+      "time": 1577862205.8985047,
+      "cpu_usage": 8.8,
+      "memory": 25032,
+      "mem_units": "kB"
+    },
+    {
+      "time": 1577862206.899034,
+      "cpu_usage": 46.51,
+      "memory": 25032,
+      "mem_units": "kB"
+    },
+    {
+      "time": 1577862207.9065676,
+      "cpu_usage": 59.92,
+      "memory": 25032,
+      "mem_units": "kB"
+    },
+    {
+      "time": 1577862208.9031088,
+      "cpu_usage": 12.67,
+      "memory": 25032,
+      "mem_units": "kB"
+    },
+    {
+      "time": 1577862209.9043095,
+      "cpu_usage": 10.93,
+      "memory": 25032,
+      "mem_units": "kB"
+    }
+  ],
+  "throttled_state": null,
+  "cpu_temp": 46.967,
+  "network": {
+    "sit0": {
+      "rx_bytes": 0,
+      "tx_bytes": 0,
+      "rx_packets": 0,
+      "tx_packets": 0,
+      "rx_errs": 0,
+      "tx_errs": 0,
+      "rx_drop": 0,
+      "tx_drop": 0,
+      "bandwidth": 0.0
+    },
+    "ip6tnl0": {
+      "rx_bytes": 0,
+      "tx_bytes": 0,
+      "rx_packets": 0,
+      "tx_packets": 0,
+      "rx_errs": 0,
+      "tx_errs": 0,
+      "rx_drop": 0,
+      "tx_drop": 0,
+      "bandwidth": 0.0
+    },
+    "lo": {
+      "rx_bytes": 10344,
+      "tx_bytes": 10344,
+      "rx_packets": 106,
+      "tx_packets": 106,
+      "rx_errs": 0,
+      "tx_errs": 0,
+      "rx_drop": 0,
+      "tx_drop": 0,
+      "bandwidth": 0.0
+    },
+    "wlan0": {
+      "rx_bytes": 21422335,
+      "tx_bytes": 509564389,
+      "rx_packets": 137108,
+      "tx_packets": 450379,
+      "rx_errs": 0,
+      "tx_errs": 0,
+      "rx_drop": 0,
+      "tx_drop": 0,
+      "bandwidth": 207278.9
+    }
+  },
+  "system_cpu_usage": {
+    "cpu": 18.04,
+    "cpu0": 23.23,
+    "cpu1": 13.54
+  },
+  "system_uptime": 25409.206743489,
+  "system_memory": {
+    "total": 499976,
+    "available": 364388,
+    "used": 135588
+  },
+  "websocket_connections": 1
+}
