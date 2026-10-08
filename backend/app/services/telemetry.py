@@ -104,6 +104,31 @@ def _number_list_sum(value) -> float | None:
     return round(total, 2) if total > 0 else None
 
 
+def estimated_time_from_name(name: str | None) -> int | None:
+    match = _NAME_TIME.search(name or "")
+    if not match:
+        return None
+    hours, minutes, seconds = (int(part or 0) for part in match.groups())
+    return hours * 3600 + minutes * 60 + seconds
+
+
+def job_file_info(geometry: dict | None, file_name: str | None) -> dict | None:
+    """The slicer's data on a job's file as stored with the job, plus the estimated time taken from
+    the file name when it wasn't stored (jobs saved before that rule existed)."""
+    info = dict((geometry or {}).get("file") or {})
+    if "estimated_time" not in info and (seconds := estimated_time_from_name(file_name)):
+        info["estimated_time"] = seconds
+        info["estimated_time_source"] = "filename"
+    return info or None
+
+
+def geometry_with_file_info(geometry: dict | None, file_name: str | None) -> dict | None:
+    """A job's geometry with its "file" section completed by job_file_info."""
+    if geometry is None:
+        return None
+    return {**geometry, "file": job_file_info(geometry, file_name)}
+
+
 def file_metadata(status: dict) -> dict | None:
     """What the slicer wrote about the file being printed. On the Creality Hi (measured on a real
     print) Moonraker's own parser gives the layer count and height, the material and
@@ -113,10 +138,9 @@ def file_metadata(status: dict) -> dict | None:
     if "filament_weight_total" not in selected and (grams := _number_list_sum(metadata.get("filament_used_g"))):
         selected["filament_weight_total"] = grams
     if "estimated_time" not in selected:
-        match = _NAME_TIME.search((status.get("print_stats") or {}).get("filename") or "")
-        if match:
-            hours, minutes, seconds = (int(part or 0) for part in match.groups())
-            selected["estimated_time"] = hours * 3600 + minutes * 60 + seconds
+        seconds = estimated_time_from_name((status.get("print_stats") or {}).get("filename"))
+        if seconds:
+            selected["estimated_time"] = seconds
             selected["estimated_time_source"] = "filename"
     return selected or None
 
@@ -170,6 +194,11 @@ def _component(vector, index: int) -> float | None:
 
 def _extra_sensors(status: dict) -> dict:
     extra = {}
+    # How long the print has been running (Klipper's own clock, without pauses): the remaining-time
+    # estimate is the slicer's total minus this, which measured within 1 min on a 6 h print.
+    print_duration = _number((status.get("print_stats") or {}).get("print_duration"))
+    if print_duration is not None:
+        extra["print_stats.print_duration"] = print_duration
     for name, values in status.items():
         prefix = next((prefix for prefix in _PREFIXED_SUBSCRIPTION if name.startswith(prefix)), None)
         if prefix is None or not isinstance(values, dict):

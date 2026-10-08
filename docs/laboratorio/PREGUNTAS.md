@@ -24,10 +24,13 @@ que tenemos. Cada una lleva por qué importa y qué se intentó.
    historial y la consola quedan con fechas falsas. ¿Hay una forma soportada de sincronizarlo?
 5. **¿Cómo calcula la pantalla el porcentaje y el tiempo restante?** `display_status.progress` (el de la
    pantalla) no coincide con `virtual_sdcard.progress` (fracción del archivo leída), y esta última no es
-   lineal en el tiempo: para estimar lo que falta, ninguna de las dos sirvió bien en la impresión
-   medida.
-6. **¿`print_stats.filament_used` cuenta las retracciones?** Dio ~35 % más de lo que el laminador estima
-   para el archivo (ver `RESULTADOS.md`). ¿Es esperable en Klipper de Creality, o hay purgas extra?
+   lineal en el tiempo. Lo que sí funcionó en la impresión medida fue el total del laminador (en el
+   nombre del archivo) menos `print_duration`: 1 min de error medio sobre 2 h 45 min. ¿Es lo que usa la
+   pantalla? ¿Se sabe por qué una capa (z ≈ 93 mm) tardó 24 min a 25 mm/s?
+6. **El filamento:** `print_stats.filament_used` dio 68.220 mm, que por densidad son 208,4 g contra los
+   201,83 g del laminador (+3,1 %). ¿Esos ~6,6 g son la purga y el cebado del inicio, o la densidad real
+   del PETG usado difiere de la nominal (1,27 g/cm³)? ¿Cómo se pesa mejor para validarlo (pesar el
+   carrete antes y después)?
 7. **La caja CFS (`box`):** cuando se conecte, ¿cómo se comportan sus tres sensores y las ranuras?
    Hoy marcan "sin filamento" siempre.
 

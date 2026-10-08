@@ -148,3 +148,24 @@ def test_hi_part_cooling_fan_is_the_output_pin_fan0():
     assert "output_pin LED" not in subscription and "output_pin board_fan" not in subscription
     with_fan = {**REAL_HI_STATUS, "fan": {"speed": 0.5}}
     assert sample_from_status(with_fan)["fan_speed"] == 0.5  # a standard fan object wins
+
+
+def test_print_duration_is_kept_in_extra_for_the_remaining_time_estimate():
+    status = {"print_stats": {"print_duration": 17262.929309, "state": "printing"}}
+    sample = sample_from_status(status)
+    assert sample["extra"] == {"print_stats.print_duration": 17262.9293}
+    assert sample_from_status({"print_stats": {"state": "standby"}})["extra"] is None
+
+
+def test_estimated_time_is_derived_from_the_file_name_for_jobs_saved_without_it():
+    from app.services.telemetry import geometry_with_file_info, job_file_info
+
+    name = "CAJA LISTA CARA.stl_PETG_6h0m27s.gcode"
+    stored = {"file": {"slicer": "Creality", "filament_type": "PETG"}, "objects": []}
+    info = job_file_info(stored, name)
+    assert info["estimated_time"] == 21627 and info["estimated_time_source"] == "filename" and info["slicer"] == "Creality"
+    assert geometry_with_file_info(stored, name)["file"]["estimated_time"] == 21627
+    assert stored["file"] == {"slicer": "Creality", "filament_type": "PETG"}  # the stored dict is not modified
+    assert geometry_with_file_info(None, name) is None and job_file_info(None, "sin_tiempo.gcode") is None
+    # What the slicer stored wins over the file name.
+    assert job_file_info({"file": {"estimated_time": 5}}, name) == {"estimated_time": 5}

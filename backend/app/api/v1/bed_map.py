@@ -121,7 +121,7 @@ async def get_job_bed_map(job_id: int, db: AsyncSession = Depends(get_db)) -> Jo
     )
     return JobBedMapRead(
         job_id=job.id,
-        geometry=job.geometry,
+        geometry=telemetry.geometry_with_file_info(job.geometry, job.file_name),
         calibrated_cameras=sorted(calibrated.scalars().all()),
         defects=defects,
         skipped_boxes=skipped,

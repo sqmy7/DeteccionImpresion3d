@@ -191,3 +191,15 @@ def test_report_text_helpers():
     event = PrinterEvent(event_type="flow_factor_changed", field="gcode_move.extrude_factor", value_before=1.0, value_after=0.9,
                          origin="console", detail=None)
     assert report.describe_event(event) == "Flujo: 100 % -> 90 %"
+
+
+def test_density_method_matches_the_slicer_on_the_real_print():
+    """Measured on job 43 of the real Hi (docs/laboratorio/analisis_trabajo_43.md): the printer reported 68,220 mm
+    of filament used; the slicer's weight for the whole file is 201.83 g. Density x diameter gives +3.1 %, so
+    the density method is what the cost uses (the +3 % is purge and priming the slicer doesn't count, plus the
+    material's nominal density)."""
+    file = {"filament_type": "PETG", "filament_weight_total": 201.83}
+    grams = costs.filament_grams(68220.0, file, SETTINGS)
+    assert grams["method"] == "density" and grams["material"] == "PETG"
+    assert grams["grams"] == pytest.approx(208.4, abs=0.1)
+    assert abs(grams["grams"] / 201.83 - 1) < 0.04

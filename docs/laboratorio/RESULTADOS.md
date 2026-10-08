@@ -7,9 +7,9 @@ suscripciones por WebSocket); no se envió G-code ni ninguna orden, y la impresi
 detalle por paso está en `docs/PROGRESO_TELEMETRIA.md`; los volcados, en `docs/laboratorio/descubrimiento/`
 (los logs y muestras grandes no se versionan).
 
-Estado: **la impresión seguía en curso al escribir esto** (capa ~337 de 486). Lo que depende de que la
-impresora esté quieta (Paso 4) y el cierre de las comparaciones con el final real quedan al final, como
-pendiente.
+Estado: **la impresión terminó** (trabajo 43, `completed`, 16:58:42 hora de Colombia, capa 486). El análisis
+del cierre está en la sección 1b y en `docs/laboratorio/analisis_trabajo_43.md`. Lo que depende de la
+impresora quieta (calibrar la cámara, arrancar `capture`, desplegar el backend) sigue pendiente de ti.
 
 ## 1. Qué se comprobó de verdad
 
@@ -27,6 +27,42 @@ pendiente.
 | Peso de la telemetría | **1.036 bytes por muestra** (714 son el campo de sensores extra): ~7,5 MB por cada 2 h de impresión | `pg_total_relation_size` |
 | Web con datos reales (escritorio y celular) | Funciona; ver las correcciones de la sección 2 | capturas y `overflow.py` |
 | Reporte, costo, mapa y salud | Responden con datos reales (reporte y salud sin probar a fondo: no hay trabajos terminados con telemetría) | API |
+
+## 1b. Cierre del trabajo 43 (análisis con la base de PrintWatch, solo SELECT)
+
+- **Cierre correcto:** `completed`, fin 16:58:42, 9.434 muestras (2 h 45 min con telemetría), 210 capas (275 a 486:
+  PrintWatch se unió con la impresión al 45 %), cadena de eventos íntegra (6 eventos; el último hash está en
+  `analisis_trabajo_43.md`). Dos huecos de más de 5 s en las muestras (el mayor, 33 s: los reinicios de Docker).
+  Cero alertas, cero eventos de intervención, cero detecciones (`capture` apagado).
+- **Duración:** el trabajo completo duró ~21.690 s (11.811 s al engancharnos más 9.879 s observados) contra los
+  21.627 s del nombre del archivo: **+63 s (+0,3 %)**.
+- **Filamento:** 68.220 mm → 208,4 g por densidad; laminador 201,83 g (+3,1 %). Costo con precios de ejemplo
+  ($ 80.000/kg, $ 900/kWh): ~17.000 COP, de los cuales ~360 son energía. La energía solo cubre el tramo con
+  telemetría (0,40 kWh: boquilla 55 Wh, cama 345 Wh), con potencias supuestas de 50 W y 300 W.
+- **Tiempo restante reconstruido** (minutos; minuto 0 = primera muestra, a 2 h 45 min del final):
+
+| minuto | capa | progreso | real | avance | capas | laminador |
+|---|---|---|---|---|---|---|
+| 0 | 274 | 0,45 | 165 | - | - | 164 |
+| 30 | 346 | 0,53 | 135 | 163 | 58 | 134 |
+| 60 | 409 | 0,65 | 105 | 101 | 34 | 104 |
+| 80 | 453 | 0,75 | 85 | 68 | 15 | 84 |
+| 100 | 466 | 0,76 | 65 | 77 | 10 | 64 |
+| 120 | 476 | 0,77 | 45 | 84 | 6 | 44 |
+| 150 | 481 | 0,86 | 15 | 50 | 4 | 14 |
+
+| método | error absoluto medio | error con signo (+ = demasiado) |
+|---|---|---|
+| avance del archivo | 22,7 min (74 %) | +17,4 min |
+| ritmo de capas | 53,5 min (73 %) | -53,5 min |
+| laminador (nombre del archivo − `print_duration`) | **1,0 min (5 %)** | -1,0 min |
+
+  Con una sola impresión de una sola pieza, la conclusión se limita a eso: el estimador del laminador
+  fue el único utilizable. El de capas falla justamente porque el final de esta pieza es lento.
+- **Reporte PDF** del trabajo (`reporte_trabajo_43.pdf`): se generó con los datos reales y se corrigió lo que
+  se veía mal (eje degenerado de la gráfica de porcentajes, estimación derivada del nombre para trabajos
+  guardados antes, aviso de que PrintWatch se unió al 45 %, tiempo real de Klipper cuando existe). El tiempo
+  del laminador y el real concuerdan al 0,3 %.
 
 ## 2. Qué resultó distinto de lo supuesto
 
@@ -48,13 +84,20 @@ código (el backend desplegado se reconstruye cuando termine la impresión).
    pueda leer por esa vía. No se probó ninguna URL adivinada.
 6. **Las potencias de los calentadores no están en la configuración.** Solo hay PID y `max_temp`; los
    supuestos de 50 W (boquilla) y 300 W (cama) **siguen sin verificarse** y no se cambiaron.
-7. **El cálculo de filamento por densidad parece sobrestimar** (~134 g contra ~99 g proporcionales al
-   avance, con el laminador diciendo 201,83 g para el archivo completo): `print_stats.filament_used`
-   cuenta también las retracciones. Hay que comprobarlo con el final de la impresión (ver pendientes).
-8. **El tiempo restante de la web era erróneo** en trabajos tomados a mitad de impresión (decía ~16 min
-   cuando faltaban más de una hora). Se corrigió el cálculo, pero el avance del archivo (`progress`)
-   tampoco es lineal en el tiempo en esta impresión: la web dice ~2 h 47 min, el ritmo de capas sugiere
-   ~70 min y el laminador ~2 h 40 min. Se evalúa contra el final real.
+7. **El filamento por densidad resultó bien, y mi sospecha anterior estaba equivocada.** A mitad de la impresión
+   comparé el filamento acumulado con la fracción de los 201,83 g proporcional al avance del archivo y parecía
+   sobrestimar ~35 %; el avance del archivo no es lineal respecto del filamento, así que esa comparación no valía.
+   Con el final: 68.220 mm de `print_stats.filament_used` dan **208,4 g** por densidad (PETG 1,27 g/cm³, 1,75 mm)
+   contra **201,83 g** del laminador: **+3,1 %** (compatible con la purga y la densidad nominal). Se mantiene el
+   método por densidad.
+
+8. **El tiempo restante de la web era erróneo** en trabajos tomados a mitad de impresión y ningún estimador
+   por ritmo sirve. Medido contra el final real (tabla en 1b): el del laminador (tiempo total del nombre del
+   archivo menos `print_duration`) tiene **1,0 min** de error medio (5 %); el avance del archivo, 22,7 min
+   (74 %); el ritmo de capas, 53,5 min. Una capa (z ≈ 93 mm) tardó 24 min a 25 mm/s y las siguientes ~3 min:
+   el tramo final de esa pieza es mucho más lento que el resto. La web usa ahora el del laminador, y el de
+   avance (marcado "poco precisa") solo si el archivo no trae estimación.
+
 9. **El stream de video mostraba, sin avisar, un cuadro de hace horas** (el que quedó en Redis de una
    sesión de pruebas). Ahora dice "sin señal" si el cuadro tiene más de 15 s.
 10. **La página en vivo se ensanchaba en el celular** (una columna sin `min-w-0` crecía por los chips de
@@ -119,8 +162,10 @@ exacta.
    reiniciarlo durante la impresión.
 2. **Reiniciar `capture`** (para que guarde la hora de cada cuadro) y **calibrar la C922** desde la web,
    con la impresora quieta.
-3. **Reporte PDF** del trabajo 43 terminado; comprobar el tiempo del nombre del archivo contra el real y
-   **filamento usado contra los 201,83 g del laminador** para decidir cómo calcular los gramos.
-4. **Elegir el cálculo del tiempo restante** comparando las tres estimaciones con el final real.
+3. Decidido el cálculo de gramos: se mantiene la densidad (ver 2.7). Falta solo revisar el PDF con los precios
+   reales.
+
+4. ~~Elegir el cálculo del tiempo restante~~: hecho (laminador; ver 1b y 2.8).
+
 5. **Precios reales** (filamento y kWh) en "Precios y potencias".
 6. Opcional: probar, ya sin imprimir, el stream de la cámara si aparece alguna URL publicada.

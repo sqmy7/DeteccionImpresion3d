@@ -13,7 +13,7 @@ from datetime import datetime, timedelta, timezone
 from fpdf import FPDF
 from fpdf.enums import TextEmphasis, XPos, YPos
 from fpdf.fonts import FontFace
-from sqlalchemy import func, select
+from sqlalchemy import Float, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import Alert, Detection, Layer, LayerCapture, Printer, PrintJob, TelemetrySample
@@ -247,10 +247,13 @@ def _time_ticks(start: datetime, end: datetime, max_ticks: int) -> tuple[list[da
 
 
 def _time_chart(pdf: _Report, top: float, height: float, start: datetime, end: datetime, series: list[dict], unit: str,
-                markers: list[tuple[datetime, tuple]]) -> None:
-    """Lines over time, with a legend above and vertical markers (defects, interventions)."""
+                markers: list[tuple[datetime, tuple]], include: tuple[float, ...] = ()) -> None:
+    """Lines over time, with a legend above and vertical markers (defects, interventions).
+    `include`: values the axis must cover even when the data doesn't (so a flat 100 % line has room)."""
     left, width = pdf.l_margin, pdf.content_width
     values = [value for spec in series for _, value in spec["points"] if value is not None]
+    if values:
+        values += list(include)
     pdf.set_font("Helvetica", "", 7.5)
     legend_x = left + 13
     for spec in series:
@@ -461,7 +464,16 @@ async def build_report(db: AsyncSession, job: PrintJob) -> bytes:
 
     now = datetime.now(timezone.utc)
     end = job.ended_at or now
-    file = (job.geometry or {}).get("file") or {}
+    file = telemetry.job_file_info(job.geometry, job.file_name) or {}
+    # Klipper's own print clock at the last sample (kept in extra since 2026-10-08), when there is one.
+    printed_s = await db.scalar(
+        select(TelemetrySample.extra["print_stats.print_duration"].astext.cast(Float))
+        .where(TelemetrySample.print_job_id == job.id, TelemetrySample.extra.is_not(None))
+        .order_by(TelemetrySample.ts.desc())
+        .limit(1)
+    )
+    first_progress = series[0].get("progress") if series else None
+    mid_print = first_progress is not None and first_progress > 0.02
     title = f"Reporte del trabajo #{job.id} · {job.file_name}"
     pdf = _Report(title)
     pdf.add_page()
@@ -484,13 +496,25 @@ async def build_report(db: AsyncSession, job: PrintJob) -> bytes:
 
     duration = (end - job.started_at).total_seconds()
     estimated_time = file.get("estimated_time")
-    time_text = _duration(duration)
-    if isinstance(estimated_time, (int, float)) and estimated_time > 0:
-        difference = (duration - estimated_time) / estimated_time * 100
-        origin = "nombre del archivo" if file.get("estimated_time_source") == "filename" else "laminador"
-        time_text += f" ({origin}: {_duration(estimated_time)}; {'+' if difference >= 0 else ''}{_num(difference, 0)} %)"
+    origin = "nombre del archivo" if file.get("estimated_time_source") == "filename" else "laminador"
+    has_estimate = isinstance(estimated_time, (int, float)) and estimated_time > 0
+    if printed_s is not None:
+        # Klipper's clock covers the whole print even if PrintWatch joined it late.
+        time_text = f"{_duration(printed_s)} imprimiendo (reloj de la impresora)"
+        if has_estimate:
+            difference = (printed_s - estimated_time) / estimated_time * 100
+            time_text += f"; {origin}: {_duration(estimated_time)} ({'+' if difference >= 0 else ''}{_num(difference, 1)} %)"
+    elif mid_print:
+        time_text = f"{_duration(duration)} desde que PrintWatch lo siguió"
+        if has_estimate:
+            time_text += f" (la estimación de la pieza completa, según el {origin}, es {_duration(estimated_time)})"
     else:
-        time_text += " (el archivo no trae la estimación del laminador)"
+        time_text = _duration(duration)
+        if has_estimate:
+            difference = (duration - estimated_time) / estimated_time * 100
+            time_text += f" ({origin}: {_duration(estimated_time)}; {'+' if difference >= 0 else ''}{_num(difference, 0)} %)"
+        else:
+            time_text += " (no hay estimación del laminador para este archivo)"
     class_counts = ", ".join(
         f"{CLASS_LABELS.get(name, name)}: {count}" for name, count in sorted(summary["defect_class_counts"].items())
     ) or "ninguna"
@@ -530,6 +554,12 @@ async def build_report(db: AsyncSession, job: PrintJob) -> bytes:
     ])
     pdf.ln(1)
     pdf.paragraph("* Estimaciones; ver \"Cómo se calculan\" al final.", 7.5, FAINT)
+    if mid_print:
+        pdf.paragraph(
+            f"PrintWatch se unió a esta impresión ya al {_num(first_progress * 100, 0)} % (capa {series[0].get('layer_number')}): las capas, la "
+            "telemetría, las gráficas y la energía cuentan desde ahí. El filamento sí es el de toda la impresión (lo lleva la propia impresora).",
+            8, MUTED,
+        )
 
     # --- Charts ---
     pdf.heading("Telemetría")
@@ -555,7 +585,7 @@ async def build_report(db: AsyncSession, job: PrintJob) -> bytes:
             {"label": "Velocidad", "color": SPEED, "points": points("speed_factor", 100)},
             {"label": "Flujo", "color": FLOW, "points": points("extrude_factor", 100)},
             {"label": "Ventilador de capa", "color": FAN, "dashed": True, "points": points("fan_speed", 100)},
-        ], "%", markers)
+        ], "%", markers, include=(0, 110))
         pdf.ln(1)
         pdf.paragraph("Líneas verticales: naranja, capas con defecto; gris, intervenciones; roja, pausas.", 7.5, FAINT)
     else:
