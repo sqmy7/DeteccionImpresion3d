@@ -10,7 +10,7 @@ solo con la frase exacta ("autorizo la C", "autorizo la limpieza").
 |---|---|
 | 0. Revisión previa | **Hecha** |
 | A. Impresora quieta | **en curso**: pasos 1, 2, 3 y 6 hechos; 4 y 5 los hace Samuel; 7 pendiente |
-| B. Impresión corta | pendiente |
+| B. Impresión corta | **preparada**: línea base anotada; falta decidir la pausa automática y que Samuel escriba «inicié» |
 | C. Pausa y reanudación | pendiente (necesita "autorizo la C") |
 | D. Impresora .21 | pendiente (la .21 no respondía en la Etapa 0) |
 | E. Datos del modelo | pendiente (faltan `args.yaml`, `results.csv`, `best.pt`) |
@@ -186,3 +186,46 @@ cuatro marcas y recibir un aviso si una marca queda muy lejos de su esquina.
 - No hay vista previa del error antes de guardar: se ve al guardar, y recalibrar crea otra fila (la vigente es
   la última; las anteriores quedan en el historial).
 - Pruebas: 21 de matemática de la cama, 2 de la API; suite completa 149 pasan.
+
+## Etapa B: preparación (2026-10-08, 18:40 hora de Colombia = 23:40 UTC)
+
+**1. Pausa automática: no existe interruptor ni modo «solo aviso». No se cambió nada; se espera la decisión de
+Samuel.** Qué hace (`backend/app/services/auto_pause.py`, disparada desde `ws/redis_listener.py` con cada
+detección): cuando las **3 últimas capas** de un trabajo traen *spaghetti*, anuncia por la web («auto_pause.pending»)
+y arranca una cuenta de 15 s; **al vencer, PrintWatch mismo manda `pause` a Moonraker** (`send_print_action`), salvo
+que alguien la aborte en la web (el aviso solo se ve con la web abierta). No hay ajuste de configuración; el único
+modo de evitarla es que no haya detecciones o cambiar el código.
+
+Riesgo para esta prueba: el modelo nunca se evaluó con imágenes de la C922 con la Hi (solo con fotos de Roboflow);
+si da 3 falsos *spaghetti* seguidos en una impresión corta, PrintWatch pausa solo, y la reanudación de Creality es
+justo la secuencia que acabó en el incidente del 25-09 (nunca se validó). Además, con la pausa ejecutada, la prueba
+de la Etapa B se convierte en la de la Etapa C sin la autorización de esa etapa.
+
+Opciones (ninguna aplicada):
+- **A. Añadir un ajuste `AUTO_PAUSE_MODE` (`on` por defecto, `warn`, `off`)** en `auto_pause.py` y la configuración;
+  en `warn` solo se anuncia y se registra, sin enviar la pausa. Hay que reconstruir el contenedor del backend
+  **antes** de iniciar la impresión. Revertir: quitar la variable del `.env` y reconstruir (o `git revert` del commit).
+  Es la que se recomienda: conserva toda la observación de la Etapa B.
+- **B. Parar el contenedor `inference-worker`** durante la prueba (sin detecciones no hay racha). Revertir:
+  `docker start infra-inference-worker-1`. Pierde justo lo que se quiere observar (detección por capa).
+- **C. Dejarla como está** con la web abierta en «En vivo» y Samuel listo para abortar la cuenta de 15 s. Yo no puedo
+  abortar nada.
+
+**2. Estado verificado (solo lectura):**
+- Red: SalaSteam_UIS, HotspotShield desconectado. .22 responde; .21 sin respuesta (HTTP 000).
+- Contenedores: backend (reconstruido 23:35 UTC), inference-worker, postgres y redis, todos `healthy`. Alembic en
+  `e7b3c2a91f04` (head).
+- Listener conectado a la .22 (23:35:31 UTC), línea base `state=standby layer=0/0 z=60.20`.
+- `capture` corre (procesos de `capture.main` vivos); `latest_frame_at:36` = hora actual al leerlo (cuadros
+  frescos de la C922).
+- CPU base (reposo): backend 0,2 %, worker 0,0 %, postgres 0,0 %, redis 0,5 %; equipo 18 %; 4 núcleos en WSL.
+  El worker usa 1 hilo para ONNX.
+
+**3. Línea base de la .22 a las 23:40 UTC:**
+- `print_stats.state` = `standby`, sin archivo, `idle_timeout` = Ready.
+- Posición del cabezal/cama (`motion_report.live_position`): X 0,0, **Y 260,0**, Z 60,2 mm (igual en
+  `toolhead.position`); ejes sin referenciar (`homed_axes` vacío).
+- Boquilla 34,7 °C (objetivo 0), cama 32,6 °C (objetivo 0). `speed_factor` 1,0, `extrude_factor` 1,0.
+- Calibración vigente de la C922: la 2 (Y de referencia 260 mm, focal 1.499 px estimada, avisos `focal_unusual`
+  y `mark_far_at_typical_focal`); no se tocó.
+- Último trabajo: 43 (`completed`). El siguiente número esperado en la base: el próximo `print_jobs.id` (>43).
