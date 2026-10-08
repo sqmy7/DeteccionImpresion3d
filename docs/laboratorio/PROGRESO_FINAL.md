@@ -95,9 +95,8 @@ historial de Moonraker es el 86 (el mismo). No se inventó ninguna pausa y no se
 - **Lo que sí registró la bitácora** (solo lectura, `printer_events`): entre 23:18:35 y 23:20:33 UTC hubo una
   operación con filamento sin trabajo en marcha: boquilla 0 → 120 → 250 °C y cama a 80 °C (origen `external`,
   es decir, no se pudo atribuir a la consola, a un archivo ni a PrintWatch), cambios en los sensores de
-  filamento 3, 4 y 5 de la caja (origen `printer`) y a las 23:20:33 los dos objetivos volvieron a 0. Esa hora
-  (18:20 en Colombia) es posterior a la última pausa posible que se podría esperar de una impresión en curso.
-  Ningún evento de pausa, error ni cancelación. Posiciones al comprobar: cabezal en Z 60,2 mm.
+  filamento 3, 4 y 5 de la caja (origen `printer`) y a las 23:20:33 los dos objetivos volvieron a 0. Hora de
+  Colombia: 18:18 a 18:20. Ningún evento de pausa, error ni cancelación. Posiciones al comprobar: cabezal en Z 60,2 mm.
 - **Cadena de eventos:** íntegra, 38 eventos verificados (`verify_chain`), sin eslabón roto.
 - **`capture`:** corre (cuadros de la C922 llegan a Redis, `latest_frame_at` con la hora actual). Por lo tanto la
   **pausa automática está activa**: pausa tras 3 capas seguidas de *spaghetti* con 15 s de gracia que se pueden
