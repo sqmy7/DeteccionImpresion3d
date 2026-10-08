@@ -3,6 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Button } from "./ui";
 import { useAuth } from "../hooks/useAuth";
 import { useWsEvent } from "../hooks/useWebSocket";
+import { ApiError } from "../services/apiClient";
 import { abortAutoPause } from "../services/printJobs";
 import { listPrinters, resumePrinter } from "../services/printers";
 import type {
@@ -99,6 +100,7 @@ function AutoPauseBanner({
 }) {
   const { token } = useAuth();
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (state.phase === "pending") {
     const remainingMs = new Date(state.executesAt).getTime() - Date.now();
@@ -143,11 +145,14 @@ function AutoPauseBanner({
     const handleResume = async () => {
       if (!token || busy) return;
       setBusy(true);
+      setError(null);
       try {
         await resumePrinter(token, state.printerId);
         onDismiss();
-      } catch {
-        // Left visible on failure so the user can see the resume didn't take and retry.
+      } catch (reason) {
+        // Left visible on failure so the user can see the resume didn't take, and why (the backend
+        // refuses a resume when the printer isn't paused or one was just sent).
+        setError(reason instanceof ApiError ? reason.message : "No se pudo reanudar.");
       } finally {
         setBusy(false);
       }
@@ -158,6 +163,7 @@ function AutoPauseBanner({
         <div className="min-w-0 flex-1">
           <p className="font-semibold text-fg">{printerName} pausada automáticamente</p>
           <p className="text-sm text-muted">Motivo: spaghetti detectado en varias capas seguidas.</p>
+          {error && <p className="mt-1 text-sm text-danger-fg">{error}</p>}
         </div>
         <div className="flex shrink-0 gap-2">
           <Button variant="warn" onClick={handleResume} disabled={busy}>

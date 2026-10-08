@@ -10,6 +10,7 @@ from app.core.security import encrypt_secret
 from app.db.models import IntegrationType, Printer, User
 from app.db.session import get_db
 from app.integrations.moonraker.client import send_print_action
+from app.integrations.moonraker.print_guard import ResumeRefused, resume_safely
 from app.schemas.printer import PrinterCreate, PrinterRead, PrinterUpdate
 
 logger = logging.getLogger(__name__)
@@ -119,4 +120,17 @@ async def resume_printer(printer_id: int, db: AsyncSession = Depends(get_db), us
     auth/audit log in front of an action that stops/starts a physical machine."""
     printer = await _get_moonraker_printer_or_404(printer_id, db)
     logger.warning("Manual resume requested for printer %s (%s)", printer.id, printer.octoprint_url)
-    await _send_print_action_or_502(printer, "resume", user)
+    # See integrations/moonraker/print_guard.py: one at a time, not twice in a row, and only if the
+    # printer itself says it is paused.
+    try:
+        await resume_safely(printer.octoprint_url, f"{user.username} (web)")
+    except ResumeRefused as refusal:
+        logger.warning("Resume refused for printer %s: %s", printer.id, refusal)
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(refusal)) from refusal
+    except httpx.HTTPError as exc:
+        # Either the state could not be read (nothing was sent) or the order itself failed.
+        logger.exception("Moonraker resume failed for printer %s (%s)", printer.id, printer.octoprint_url)
+        detail = f"Could not resume via Moonraker ({type(exc).__name__}): {exc}" if str(exc) else (
+            f"Could not resume via Moonraker: {type(exc).__name__} (no further detail - check backend logs)"
+        )
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=detail) from exc

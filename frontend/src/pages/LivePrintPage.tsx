@@ -24,7 +24,9 @@ import { listCamerasForPrinter } from "../services/cameras";
 import { getJobSummary, getJobTimeline, listPrintJobsForPrinter } from "../services/printJobs";
 import { getJobTelemetry, listJobEvents, listJobLayers } from "../services/telemetry";
 import type { JobSummary, PrintJob, PrinterEvent, TelemetryReading } from "../types/api";
-import type { DetectionResultEvent, LayerCapturedEvent, PrinterEventEvent } from "../types/ws";
+import type { DetectionBox, DetectionResultEvent, LayerCapturedEvent, PrinterEventEvent } from "../types/ws";
+import { detectionBoxes } from "../lib/boxes";
+import { listDetectionsForCapture } from "../services/layers";
 
 const TRAIL_SECONDS = 120;
 
@@ -160,6 +162,17 @@ export function LivePrintPage() {
     return [...stored, ...fresh];
   }, [history.data, recent, jobId]);
 
+  // The boxes of the newest analyzed layer, so the video shows them from the moment the page opens.
+  const lastCaptureId = useMemo(() => [...entries].reverse().find((entry) => entry.capture_id)?.capture_id ?? null, [entries]);
+  const lastDetections = useApi((token) => (lastCaptureId ? listDetectionsForCapture(token, lastCaptureId) : null), [lastCaptureId]);
+  const lastBoxes = useMemo<DetectionBox[]>(
+    () =>
+      (lastDetections.data ?? [])
+        .flatMap(detectionBoxes)
+        .map((box) => ({ class: box.className, confidence: box.confidence, x1: box.x1, y1: box.y1, x2: box.x2, y2: box.y2 })),
+    [lastDetections.data],
+  );
+
   const firstProgress = useMemo(() => {
     const point = points.find((item) => item.progress != null);
     return point ? { t: Date.parse(point.ts), progress: point.progress as number } : null;
@@ -206,7 +219,7 @@ export function LivePrintPage() {
         >
           <div className="p-3">
             {camera ? (
-              <LiveCameraView cameraId={camera.id} />
+              <LiveCameraView cameraId={camera.id} initialBoxes={lastBoxes} />
             ) : (
               <EmptyState title="Sin cámara configurada" description="Agrega una cámara a esta impresora para ver el video y detectar defectos." />
             )}

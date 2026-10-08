@@ -40,6 +40,25 @@ def record(base_url: str, action: str, requested_by: str | None, ok: bool, error
     )
 
 
+@dataclass
+class RecentCommand:
+    action: str
+    ok: bool
+    age_seconds: float
+
+
+def recent(base_url: str, action: str, within_seconds: float) -> RecentCommand | None:
+    """The newest order of this kind sent to this printer within the window, claimed or not,
+    failed or not (a request that timed out may still have reached the printer)."""
+    now = time.monotonic()
+    for command in reversed(_commands):
+        if now - command.monotonic > within_seconds:
+            break
+        if command.base_url == base_url and command.action == action:
+            return RecentCommand(command.action, command.ok, now - command.monotonic)
+    return None
+
+
 def claim_recent(base_url: str, action: str, within_seconds: float) -> SentCommand | None:
     """The newest unclaimed order of this kind sent to this printer within the window, marked so
     one order explains at most one state change. Failed orders count too: a request that timed
