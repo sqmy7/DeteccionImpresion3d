@@ -1,72 +1,79 @@
 # Progreso de la hora de ausencia (rama `lab-ausente`)
 
-Reglas vigentes: la .22 (trabajo 43) no se toca; la .21 solo lectura; sin `git push`, sin línea de
-coautoría en los commits; sin desplegar, sin reiniciar contenedores, sin arrancar `capture`, sin escribir en la base
-real (solo SELECT).
+Reglas que se respetaron: la .22 no se tocó (solo lecturas); la .21 solo lectura; sin `git push`, sin línea de
+coautoría en los commits de esta rama; sin desplegar, sin reiniciar contenedores, sin arrancar `capture`, sin
+migrar ni escribir en la base real (solo SELECT).
 
-## Línea de tiempo
-
-| Hora (Colombia) | Hecho |
-|---|---|
-| ~15:25 | Rama `lab-ausente` creada desde `main`. Red: SalaSteam_UIS, sin VPN, .22 responde (capa 383/486). **La .21 no responde** (HTTP 000 a 5 y 15 s, ping 100 % perdido, sin entrada ARP) |
-
-## Estado de la cola (actualizado 15:13)
+## Qué quedó hecho y comprobado
 
 | Tarea | Estado |
 |---|---|
-| 1. Impresora .21 | **Bloqueada**: no responde desde el inicio (ver arriba). Script de búsqueda de cámara listo y probado (`backend/scripts/find_camera_urls.py`); se reintenta cada ~5 min |
-| 2. Cierre del trabajo 43 | **Preparada**, a la espera de que termine (capa ~407/486 a las 15:12; ~15:50): `backend/scripts/analyze_job.py` y `backend/app/services/eta.py` con pruebas. Falta ejecutar el análisis, implementar el método de costo y el de tiempo restante ganadores, generar el PDF y actualizar `RESULTADOS.md` |
-| 3. Robustez | **Hecha**: guardia de reanudación (5 pruebas con la simulada), cajas al abrir la vista en vivo, límite de la pausa automática documentado (la mejora propuesta se descarta con motivo) |
-| 4. Higiene | **Hecha**: `.gitignore`, redactado de IPv6/MAC y limpieza; ver la lista de abajo |
-| 5. Datos del modelo | **Pendiente**: exige el trabajo 43 cerrado. Falta el prompt `prompt_datos_reales_modelo.md` (no está) y no hay dataset, `results.csv` ni `args.yaml` en este equipo; sí están `best_fp32.onnx` y `best_int8.onnx` |
-| Extra | `docs/laboratorio/PREGUNTAS.md` escrito; `docs/KNOWN_LIMITATIONS.md` y `docs/moonraker_discovery/README.md` corregidos con lo medido hoy |
+| 1. Impresora .21 | **No se pudo**: no respondió nunca (HTTP, ping y ARP, de 15:00 a 17:08). Ver `docs/laboratorio/impresora_21/RESULTADOS.md`. Quedó listo `backend/scripts/find_camera_urls.py` (probado con un servidor falso) y las opciones nuevas del descubrimiento |
+| 2. Cierre del trabajo 43 | **Hecha.** `completed`, cadena íntegra, 9.434 muestras. Filamento por densidad +3,1 % contra el laminador (se mantiene). Tiempo restante: gana el del laminador (error medio 1,0 min contra 22,7 del avance y 53,5 de las capas); implementado en la web con prueba. Reporte PDF real generado y corregido. Todo en `RESULTADOS.md` y `analisis_trabajo_43.md` |
+| 3. Robustez | **Hecha.** Guardia de reanudación (5 pruebas con la simulada), cajas al abrir la vista en vivo, límite de la pausa automática documentado (la mejora propuesta se descartó con motivo) |
+| 4. Higiene | **Hecha.** `.gitignore`, redactado de IPv6/MAC y listas de abajo |
+| 5. Datos del modelo | **Hecha en lo posible**: 9.457.164 parámetros y ≈ 21,3 GFLOPs del FP32, tubería de producción, métricas y qué miden. Faltan `args.yaml`, `results.csv` y el dataset (no están aquí). `docs/laboratorio/MODELO.md` |
+| Extra | `PREGUNTAS.md` para el profesor; `KNOWN_LIMITATIONS.md` y `docs/moonraker_discovery/README.md` corregidos con lo medido |
 
-## Observación a las 16:16 (trabajo 43 todavía en curso, capa 476/486)
+Pruebas: 143 del backend (con la simulada y Postgres de pruebas), `npm run build` sin errores. La versión web del
+estimador de tiempo se verificó compilándola con esbuild y comparando con los números de la versión Python.
 
-El ritmo por capa de esta impresión fue de 24 s (capas 280-300) a 30 s (capas 380-430), 23 s (440-460) y
-**de repente muy lento al final**: la capa 466 (z ≈ 93 mm) tardó **1.467 s (24 min)** con la velocidad
-fija en 25 mm/s, boquilla a 250 °C, flujo 100 %, sin ningún evento en la bitácora ni cambios del sensor de
-filamento (un tramo lento del propio archivo, de puentes o acabado superior); las capas 467 y 468,
-~190 s cada una. Consecuencia para el tiempo restante: a las 15:44 (capa 466) el ritmo de capas predecía
-~10 min y faltaba más de una hora; el laminador (`21627 s` menos `print_duration`) decía 72 min. **Los
-estimadores por ritmo de capas fallan mucho en el tramo final de esta pieza**; la decisión final se toma
-con el cierre del trabajo, pero el del laminador (nombre del archivo) parece el más robusto.
+## Observación importante (trabajo 43)
+
+El tramo final de la pieza es mucho más lento: la capa 466 (z ≈ 93 mm) tardó 24 min con la velocidad fija en
+25 mm/s, sin eventos ni cambios de sensores, y las dos siguientes ~3 min cada una. Un estimador por ritmo de capas
+(o por avance del archivo) falla justo ahí; el del laminador acertó dentro de 1 min.
 
 ## Higiene del repositorio
 
-**Menciones a herramientas de IA en archivos versionados (rama `lab-ausente`):**
+**Menciones a herramientas de IA en archivos versionados:**
 
-- `.gitignore:26`: `.claude/` (carpeta de configuración local de la herramienta; hay que ignorarla por su nombre).
-- `.gitignore:42`: `Claude outputs/` (ídem; agregado hoy).
-- `backend/alembic/versions/5180cfee0eab_initial_schema.py:19` y `:131`: "auto generated by Alembic" (es Alembic, no una IA).
+- `.gitignore:26` `.claude/` y `.gitignore:42` `Claude outputs/`: nombres de carpetas locales que hay que ignorar.
+- `backend/alembic/versions/5180cfee0eab_initial_schema.py:19` y `:131`: "auto generated by Alembic" (no es una IA).
 - `backend/scripts/mock_moonraker.py:292`: "generated by MockSlicer 1.0" (laminador falso de la simulada).
-- Ningún nombre de archivo menciona herramientas de IA.
+- Ningún nombre de archivo menciona herramientas de IA. No se encontraron comentarios ni textos obvios que corregir.
 
-**En el historial de git (no se reescribió):** 16 commits llevan la línea `Co-Authored-By: Claude`:
-`4c91fdd 78b7183 1d70832 48ea187 2617daf 65e3858 984be95 1f2ba4e b1cd609 a496d7b 9f1178d aeb0ee0 9c0c73d
-1deb2e4 4f24c20 2755dc0`. En GitHub (`origin/main`) solo está `2755dc0`, el commit inicial: todo lo demás
-sigue local, así que se puede reescribir antes de hacer el primer `push`. Decide tú cómo.
+**En el historial (no se reescribió):** 16 commits llevan la línea `Co-Authored-By: Claude ...`:
+`4c91fdd 78b7183 1d70832 48ea187 2617daf 65e3858 984be95 1f2ba4e b1cd609 a496d7b 9f1178d aeb0ee0 9c0c73d 1deb2e4
+4f24c20 2755dc0`. **`2755dc0` es el commit inicial y ya está en GitHub (`origin/main`)**: ese no se puede limpiar
+sin *force-push*. Los otros 15 son locales y se pueden reescribir antes del primer `push`. Los commits de la rama
+`lab-ausente` y los dos de laboratorio previos (`b332df4`, `bcf5c18`) no llevan la línea.
 
-**Secretos:** ningún archivo versionado trae contraseñas, claves ni números de serie reales. Hallazgos:
-`.env.example` solo trae `changeme` y claves vacías; `demo_environment.py` y `mock_octoprint.py` tienen
-credenciales de demostración (`demo-printwatch`, `mock-api-key`) que solo existen en la demo. **Se
-encontró una dirección IPv6 local derivada de la MAC de la impresora** en
-`docs/laboratorio/descubrimiento/system_info.json`: ya está oculta en el archivo y en el redactado del
-script, pero **sigue en el commit `b332df4`** (local, sin subir): otro motivo para reescribir ese tramo
-del historial antes del `push`.
+**Secretos:** ningún archivo versionado trae contraseñas, claves ni números de serie reales (`.env.example` solo
+`changeme` y claves vacías; credenciales de demostración en `demo_environment.py` y `mock_octoprint.py`, que solo
+valen en la demo). Se encontró una **IPv6 local derivada de la MAC** de la impresora: está oculta en el archivo y
+en el redactado del script, pero **sigue en el commit local `b332df4`** (otro motivo para reescribir ese tramo antes
+del `push`).
 
 ## Decisiones tomadas sin ti
 
-1. **.21 sin respuesta:** no se intenta arreglar nada (la regla dice detenerse y avisar; como no puedes
-   contestar, se pasa a las tareas sin red y se reintenta cada ~5 min, solo con GET/ping único).
-2. El script de búsqueda de cámara se deja escrito y probado contra una impresora simulada, para correrlo en
-   cuanto la .21 responda.
+1. **.21 sin respuesta:** no se intentó arreglar nada (ni escaneo, ni adivinar IP); se pasó a las tareas sin red y
+   se reintentó cada ~5 min.
+2. **Tiempo restante:** se pasó a usar el total del laminador (del nombre del archivo) menos `print_duration`,
+   guardado en el campo `extra` de la telemetría (sin migración); el avance del archivo queda de respaldo, marcado
+   "poco precisa". Se evaluó con una sola impresión de una sola pieza, así que conviene reconfirmarlo con otras.
+3. **Filamento:** se mantiene la densidad; mi sospecha inicial de que sobrestimaba salió de una comparación mal
+   hecha y se corrigió en `RESULTADOS.md`.
+4. **Pausa automática tras reinicio:** se descartó reevaluar la racha al arrancar (volvería a pausar impresiones que
+   alguien abortó); queda documentado, con la solución correcta (persistir en la base, requiere migración).
+5. **Reanudar desde la web:** una sola orden por impresora, 20 s de enfriamiento aunque la anterior haya fallado, y
+   solo si la propia impresora dice `paused` (GET de solo lectura). Es un cambio de comportamiento: un segundo clic
+   rápido ahora recibe un 409 con el motivo.
+6. Se creó y se borró un usuario temporal de solo lectura (`lab-viewer`) en la base real para las capturas con
+   datos reales (única escritura sobre la base real, de la sesión anterior; no se hizo en esta).
 
 ## Para Samuel (en orden)
 
-1. Desplegar el backend (reconstruir el contenedor) **cuando la impresión 43 haya terminado**.
-2. Reiniciar `capture`.
-3. Calibrar la C922 desde la web.
-4. Precios reales (filamento y kWh).
-5. Revisar la rama `lab-ausente` antes de unirla a `main`.
-6. Encender la impresora .21 / confirmar su IP si de verdad es 192.168.10.21.
+1. **Desplegar el backend** (reconstruir el contenedor): ahora que la impresión terminó, ya se puede. Trae todas las
+   correcciones de hoy (tamaño de la cama, sensores de filamento, ventilador, metadatos, "sin señal", `print_duration`,
+   guardia de reanudación).
+2. **Reiniciar `capture`** (guarda la hora de cada cuadro). Ojo: reactiva las detecciones y, con ellas, la pausa
+   automática.
+3. **Calibrar la C922** desde la web con la impresora quieta (necesita un usuario administrador).
+4. **Precios reales** (filamento y kWh) en "Precios y potencias".
+5. Revisar la rama `lab-ausente` antes de unirla a `main` (`git log main..lab-ausente`).
+6. **Encender la .21** o darme su IP actual, y correr los dos comandos de `impresora_21/RESULTADOS.md`.
+7. **Decidir cómo limpiar el historial** antes del primer `push` (las 15 coautorías locales y la IPv6 de `b332df4`),
+   y qué hacer con `2755dc0`, que ya está en GitHub.
+8. Conservar el `wsl -- sleep infinity` abierto: sin él Docker se reinicia solo.
+9. Llevarle `docs/laboratorio/PREGUNTAS.md` al profesor.
