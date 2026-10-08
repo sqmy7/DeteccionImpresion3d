@@ -267,3 +267,36 @@ print(settings.auto_pause_mode)"` debe imprimir `on`.
 
 **Estado al cerrar el despliegue:** modo **warn**; la .22 en `standby`, sin archivo, cama en Y 260,0 mm; nada se
 envió a ninguna impresora. Se espera el «inicié» de Samuel.
+
+## Pendiente para después de la Etapa B: dos detalles del Panel general (diagnóstico, sin cambios en el código)
+
+Pedido de Samuel (2026-10-08). Se revisó solo leyendo código y datos; no se tocó nada ni se corrieron pruebas
+(gastan CPU y falsearían la medición de la Etapa B). Se corrige y se prueba **cuando termine la Etapa B**.
+
+**(2) «Capa 0 / 486 · 2 h 45 min» en la tarjeta del trabajo 43** (`frontend/src/pages/OverviewPage.tsx`, 42 y 83).
+Los dos datos salen mal por motivos distintos:
+- **Capa 0:** `layer = live?.layer_number ?? summary.data?.current_layer`. `live` es la última lectura en vivo de la
+  impresora (menos de 10 s) y, quieta, reporta `layer_number = 0`; como `0` no es `null`, el `??` no cae al
+  dato del trabajo. Se muestra la capa de la impresora ahora, no la del trabajo mostrado. El trabajo 43 sí tiene
+  su propia capa final: `layers` guarda de la 275 a la 486 (210 filas, PrintWatch se unió a mitad) y
+  `get_job_summary` devuelve `current_layer = 486`. Arreglo: usar la lectura en vivo solo si el trabajo mostrado
+  está en curso (`running`); si no, la capa del trabajo.
+- **2 h 45 min:** es `secondsBetween(started_at, ended_at)`, o sea el tiempo que PrintWatch siguió el trabajo
+  (19:13 a 21:58 UTC, desde el 45 %). La impresión real duró ~6 h 01 min: el reloj de la impresora
+  (`print_stats.print_duration`, 21.660 s) ya se guarda en `telemetry_samples.extra` y el reporte PDF lo usa
+  (`report.py`), pero el resumen del trabajo no lo expone. Arreglo: añadir al resumen la duración de impresión
+  del reloj de la impresora (último valor de `extra`) y si PrintWatch se unió tarde; mostrar la real, con una nota
+  «PrintWatch lo siguió 2 h 45 min». Mismo error en `JobsListPage.tsx` (41 y 76) y `LivePrintPage.tsx` (52):
+  se revisan juntos. Los trabajos anteriores a 2026-10-08 no tienen ese dato; para ellos se queda la duración
+  seguida, sin afirmar más.
+
+**(1) Miniatura de video negra en la tarjeta de la impresora.** Sin causa confirmada. Lo que se descartó leyendo:
+la tarjeta usa el mismo componente (`VideoFeed`) y el mismo endpoint (`/cameras/{id}/stream`) que «En vivo», y la
+cámara elegida es la misma (id 36); el backend no reporta errores de conexiones a la base ni de Redis; el servidor
+muestra un solo `GET .../stream` desde el último despliegue. Hipótesis a probar con un navegador: (a) la altura del
+`<img class="h-full w-full object-cover">` dentro de un contenedor `aspect-video` sin altura propia (se pinta a
+0 de alto hasta el primer cuadro y puede quedarse así); (b) conexiones de flujo que se acumulan al pasar de «En
+vivo» al Panel (un navegador abre pocas conexiones por servidor y el flujo es una conexión que no termina);
+(c) el cuadro de relleno de «sin señal» si en ese momento `capture` estaba apagado. Plan: reproducirlo con el
+entorno de demostración y un navegador (sin usar la cuenta real), medir el tamaño real de la imagen y los
+`GET .../stream` abiertos, corregir lo que salga y dejar una prueba.
