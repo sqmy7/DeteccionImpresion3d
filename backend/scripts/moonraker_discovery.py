@@ -390,12 +390,19 @@ def _read_json(path: Path):
         return None
 
 
+# An IPv6 link-local address (fe80::...) is built from the MAC address, and a MAC can also turn up as a
+# plain value: both identify the device.
+_MAC_DERIVED_RE = re.compile(r"(?i)\bfe80:[0-9a-f:]+|\b(?:[0-9a-f]{2}[:-]){5}[0-9a-f]{2}\b")
+
+
 def _redact(data):
     """Serial numbers and MAC addresses identify the device and add nothing to the analysis."""
     if isinstance(data, dict):
         return {key: "<oculto>" if _REDACTED_KEY_RE.search(key) else _redact(value) for key, value in data.items()}
     if isinstance(data, list):
         return [_redact(item) for item in data]
+    if isinstance(data, str):
+        return _MAC_DERIVED_RE.sub("<oculto>", data)
     return data
 
 

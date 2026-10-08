@@ -1,7 +1,7 @@
 # Progreso de la hora de ausencia (rama `lab-ausente`)
 
-Reglas vigentes: la .22 (trabajo 43) no se toca; la .21 solo lectura; sin `git push`, sin línea
-`Co-Authored-By`; sin desplegar, sin reiniciar contenedores, sin arrancar `capture`, sin escribir en la base
+Reglas vigentes: la .22 (trabajo 43) no se toca; la .21 solo lectura; sin `git push`, sin línea de
+coautoría en los commits; sin desplegar, sin reiniciar contenedores, sin arrancar `capture`, sin escribir en la base
 real (solo SELECT).
 
 ## Línea de tiempo
