@@ -20,7 +20,7 @@ Lo que necesita la impresora real queda preparado para correrlo después y anota
 | 0. Descubrimiento | Parte sin impresora terminada; falta correr el script en el laboratorio |
 | 1. Telemetría con fecha y hora | Terminada y desplegada; falta verificarla con la impresora real |
 | 2. Bitácora de intervenciones | Backend terminado y desplegado; la pantalla de la bitácora va en la Fase 4 |
-| 3. Mapa de la cama | Sin empezar |
+| 3. Mapa de la cama | En curso: matemática y servicio listos; faltan API, despliegue y pantalla |
 | 4. Rediseño de la web | Sin empezar |
 | 5. Innovación | Sin empezar |
 
@@ -137,6 +137,38 @@ con la C922.
   registrarse como `external`; la hora del evento es la del cambio.
 - Los comandos de consola llevan la hora de la impresora corregida por la diferencia de relojes,
   estimada con el encabezado `Date` de las respuestas.
+
+## Fase 3: mapa de la cama (en curso)
+
+**Hecho (sin desplegar todavía):**
+- `app/services/bed_map.py`: homografía imagen-cama a partir de 4 puntos (lo mismo que
+  `cv2.findHomography` con cuatro puntos, en Python puro), estimación de la focal y la posición de la
+  cámara desde esa homografía (restricciones de Zhang con una vista), corrección de paralaje con la
+  altura de la capa y desplazamiento en Y de la cama (la Creality Hi es de cama móvil), con una
+  estimación del error de cada ubicación.
+- `app/services/defect_map.py`: ubica cada caja de defecto de un trabajo con la calibración vigente
+  al capturar, la foto de telemetría de la capa y los objetos del archivo; mapa de calor por celdas.
+- Migración `d4e8b2c61f05` (a mano): tabla `camera_calibrations` y columna `print_jobs.geometry`.
+  Probada en `printwatch_test` (subir, `alembic check`, bajar, subir). **No aplicada aún a la base real.**
+- Listener: guarda en el trabajo los límites de los ejes, la malla de la cama y los objetos declarados.
+- Inferencia: cada detección guarda el tamaño del cuadro y el ROI usados (para ubicar sus cajas aunque
+  el ROI cambie después). Falta reconstruir el contenedor de inferencia.
+- Impresora simulada: cámara estenopeica 3D (piezas con altura, cama que se mueve en Y con el cabezal,
+  o `--camera-on-bed`). Las pruebas de `tests/test_bed_map.py` la usan como verdad conocida: con solo
+  las 4 esquinas recuperan la focal (±1 %), la posición de la cámara (±1 mm) y ubican un punto sobre
+  una pieza de hasta 40 mm de alto, con la cama desplazada, con error menor a 1 mm.
+
+**Pendiente:** API (calibración, foto para calibrar, mapa por trabajo, mapa de calor, geometría en
+vivo), pruebas con base de datos, respaldo + migración de la base real, reconstruir backend e
+inferencia, pantalla de calibración y vista del mapa (con la Fase 4).
+
+**Decisiones:**
+- Una fila por calibración: cada detección se ubica con la calibración vigente cuando se capturó; si
+  no había ninguna, con la primera posterior (suponiendo que la cámara no se movió).
+- El paralaje se corrige con la altura de la capa (el defecto se supone en la superficie superior).
+- En cama móvil, el desplazamiento usa la Y del cabezal de la foto de la capa; como la foto y la
+  posición pueden estar hasta ~0,3 s desfasadas, el error estimado crece con la velocidad y la
+  ubicación se marca como poco confiable por encima de 20 mm.
 
 ## Pendiente con la impresora
 

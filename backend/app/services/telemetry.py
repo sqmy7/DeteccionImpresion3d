@@ -64,6 +64,26 @@ _CUMULATIVE_FIELDS = {"layer_number", "progress", "filament_used"}
 # Last reading per printer, written by the Moonraker listener once per second (in this process)
 # and served by GET /printers/{id}/telemetry/latest.
 latest_readings: dict[int, dict] = {}
+# Last bed geometry per printer (see geometry_from_status), for the live bed map.
+latest_geometry: dict[int, dict] = {}
+
+
+def geometry_from_status(status: dict) -> dict:
+    """The bed as Klipper describes it: axis limits, the active bed mesh and the objects the file
+    declared (exclude_object). Changes rarely: on homing, mesh calibration or a new print."""
+    toolhead = status.get("toolhead") or {}
+    mesh = status.get("bed_mesh") or {}
+    exclude_object = status.get("exclude_object") or {}
+    return {
+        "axis_minimum": toolhead.get("axis_minimum"),
+        "axis_maximum": toolhead.get("axis_maximum"),
+        "bed_mesh": (
+            {key: mesh.get(key) for key in ("profile_name", "mesh_min", "mesh_max", "probed_matrix")}
+            if mesh.get("probed_matrix")
+            else None
+        ),
+        "objects": exclude_object.get("objects") or [],
+    }
 
 
 def build_subscription(available_objects: Iterable[str] | None) -> dict[str, list[str] | None]:

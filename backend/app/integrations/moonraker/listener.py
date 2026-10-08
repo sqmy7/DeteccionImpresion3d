@@ -90,6 +90,7 @@ class _PrinterState:
         self.eventtime: float | None = None  # Klipper's clock at the last update
         self.job_id: int | None = None  # the open print job, kept in step by _sync_job
         self.connected = False  # subscription answered; a later disconnect is worth logging
+        self.saved_geometry: tuple[int, dict] | None = None  # (job id, geometry) last stored
 
     @property
     def message(self) -> str | None:
@@ -233,6 +234,7 @@ async def _listen_once(printer_id: int, db_session_factory, redis_client, state:
                     # mid-print) still records the remaining layers.
                     await _sync_printer_status(db_session_factory, printer_id, state)
                     await _sync_job(db_session_factory, printer_id, state)
+                    await _sync_geometry(db_session_factory, printer_id, state)
                     state.connected = True
                     await _record_event_safely(
                         db_session_factory,
@@ -292,6 +294,7 @@ async def _listen_once(printer_id: int, db_session_factory, redis_client, state:
                     job_change = await _sync_job(db_session_factory, printer_id, state)
                     if job_change.get("job_opened") and tracker is not None:
                         tracker.want_file(state.filename)
+                await _sync_geometry(db_session_factory, printer_id, state)
 
                 if changes and tracker is not None:
                     # Changes in the same update that closed a job (END_PRINT turning heaters off)
@@ -382,6 +385,24 @@ async def _sync_job(db_session_factory, printer_id: int, state: _PrinterState) -
         state.job_id = None
         logger.info("Closed print job %s for printer %s as %s", job_id, printer_id, new_job_status.value)
         return {"job_closed": job_id, "job_status": new_job_status.value}
+
+
+async def _sync_geometry(db_session_factory, printer_id: int, state: _PrinterState) -> None:
+    """Keeps the live bed geometry current and the open job's copy of it up to date (the objects
+    arrive a moment after the print starts, when the file declares them)."""
+    geometry = telemetry.geometry_from_status(state.status)
+    telemetry.latest_geometry[printer_id] = geometry
+    if state.job_id is None or state.saved_geometry == (state.job_id, geometry):
+        return
+    try:
+        async with db_session_factory() as db:
+            job = await db.get(PrintJob, state.job_id)
+            if job is not None:
+                job.geometry = geometry
+                await db.commit()
+        state.saved_geometry = (state.job_id, geometry)
+    except Exception:
+        logger.warning("Could not store the bed geometry of job %s", state.job_id, exc_info=True)
 
 
 def _parse_klipper_message(message: str) -> dict:

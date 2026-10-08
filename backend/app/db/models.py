@@ -146,6 +146,9 @@ class PrintJob(Base):
     estimated_layers: Mapped[int | None] = mapped_column(Integer)
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # The bed as it was for this print: axis limits, bed mesh and the objects the file declared
+    # (exclude_object), so its bed map can be drawn later even if the printer changes.
+    geometry: Mapped[dict | None] = mapped_column(JSONB)
 
     printer: Mapped["Printer"] = relationship(back_populates="print_jobs")
     layers: Mapped[list["Layer"]] = relationship(back_populates="job", cascade="all, delete-orphan")
@@ -232,6 +235,32 @@ class Alert(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     detection: Mapped["Detection"] = relationship(back_populates="alerts")
+
+
+class CameraCalibration(Base):
+    """Where a camera sees the bed, from four points marked on one of its frames. A new row per
+    calibration: a detection is mapped with the calibration that was current when it was captured,
+    so moving the camera later doesn't rewrite where past defects were."""
+
+    __tablename__ = "camera_calibrations"
+    __table_args__ = (Index("ix_camera_calibrations_camera_created", "camera_id", "created_at"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    camera_id: Mapped[int] = mapped_column(ForeignKey("cameras.id", ondelete="CASCADE"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    created_by: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    # Normalized (0..1) points on the frame, and the bed points (mm) they correspond to, in order.
+    image_points: Mapped[list] = mapped_column(JSONB, nullable=False)
+    bed_points: Mapped[list] = mapped_column(JSONB, nullable=False)
+    image_width: Mapped[int] = mapped_column(Integer, nullable=False)
+    image_height: Mapped[int] = mapped_column(Integer, nullable=False)
+    # True for a camera fixed to the frame or table of a bed-slinger: the bed slides along Y in
+    # the image, and reference_y (toolhead Y when the frame was taken) anchors that shift.
+    bed_moves_in_image: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    reference_y: Mapped[float | None] = mapped_column(REAL)
+    # Derived when calibrating, kept for display and auditing (app/services/bed_map.py).
+    focal_px: Mapped[float | None] = mapped_column(REAL)
+    camera_position: Mapped[list | None] = mapped_column(JSONB)
 
 
 class TelemetrySample(Base):

@@ -54,9 +54,14 @@ EXTRUDER_TARGET = 240.0
 SECOND_LAYER_EXTRUDER_TARGET = 235.0  # the file's "M104 S235" at layer 2, like a slicer's first-layer bump
 BED_TARGET = 70.0
 CAMERA_SIZE = (640, 480)
-# Where the bed corners (0,0), (260,0), (260,260), (0,260) land in the simulated camera image: a
-# camera in front of the printer, looking down at the bed.
-CAMERA_BED_CORNERS = [(110.0, 440.0), (530.0, 440.0), (450.0, 150.0), (190.0, 150.0)]
+# The simulated camera: a pinhole camera in front of the printer, looking down at the bed. On a
+# bed-slinger the nozzle stays at a fixed world Y and the bed slides under it, so a camera fixed
+# to the frame sees the bed move with the toolhead's Y (unless camera_on_bed). These are the ground
+# truth the bed-map tests check against.
+CAMERA_POSITION = (130.0, -230.0, 300.0)  # mm, world coordinates
+CAMERA_LOOK_AT = (130.0, 130.0, 0.0)
+CAMERA_FOCAL_PX = 560.0
+NOZZLE_WORLD_Y = 130.0  # world Y of the nozzle; bed and world coincide when toolhead Y is this
 
 logger = logging.getLogger("mock_moonraker")
 
@@ -149,26 +154,36 @@ class LayerPath:
         return extruded
 
 
-def _solve_homography(src: list[tuple[float, float]], dst: list[tuple[float, float]]) -> list[float]:
-    """3x3 homography (row-major, h33 = 1) mapping 4 src points onto 4 dst points, by Gaussian
-    elimination on the usual 8x8 system - avoids a numpy dependency in the backend venv."""
-    rows = []
-    for (x, y), (u, v) in zip(src, dst):
-        rows.append([x, y, 1, 0, 0, 0, -u * x, -u * y, u])
-        rows.append([0, 0, 0, x, y, 1, -v * x, -v * y, v])
-    for col in range(8):
-        pivot = max(range(col, 8), key=lambda row: abs(rows[row][col]))
-        rows[col], rows[pivot] = rows[pivot], rows[col]
-        for row in range(8):
-            if row != col:
-                factor = rows[row][col] / rows[col][col]
-                rows[row] = [a - factor * b for a, b in zip(rows[row], rows[col])]
-    return [rows[i][8] / rows[i][i] for i in range(8)] + [1.0]
+def _normalize(vector: tuple[float, float, float]) -> tuple[float, float, float]:
+    length = math.sqrt(sum(component * component for component in vector))
+    return tuple(component / length for component in vector)
 
 
-def _project(h: list[float], x: float, y: float) -> tuple[float, float]:
-    w = h[6] * x + h[7] * y + h[8]
-    return (h[0] * x + h[1] * y + h[2]) / w, (h[3] * x + h[4] * y + h[5]) / w
+def _cross(a: tuple[float, float, float], b: tuple[float, float, float]) -> tuple[float, float, float]:
+    return a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]
+
+
+def _camera_axes() -> tuple[tuple, tuple, tuple]:
+    """Camera frame (x right, y down, z forward) in world coordinates, for CAMERA_LOOK_AT."""
+    forward = _normalize(tuple(t - p for t, p in zip(CAMERA_LOOK_AT, CAMERA_POSITION)))
+    right = _normalize(_cross(forward, (0.0, 0.0, 1.0)))
+    down = _cross(forward, right)
+    return right, down, forward
+
+
+_CAMERA_AXES = _camera_axes()
+camera_on_bed = False
+
+
+def camera_project(bed_x: float, bed_y: float, z: float, toolhead_y: float) -> tuple[float, float] | None:
+    """Pixel where the simulated camera sees the bed point (bed_x, bed_y) at height z, with the
+    toolhead at toolhead_y. None if the point is behind the camera."""
+    world_y = bed_y if camera_on_bed else bed_y + (NOZZLE_WORLD_Y - toolhead_y)
+    offset = (bed_x - CAMERA_POSITION[0], world_y - CAMERA_POSITION[1], z - CAMERA_POSITION[2])
+    x, y, depth = (sum(a * b for a, b in zip(axis, offset)) for axis in _CAMERA_AXES)
+    if depth <= 1.0:
+        return None
+    return CAMERA_FOCAL_PX * x / depth + CAMERA_SIZE[0] / 2, CAMERA_FOCAL_PX * y / depth + CAMERA_SIZE[1] / 2
 
 
 class SimulatedPrinter:
@@ -875,31 +890,44 @@ class SimulatedPrinter:
 
 # --- Camera ----------------------------------------------------------------------------------------
 
-_BED_TO_IMAGE = _solve_homography([(0, 0), (BED_X_MM, 0), (BED_X_MM, BED_Y_MM), (0, BED_Y_MM)], CAMERA_BED_CORNERS)
-
-
 def render_camera(printer: SimulatedPrinter) -> bytes:
-    """A synthetic camera frame: the bed seen in perspective, the printed objects and the nozzle.
-    The bed corners land on CAMERA_BED_CORNERS, which makes it a known ground truth for testing
-    the bed calibration."""
+    """A synthetic camera frame through the pinhole camera above: the bed (sliding along Y with
+    the toolhead, as on a bed-slinger), the printed objects as solids of their current height,
+    and the nozzle."""
     image = Image.new("RGB", CAMERA_SIZE, (28, 30, 34))
     draw = ImageDraw.Draw(image)
+    toolhead_y = printer.position[1]
 
-    def project(x: float, y: float) -> tuple[float, float]:
-        return _project(_BED_TO_IMAGE, x, y)
+    def polygon(points: list[tuple[float, float, float]], **style) -> None:
+        projected = [camera_project(x, y, z, toolhead_y) for x, y, z in points]
+        if all(point is not None for point in projected):
+            draw.polygon(projected, **style)
 
-    draw.polygon([project(x, y) for x, y in ((0, 0), (BED_X_MM, 0), (BED_X_MM, BED_Y_MM), (0, BED_Y_MM))], fill=(64, 66, 72))
+    corners = [(0.0, 0.0, 0.0), (BED_X_MM, 0.0, 0.0), (BED_X_MM, BED_Y_MM, 0.0), (0.0, BED_Y_MM, 0.0)]
+    polygon(corners, fill=(64, 66, 72))
     for step in range(20, int(BED_X_MM), 20):
-        draw.line([project(step, 0), project(step, BED_Y_MM)], fill=(80, 82, 90))
-        draw.line([project(0, step), project(BED_X_MM, step)], fill=(80, 82, 90))
+        for line in (((step, 0.0, 0.0), (step, BED_Y_MM, 0.0)), ((0.0, step, 0.0), (BED_X_MM, step, 0.0))):
+            ends = [camera_project(x, y, z, toolhead_y) for x, y, z in line]
+            if None not in ends:
+                draw.line(ends, fill=(80, 82, 90))
 
     if printer.filename and printer.layer > 0:
+        height = FIRST_LAYER_HEIGHT + (printer.layer - 1) * printer.layer_height
         for obj in printer.objects:
             color = (110, 110, 115) if obj.name in printer.excluded else (232, 128, 48)
-            draw.polygon([project(x, y) for x, y in obj.polygon], fill=color, outline=(255, 200, 150))
+            side = tuple(int(channel * 0.7) for channel in color)
+            base = [(x, y, 0.0) for x, y in obj.polygon]
+            top = [(x, y, height) for x, y in obj.polygon]
+            faces = [[base[i], base[(i + 1) % 4], top[(i + 1) % 4], top[i]] for i in range(4)]
+            # Painter's algorithm: farthest faces first, the top face last.
+            faces.sort(key=lambda face: -sum(y for _, y, _ in face))
+            for face in faces:
+                polygon(face, fill=side)
+            polygon(top, fill=color, outline=(255, 200, 150))
 
-    nozzle = project(printer.position[0], printer.position[1])
-    draw.ellipse([nozzle[0] - 6, nozzle[1] - 6, nozzle[0] + 6, nozzle[1] + 6], fill=(220, 40, 40))
+    nozzle = camera_project(printer.position[0], printer.position[1], printer.position[2] + 3.0, toolhead_y)
+    if nozzle is not None:
+        draw.ellipse([nozzle[0] - 6, nozzle[1] - 6, nozzle[0] + 6, nozzle[1] + 6], fill=(220, 40, 40))
     draw.text((10, 10), f"MOCK  {printer.state}  capa {printer.layer}/{printer.layer_count}", fill=(230, 230, 230))
     draw.text((10, 26), datetime.now().strftime("%H:%M:%S"), fill=(200, 200, 200))
 
@@ -1395,7 +1423,7 @@ async def websocket_endpoint(ws: WebSocket) -> None:
 
 
 def main() -> None:
-    global printer, auth_required_prefixes, auto_start
+    global printer, auth_required_prefixes, auto_start, camera_on_bed
 
     parser = argparse.ArgumentParser(description="Impresora Klipper/Moonraker simulada para pruebas.")
     parser.add_argument("--host", default="127.0.0.1", help="0.0.0.0 para aceptar conexiones de otros equipos/contenedores")
@@ -1406,12 +1434,16 @@ def main() -> None:
     parser.add_argument("--auto-start", action="store_true", help=f"empezar a imprimir {MOCK_FILE} al arrancar")
     parser.add_argument("--require-auth", action="append", default=[], help="prefijo de ruta que responde 401 (repetible)")
     parser.add_argument("--fast-heat", action="store_true", help="calentar casi al instante")
+    parser.add_argument(
+        "--camera-on-bed", action="store_true", help="la camara se mueve con la cama (por defecto esta fija al marco)"
+    )
     parser.add_argument("--seed", type=int, default=7)
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
     auth_required_prefixes = tuple(args.require_auth)
     auto_start = args.auto_start
+    camera_on_bed = args.camera_on_bed
     printer = SimulatedPrinter(
         args.layers, args.layer_seconds, args.layer_height, args.seed, heater_tau_scale=0.05 if args.fast_heat else 1.0
     )
