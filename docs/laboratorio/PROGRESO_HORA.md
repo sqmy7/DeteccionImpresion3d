@@ -21,6 +21,17 @@ real (solo SELECT).
 | 5. Datos del modelo | **Pendiente**: exige el trabajo 43 cerrado. Falta el prompt `prompt_datos_reales_modelo.md` (no está) y no hay dataset, `results.csv` ni `args.yaml` en este equipo; sí están `best_fp32.onnx` y `best_int8.onnx` |
 | Extra | `docs/laboratorio/PREGUNTAS.md` escrito; `docs/KNOWN_LIMITATIONS.md` y `docs/moonraker_discovery/README.md` corregidos con lo medido hoy |
 
+## Observación a las 16:16 (trabajo 43 todavía en curso, capa 476/486)
+
+El ritmo por capa de esta impresión fue de 24 s (capas 280-300) a 30 s (capas 380-430), 23 s (440-460) y
+**de repente muy lento al final**: la capa 466 (z ≈ 93 mm) tardó **1.467 s (24 min)** con la velocidad
+fija en 25 mm/s, boquilla a 250 °C, flujo 100 %, sin ningún evento en la bitácora ni cambios del sensor de
+filamento (un tramo lento del propio archivo, de puentes o acabado superior); las capas 467 y 468,
+~190 s cada una. Consecuencia para el tiempo restante: a las 15:44 (capa 466) el ritmo de capas predecía
+~10 min y faltaba más de una hora; el laminador (`21627 s` menos `print_duration`) decía 72 min. **Los
+estimadores por ritmo de capas fallan mucho en el tramo final de esta pieza**; la decisión final se toma
+con el cierre del trabajo, pero el del laminador (nombre del archivo) parece el más robusto.
+
 ## Higiene del repositorio
 
 **Menciones a herramientas de IA en archivos versionados (rama `lab-ausente`):**
