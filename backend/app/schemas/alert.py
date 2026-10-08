@@ -36,3 +36,7 @@ class AlertListItem(BaseModel):
     acknowledged_by: int | None
     acknowledged_at: datetime | None
     created_at: datetime
+    # Where it was raised; null only if the detection's layer is gone.
+    print_job_id: int | None = None
+    layer_number: int | None = None
+    file_name: str | None = None

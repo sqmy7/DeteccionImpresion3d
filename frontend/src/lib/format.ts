@@ -75,6 +75,11 @@ export function formatPercent(fraction: number | null | undefined, digits = 0): 
   return `${(fraction * 100).toLocaleString(LOCALE, { maximumFractionDigits: digits, minimumFractionDigits: digits })} %`;
 }
 
+/** "1 trabajo", "3 trabajos"; pass the plural when it isn't just an added "s". */
+export function countOf(count: number, singular: string, plural = `${singular}s`): string {
+  return `${count} ${count === 1 ? singular : plural}`;
+}
+
 export function relativeAge(seconds: number): string {
   if (seconds < 5) return "ahora";
   if (seconds < 60) return `hace ${Math.round(seconds)} s`;

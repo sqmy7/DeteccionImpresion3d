@@ -1,5 +1,36 @@
+import { useEffect, useRef, useState } from "react";
 import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { formatShortTime, formatTime } from "../../lib/format";
+
+const TICK_STEPS_S = [1, 2, 5, 10, 15, 30, 60, 120, 300, 600, 900, 1800, 3600, 7200, 10800, 21600, 43200, 86400];
+const PX_PER_TICK = 85; // room for an HH:MM:SS label and its gap
+// Colombia keeps UTC-5 all year, so this puts the ticks on round local times.
+const BOGOTA_OFFSET_MS = -5 * 3600 * 1000;
+
+/** Ticks on round times (every 15 s, 5 min, 1 h...), at most maxTicks of them. Recharts' own
+ * ticks on a time axis land on odd seconds and sometimes overlap. */
+function timeTicks(start: number, end: number, maxTicks: number): { ticks: number[]; step: number } {
+  const span = end - start;
+  if (!(span > 0)) return { ticks: [], step: 0 };
+  const stepS = TICK_STEPS_S.find((step) => span / (step * 1000) <= maxTicks) ?? Math.ceil(span / maxTicks / 86_400_000) * 86_400;
+  const step = stepS * 1000;
+  const ticks: number[] = [];
+  for (let t = Math.ceil((start + BOGOTA_OFFSET_MS) / step) * step - BOGOTA_OFFSET_MS; t <= end; t += step) ticks.push(t);
+  return { ticks, step };
+}
+
+function useWidth() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(0);
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    const observer = new ResizeObserver(([entry]) => setWidth(entry.contentRect.width));
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+  return [ref, width] as const;
+}
 
 // Recharts takes colors as attributes, so the theme's values are repeated here as literals.
 export const CHART_COLORS = {
@@ -79,8 +110,13 @@ export function TelemetryChart({
   domain?: [number, number];
   height?: number;
 }) {
+  const [ref, width] = useWidth();
+  const [start, end]: [number, number] = domain ?? (rows.length > 1 ? [rows[0].t, rows[rows.length - 1].t] : [0, 0]);
+  const { ticks, step } = timeTicks(start, end, Math.max(2, Math.floor((width - 52) / PX_PER_TICK)));
+  // Seconds only when the ticks are less than a minute apart (a fresh print).
+  const tickFormat = step < 60_000 ? formatTime : formatShortTime;
   return (
-    <div style={{ height }} className="w-full">
+    <div ref={ref} style={{ height }} className="w-full">
       <ResponsiveContainer>
         <LineChart
           data={rows}
@@ -95,12 +131,13 @@ export function TelemetryChart({
             type="number"
             scale="time"
             domain={domain ?? ["dataMin", "dataMax"]}
-            tickFormatter={(value: number) => formatShortTime(value)}
+            ticks={ticks}
+            interval={0}
+            tickFormatter={(value: number) => tickFormat(value)}
             stroke={CHART_COLORS.axis}
             fontSize={11}
             tickLine={false}
             axisLine={false}
-            minTickGap={48}
           />
           <YAxis stroke={CHART_COLORS.axis} fontSize={11} tickLine={false} axisLine={false} width={40} />
           <Tooltip content={<ChartTooltip unit={unit} />} cursor={{ stroke: CHART_COLORS.axis, strokeWidth: 1 }} />

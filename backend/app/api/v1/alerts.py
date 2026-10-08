@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, require_admin
-from app.db.models import Alert, AlertStatus, Detection, Layer, LayerCapture, Printer, User
+from app.db.models import Alert, AlertStatus, Detection, Layer, LayerCapture, Printer, PrintJob, User
 from app.db.session import get_db
 from app.schemas.alert import AlertCreate, AlertListItem, AlertRead, AlertTransition
 from app.services.alerts import create_alert, transition_alert_status
@@ -31,17 +31,19 @@ async def list_alerts(
     job_id: int | None = Query(default=None, description="Scope to alerts raised on this print job's layers"),
     db: AsyncSession = Depends(get_db),
 ) -> list[AlertListItem]:
-    # printer_name joined in here rather than left to the frontend - avoids an N+1 of
-    # printer lookups for what's meant to be a single at-a-glance list.
-    stmt = select(Alert, Printer.name).join(Printer, Printer.id == Alert.printer_id)
+    # printer_name, the job and the layer joined in here rather than left to the frontend - avoids
+    # an N+1 of lookups for what's meant to be a single at-a-glance list. Alert has no job_id
+    # column: the job is only reachable through its detection's capture's layer.
+    stmt = (
+        select(Alert, Printer.name, Layer.job_id, Layer.layer_number, PrintJob.file_name)
+        .join(Printer, Printer.id == Alert.printer_id)
+        .outerjoin(Detection, Detection.id == Alert.detection_id)
+        .outerjoin(LayerCapture, LayerCapture.id == Detection.capture_id)
+        .outerjoin(Layer, Layer.id == LayerCapture.layer_id)
+        .outerjoin(PrintJob, PrintJob.id == Layer.job_id)
+    )
     if job_id is not None:
-        # Alert has no job_id column - only reachable through its detection's capture's layer.
-        stmt = (
-            stmt.join(Detection, Detection.id == Alert.detection_id)
-            .join(LayerCapture, LayerCapture.id == Detection.capture_id)
-            .join(Layer, Layer.id == LayerCapture.layer_id)
-            .where(Layer.job_id == job_id)
-        )
+        stmt = stmt.where(Layer.job_id == job_id)
     stmt = stmt.order_by(Alert.created_at.desc())
     if status_filter is not None:
         stmt = stmt.where(Alert.status == status_filter)
@@ -58,8 +60,11 @@ async def list_alerts(
             acknowledged_by=alert.acknowledged_by,
             acknowledged_at=alert.acknowledged_at,
             created_at=alert.created_at,
+            print_job_id=print_job_id,
+            layer_number=layer_number,
+            file_name=file_name,
         )
-        for alert, printer_name in rows
+        for alert, printer_name, print_job_id, layer_number, file_name in rows
     ]
 
 

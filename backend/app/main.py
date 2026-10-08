@@ -19,6 +19,8 @@ from app.ws.redis_listener import redis_listener
 # Without this the root logger stays at WARNING and the listeners' layer/job transitions
 # (logged at INFO) never reach the container log.
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+# httpx logs every request at INFO; the event log polls the printer's console every ~2 s.
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 
 @asynccontextmanager

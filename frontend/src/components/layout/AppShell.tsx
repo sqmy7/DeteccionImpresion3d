@@ -122,10 +122,13 @@ export function AppShell() {
   useEffect(() => setDrawerOpen(false), [location.pathname]);
 
   return (
-    <div className="min-h-screen lg:pl-60">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 border-r border-line bg-surface lg:flex">
-        <SidebarContent alerts={alerts} />
-      </aside>
+    <div className="min-h-screen lg:flex">
+      {/* The column stretches with the page (so its background does too); the menu sticks to the top. */}
+      <div className="hidden w-60 shrink-0 border-r border-line bg-surface lg:block">
+        <aside className="sticky top-0 z-30 flex h-screen">
+          <SidebarContent alerts={alerts} />
+        </aside>
+      </div>
 
       {drawerOpen && (
         <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true" aria-label="Menú">
@@ -143,29 +146,31 @@ export function AppShell() {
         </div>
       )}
 
-      <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-line bg-canvas/90 px-4 backdrop-blur lg:hidden">
-        <button onClick={() => setDrawerOpen(true)} aria-label="Abrir menú" className="-ml-1 rounded-md p-2 text-muted hover:text-fg">
-          <Menu size={20} />
-        </button>
-        <Logo />
-        <div className="ml-auto flex items-center gap-3">
-          <ConnectionStatus compact />
-          <Link to="/alerts" aria-label="Alertas" className="relative rounded-md p-2 text-muted hover:text-fg">
-            <Bell size={19} />
-            {alerts > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 rounded-full bg-danger px-1 text-[10px] font-semibold tabular text-white">
-                {alerts}
-              </span>
-            )}
-          </Link>
-        </div>
-      </header>
+      <div className="min-w-0 flex-1">
+        <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-line bg-canvas/90 px-4 backdrop-blur lg:hidden">
+          <button onClick={() => setDrawerOpen(true)} aria-label="Abrir menú" className="-ml-1 rounded-md p-2 text-muted hover:text-fg">
+            <Menu size={20} />
+          </button>
+          <Logo />
+          <div className="ml-auto flex items-center gap-3">
+            <ConnectionStatus compact />
+            <Link to="/alerts" aria-label="Alertas" className="relative rounded-md p-2 text-muted hover:text-fg">
+              <Bell size={19} />
+              {alerts > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 rounded-full bg-danger px-1 text-[10px] font-semibold tabular text-white">
+                  {alerts}
+                </span>
+              )}
+            </Link>
+          </div>
+        </header>
 
-      <main className="mx-auto w-full max-w-[1600px] px-4 py-4 sm:px-6 sm:py-6">
-        <Suspense fallback={<Skeleton className="h-96 w-full" />}>
-          <Outlet />
-        </Suspense>
-      </main>
+        <main className="mx-auto w-full max-w-[1600px] px-4 py-4 sm:px-6 sm:py-6">
+          <Suspense fallback={<Skeleton className="h-96 w-full" />}>
+            <Outlet />
+          </Suspense>
+        </main>
+      </div>
     </div>
   );
 }

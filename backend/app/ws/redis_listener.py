@@ -3,6 +3,7 @@ import logging
 
 import redis.asyncio as redis
 
+from app.core.config import settings
 from app.db.session import async_session_factory
 from app.services.auto_pause import auto_pause_manager
 from app.services.jam_detection import check_jam_trend
@@ -27,14 +28,15 @@ CHANNEL_EVENT_TYPES = {
 
 
 async def redis_listener(redis_client: "redis.Redis") -> None:
+    channels = {f"{settings.redis_channel_prefix}{name}": event_type for name, event_type in CHANNEL_EVENT_TYPES.items()}
     pubsub = redis_client.pubsub()
-    await pubsub.subscribe(*CHANNEL_EVENT_TYPES.keys())
+    await pubsub.subscribe(*channels.keys())
 
     async for message in pubsub.listen():
         if message["type"] != "message":
             continue
 
-        event_type = CHANNEL_EVENT_TYPES.get(message["channel"])
+        event_type = channels.get(message["channel"])
         if event_type is None:
             continue
 

@@ -13,6 +13,7 @@ from fastapi import HTTPException
 from sqlalchemy import func, insert, select
 from sqlalchemy.exc import IntegrityError
 
+from app.core.config import settings
 from app.db.models import JobStatus, Layer, Printer, PrinterStatus, PrintJob, TelemetrySample
 from app.integrations.moonraker import command_log
 from app.integrations.moonraker.interventions import (
@@ -91,6 +92,10 @@ class _PrinterState:
         self.job_id: int | None = None  # the open print job, kept in step by _sync_job
         self.connected = False  # subscription answered; a later disconnect is worth logging
         self.saved_geometry: tuple[int, dict] | None = None  # (job id, geometry) last stored
+        # Speed along Y (mm/s) from consecutive live positions: on a bed-slinger it is how fast the
+        # bed slides in a fixed camera's image, which is what limits locating a defect on the bed.
+        self.velocity_y: float | None = None
+        self._last_live_y: tuple[float, float] | None = None  # (eventtime, y)
 
     @property
     def message(self) -> str | None:
@@ -115,6 +120,11 @@ class _PrinterState:
                 self.status.setdefault(name, {}).update(values)
         if isinstance(eventtime, (int, float)):
             self.eventtime = float(eventtime)
+            live = (status.get("motion_report") or {}).get("live_position")
+            if isinstance(live, list) and len(live) > 1 and isinstance(live[1], (int, float)):
+                if self._last_live_y is not None and eventtime - self._last_live_y[0] > 0.05:
+                    self.velocity_y = (live[1] - self._last_live_y[1]) / (eventtime - self._last_live_y[0])
+                self._last_live_y = (float(eventtime), float(live[1]))
 
         print_stats = status.get("print_stats", {})
         virtual_sdcard = status.get("virtual_sdcard", {})
@@ -639,12 +649,10 @@ async def _handle_layer_change(db_session_factory, redis_client, printer_id: int
             logger.warning("Layer %s on printer %s with no running print job; skipping", layer_number, printer_id)
             return
 
-        layer = Layer(
-            job_id=job_id,
-            layer_number=layer_number,
-            z_height=z_height,
-            telemetry=telemetry.layer_snapshot(state.status),
-        )
+        snapshot = telemetry.layer_snapshot(state.status)
+        if state.velocity_y is not None:
+            snapshot["velocity_y"] = round(state.velocity_y, 1)
+        layer = Layer(job_id=job_id, layer_number=layer_number, z_height=z_height, telemetry=snapshot)
         db.add(layer)
         try:
             await db.commit()
@@ -659,7 +667,7 @@ async def _handle_layer_change(db_session_factory, redis_client, printer_id: int
     # Same channel and payload the manual trigger (scripts/mark_layers.py) publishes, so
     # capture/inference/frontend see no difference between an automatic and a manual layer.
     await redis_client.publish(
-        f"layer_ready:{printer_id}",
+        f"{settings.redis_channel_prefix}layer_ready:{printer_id}",
         json.dumps(
             {
                 "printer_id": printer_id,

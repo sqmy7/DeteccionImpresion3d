@@ -10,6 +10,7 @@ venv/
 # Datos generados
 storage/snapshots/*
 !storage/snapshots/.gitkeep
+storage/demo_snapshots/
 inference/models/*
 !inference/models/.gitkeep
 # Modelos entrenados y sus metricas (resultados del proyecto). El dummy sigue ignorado.
@@ -21,7 +22,7 @@ inference/models/*
 .vscode/
 .idea/
 
-# Config local de Claude Code (herramienta de desarrollo, no parte del proyecto)
+# Configuración local de herramientas de desarrollo (no es parte del proyecto)
 .claude/
 
 # Backups manuales de la base (generados ad-hoc, no versionar)

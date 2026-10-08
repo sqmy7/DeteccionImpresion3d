@@ -1,6 +1,6 @@
 import { Download, FileText, MapPin, Pause, Play, ScrollText, SkipBack } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
 import { BedMapView, MeshLegend } from "../components/bed/BedMapView";
 import { EventList } from "../components/events/EventList";
 import { JobAlertsPanel } from "../components/JobAlertsPanel";
@@ -48,6 +48,9 @@ export function JobReplayPage() {
   const { printer } = usePrinterContext();
   const { jobId: jobIdParam } = useParams<{ jobId: string }>();
   const jobId = Number(jobIdParam);
+  // ?capa=N opens the replay at that layer (links from the alerts).
+  const [searchParams] = useSearchParams();
+  const initialLayer = Number(searchParams.get("capa")) || null;
 
   const job = useApi((token) => getPrintJob(token, jobId), [jobId]);
   const summary = useApi((token) => getJobSummary(token, jobId), [jobId]);
@@ -64,8 +67,11 @@ export function JobReplayPage() {
   const [speed, setSpeed] = useState<Speed>("60");
 
   useEffect(() => {
-    if (job.data && t === null) setT(end);
-  }, [job.data, end, t]);
+    if (!job.data || t !== null) return;
+    if (initialLayer !== null && !layers.data && !layers.error) return; // wait to start at that layer
+    const layer = initialLayer !== null ? layers.data?.find((item) => item.layer_number === initialLayer) : undefined;
+    setT(layer ? Date.parse(layer.detected_at) : end);
+  }, [job.data, end, t, initialLayer, layers.data, layers.error]);
 
   useEffect(() => {
     if (!playing) return;
@@ -182,7 +188,7 @@ export function JobReplayPage() {
         />
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
         <Card title={currentLayer ? `Capa ${currentLayer.layer_number} en ese momento` : "Antes de la primera capa"}>
           {entries.length === 0 ? (
             <EmptyState title="Sin capas registradas" />

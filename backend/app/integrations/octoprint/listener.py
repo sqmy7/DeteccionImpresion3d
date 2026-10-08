@@ -9,6 +9,7 @@ import websockets
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
+from app.core.config import settings
 from app.core.security import decrypt_secret
 from app.db.models import JobStatus, Layer, Printer, PrinterStatus, PrintJob
 from app.integrations.octoprint.client import OctoPrintClient
@@ -133,7 +134,7 @@ async def _handle_layer_changed(db_session_factory, redis_client, printer_id: in
             await db.rollback()
 
     await redis_client.publish(
-        f"layer_ready:{printer_id}",
+        f"{settings.redis_channel_prefix}layer_ready:{printer_id}",
         json.dumps(
             {
                 "printer_id": printer_id,

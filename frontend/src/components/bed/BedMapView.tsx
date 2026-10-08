@@ -3,6 +3,7 @@ import { classCode, classColor, classLabel } from "../../config/defectClasses";
 import type { BedGeometry, BedMesh, LocatedDefect } from "../../types/api";
 
 const MARGIN = 14; // mm of room around the bed for labels
+const RIGHT_MARGIN = 22; // the X axis caption sits right of the last tick
 const GRID_MM = 20;
 const DEFAULT_SIZE = 260; // Creality Hi spec sheet, when Klipper hasn't reported its limits
 const MAX_UNCERTAINTY_DRAWN = 45;
@@ -39,14 +40,17 @@ function MeshLayer({ mesh, sy }: { mesh: BedMesh; sy: (y: number) => number }) {
   const cellH = (maxY - minY) / Math.max(1, rows.length - 1);
   const limit = Math.max(0.01, ...rows.flat().map((value) => Math.abs(value)));
 
+  // One cell per probe point, clipped to the probed area, faint enough to read what's on top.
   return (
-    <g opacity={0.45}>
+    <g opacity={0.2}>
       {rows.map((row, rowIndex) =>
         row.map((value, columnIndex) => {
-          const x = minX + columnIndex * cellW - cellW / 2;
-          const y = minY + rowIndex * cellH - cellH / 2;
+          const x0 = Math.max(minX, minX + columnIndex * cellW - cellW / 2);
+          const x1 = Math.min(maxX, minX + columnIndex * cellW + cellW / 2);
+          const y0 = Math.max(minY, minY + rowIndex * cellH - cellH / 2);
+          const y1 = Math.min(maxY, minY + rowIndex * cellH + cellH / 2);
           return (
-            <rect key={`${rowIndex}-${columnIndex}`} x={x} y={sy(y + cellH)} width={cellW} height={cellH} fill={meshColor(value, limit)}>
+            <rect key={`${rowIndex}-${columnIndex}`} x={x0} y={sy(y1)} width={x1 - x0} height={y1 - y0} fill={meshColor(value, limit)}>
               <title>{`Malla: ${value >= 0 ? "+" : ""}${value.toFixed(3)} mm`}</title>
             </rect>
           );
@@ -133,7 +137,7 @@ export function BedMapView({
 
   return (
     <svg
-      viewBox={`${-MARGIN} ${-MARGIN} ${width + MARGIN * 2} ${depth + MARGIN * 2}`}
+      viewBox={`${-MARGIN} ${-MARGIN} ${width + MARGIN + RIGHT_MARGIN} ${depth + MARGIN * 2}`}
       className={`h-auto w-full select-none ${className}`}
       role="img"
       aria-label={`Mapa de la cama de ${width} por ${depth} milímetros`}
@@ -169,6 +173,9 @@ export function BedMapView({
           ))}
         <text x={width / 2} y={-5} textAnchor="middle">
           fondo
+        </text>
+        <text x={0} y={-5} textAnchor="start">
+          Y mm
         </text>
         <text x={width + 4} y={depth + 9} textAnchor="start">
           X mm

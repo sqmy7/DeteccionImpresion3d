@@ -5,7 +5,7 @@ import { usePrinterContext } from "../components/layout/PrinterLayout";
 import { Badge, Button, Card, EmptyState, ErrorNote, Segmented, Skeleton, Table, Td, Th } from "../components/ui";
 import { DEFECT_CLASS_LABELS } from "../config/defectClasses";
 import { useAuth } from "../hooks/useAuth";
-import { formatDateTime, formatNumber, relativeAge } from "../lib/format";
+import { countOf, formatDateTime, formatNumber, relativeAge } from "../lib/format";
 import { applyHomography, isConvexInOrder, solveHomography, type Point } from "../lib/homography";
 import { useLiveTelemetry } from "../lib/telemetryStore";
 import { useApi } from "../lib/useApi";
@@ -372,8 +372,8 @@ function BedDefectsCard({ printerId, geometry }: { printerId: number; geometry: 
           />
           <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs text-muted">
-              {heatmap.data.located} defectos ubicados en {heatmap.data.jobs} trabajos · {heatmap.data.unreliable} poco confiables (no se cuentan) ·{" "}
-              {heatmap.data.skipped_boxes} sin ubicar
+              {countOf(heatmap.data.located, "defecto ubicado", "defectos ubicados")} en {countOf(heatmap.data.jobs, "trabajo")} ·{" "}
+              {countOf(heatmap.data.unreliable, "poco confiable", "poco confiables")} (no se cuentan) · {heatmap.data.skipped_boxes} sin ubicar
             </p>
             {showMesh === "mesh" && <MeshLegend mesh={heatmap.data.bed_mesh} />}
           </div>

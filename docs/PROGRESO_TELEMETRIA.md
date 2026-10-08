@@ -19,9 +19,9 @@ Lo que necesita la impresora real queda preparado para correrlo después y anota
 |---|---|
 | 0. Descubrimiento | Parte sin impresora terminada; falta correr el script en el laboratorio |
 | 1. Telemetría con fecha y hora | Terminada y desplegada; falta verificarla con la impresora real |
-| 2. Bitácora de intervenciones | Backend terminado y desplegado; la pantalla de la bitácora va en la Fase 4 |
-| 3. Mapa de la cama | Backend terminado y desplegado; falta calibrar la cámara real; la pantalla va en la Fase 4 |
-| 4. Rediseño de la web | Sin empezar |
+| 2. Bitácora de intervenciones | Terminada y desplegada (pantalla en la Fase 4); falta verla con una impresión real |
+| 3. Mapa de la cama | Terminada y desplegada (pantalla en la Fase 4); falta calibrar la cámara real |
+| 4. Rediseño de la web | Terminada; probada con la impresora simulada (modo demostración) |
 | 5. Innovación | Sin empezar |
 
 ## Fase 0: descubrimiento
@@ -172,8 +172,8 @@ con la C922.
 - De paso: el listener deja una sola línea de aviso por reintento cuando la impresora no responde (antes
   una traza completa cada 10 s), y se silenciaron dos avisos de Pydantic del arranque.
 
-**Pendiente:** pantalla de calibración y vista del mapa (con la Fase 4); calibrar la C922 en el
-laboratorio.
+**Pendiente:** calibrar la C922 en el laboratorio (la pantalla de calibración y la vista del mapa se
+hicieron en la Fase 4).
 
 **Decisiones:**
 - Una fila por calibración: cada detección se ubica con la calibración vigente cuando se capturó; si
@@ -182,6 +182,75 @@ laboratorio.
 - En cama móvil, el desplazamiento usa la Y del cabezal de la foto de la capa; como la foto y la
   posición pueden estar hasta ~0,3 s desfasadas, el error estimado crece con la velocidad y la
   ubicación se marca como poco confiable por encima de 20 mm.
+
+## Fase 4: rediseño de la web
+
+**Hecho:**
+- Sistema de diseño: colores como variables CSS (`frontend/src/index.css`) usados por Tailwind,
+  tema oscuro, paleta Okabe-Ito (distinguible con daltonismo) y cada clase de defecto con un código
+  de dos letras además del color (`config/defectClasses.ts`). Componentes base en
+  `components/ui/` (botón, tarjeta, insignia, indicador, pestañas, tabla, estados de carga, vacío y
+  error). Íconos de `lucide-react`; gráficas con Recharts. Fechas y horas en hora de Colombia
+  (`lib/format.ts`).
+- Estructura: menú lateral en pantallas anchas y menú desplegable en el celular; cada impresora con
+  pestañas En vivo, Trabajos, Bitácora y Cámara y cama.
+- Pantallas:
+  - **Panel general:** totales, tarjeta por impresora con foto, progreso y temperaturas, y la
+    actividad reciente de la bitácora.
+  - **Impresión en vivo:** video, progreso con tiempo restante, lecturas (temperaturas, velocidad,
+    flujo, ventilador, desfase de Z, sensores extra), gráficas de telemetría con marcas de eventos y
+    capas con defecto, mapa de la cama (piezas, recorrido del cabezal, defectos con su error), tira de
+    capas con la foto y el análisis de cada una, bitácora y alertas del trabajo.
+  - **Historial y repetición:** lista de trabajos; repetición a ×10, ×60 o ×300 en la que todo (capa,
+    foto, cama, lecturas, bitácora) muestra ese instante; clic en la gráfica para saltar; exportar las
+    capas en CSV; `?capa=N` abre la repetición en esa capa (lo usan las alertas).
+  - **Bitácora:** filtros por tipo y por origen, por trabajo, verificación de la cadena de hashes y
+    explicación de cada origen.
+  - **Cámara y cama:** calibración marcando las cuatro esquinas sobre la foto (avisa si el cuadro es
+    viejo o si la cama se movía), historial de calibraciones y mapa de calor de defectos con o sin la
+    malla.
+  - **Analítica:** trabajos, tasa de éxito, horas, capas con defecto, intervenciones y filamento;
+    defectos por clase, resultados, intervenciones por origen, defectos por trabajo, estabilidad de la
+    boquilla y tabla de trabajos; por impresora y por período.
+  - **Alertas:** centro con filtros por estado; cada alerta dice el trabajo, el archivo y la capa, con
+    enlace a la repetición en esa capa.
+  - Los avisos de pausa automática (pendiente con cuenta regresiva, ejecutada, fallida) pasaron al
+    sistema de diseño sin cambiar su lógica.
+- Backend para estas pantallas: `GET /analytics/summary`; la lista de alertas incluye trabajo, capa y
+  archivo; la foto de cada capa guarda la velocidad en Y medida (`velocity_y`, para el error del mapa
+  en cama móvil); un trabajo que el listener encuentra terminado al conectarse se cierra con la hora de
+  su última capa (antes quedaba con la hora de la reconexión: así salió el trabajo 34 con 94 h).
+- **Modo demostración** (`backend/scripts/demo_environment.py`, explicado en el README): base
+  `printwatch_demo`, impresora simulada, backend en el puerto 8010 aislado del real (Redis en la base
+  2, canales con prefijo `demo:` gracias a `REDIS_CHANNEL_PREFIX`, fotos en
+  `storage/demo_snapshots/`) y detecciones sintéticas marcadas como tales. El guion cubre
+  intervenciones, una cancelación, la alerta de atasco y una pausa automática con reanudación desde
+  la consola; `--live` deja una sola impresión en curso.
+- Capturas en escritorio y celular en `docs/capturas/` (17), tomadas con Playwright y Edge sobre el
+  modo demostración.
+- Pruebas: 97 (nueva: la lista de alertas con su trabajo y capa). `npm run build` sin errores.
+
+**Mediciones del frontend (compilado):** carga inicial 236 KB (74 KB comprimido); Recharts y las
+gráficas van en un bloque aparte de 386 KB (107 KB comprimido) que solo se descarga al abrir una
+página con gráficas. Las series largas llegan ya reducidas por el servidor (1.500 puntos como máximo
+en la repetición).
+
+**Decisiones:**
+- Solo tema oscuro: es el que se usa junto al video de la cámara. Al estar todo en variables, un tema
+  claro sería otra lista de valores.
+- Fuentes del sistema, no fuentes web: la red del laboratorio puede no tener internet.
+- Las marcas de tiempo de las gráficas se calculan en horas redondas (cada 15 s, 1 min, 5 min...)
+  según el ancho disponible; las automáticas de Recharts caían en segundos sueltos y a veces se
+  superponían.
+- La telemetría en vivo se guarda en un almacén propio (`lib/telemetryStore.ts`) fuera del estado de
+  React; solo se redibujan los componentes que la leen.
+- El mapa de la cama dibuja los defectos poco confiables como un círculo punteado del tamaño de su
+  error, en vez de esconderlos; el mapa de calor no los cuenta.
+- La demostración nunca usa la base, el Redis ni las fotos del sistema real, y sus detecciones son
+  sintéticas: sirve para mostrar la interfaz y el flujo, no mide el modelo.
+
+**Pendiente:** ver la web con la impresora real (video de la C922, telemetría real, mapa con la
+calibración real) y desde el celular en la red del laboratorio.
 
 ## Pendiente con la impresora
 
@@ -204,3 +273,6 @@ Antes de cualquier prueba: VPN HotspotShield desconectada, sesión `wsl -- sleep
    está fija (la cama se mueve en la imagen) o va sobre la cama. Revisar que la posición de cámara
    estimada sea razonable (altura y distancia aproximadas a la real) y, en la siguiente impresión con
    detecciones, que los defectos caigan sobre la pieza en el mapa.
+5. Fase 4: durante esa impresión, recorrer las pantallas en el computador y en el celular (misma red):
+   video en vivo, lecturas que cambian cada segundo, marcas de la bitácora en las gráficas, tira de
+   capas con fotos y, al terminar, la repetición y la analítica del trabajo.

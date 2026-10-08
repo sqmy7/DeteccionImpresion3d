@@ -19,6 +19,10 @@ class Settings(BaseSettings):
     # Read (GET, rate-limited) the G-code file being printed to tell programmed changes from
     # interventions in the event log. False: those changes show as "external".
     gcode_scan_enabled: bool = True
+    # Prepended to the Redis pub/sub channels this backend uses (layer_ready:*, events:*). Empty
+    # for the real system; the demo mode (scripts/demo_environment.py) sets one so a second
+    # backend on the same Redis never mixes with the real one.
+    redis_channel_prefix: str = ""
 
 
 settings = Settings()

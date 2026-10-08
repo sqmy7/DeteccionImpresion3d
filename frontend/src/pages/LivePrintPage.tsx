@@ -130,7 +130,10 @@ export function LivePrintPage() {
 
   const entries = useMemo(() => timeline.data ?? [], [timeline.data]);
   useEffect(() => {
-    if (followLatest && entries.length) setSelectedLayer(entries[entries.length - 1].layer_number);
+    if (!followLatest || !entries.length) return;
+    // The newest layer may still be waiting for its photo; show the newest one that has it.
+    const latestWithPhoto = [...entries].reverse().find((entry) => entry.capture_id) ?? entries[entries.length - 1];
+    setSelectedLayer(latestWithPhoto.layer_number);
   }, [entries, followLatest]);
 
   const allEvents = useMemo(() => {
@@ -173,7 +176,7 @@ export function LivePrintPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <Card
           title={
             <span className="flex items-center gap-2">

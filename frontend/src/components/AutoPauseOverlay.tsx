@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { AlertTriangle, PauseCircle, XCircle } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
+import { Button } from "./ui";
 import { useAuth } from "../hooks/useAuth";
 import { useWsEvent } from "../hooks/useWebSocket";
 import { abortAutoPause } from "../services/printJobs";
@@ -15,7 +17,7 @@ type ExecutedState = { phase: "executed"; printerId: number };
 type FailedState = { phase: "failed"; printerId: number; reason: string };
 type AutoPauseState = PendingState | ExecutedState | FailedState;
 
-/** Mounted once at the app root (see App.tsx), not inside JobDetailPage - an auto-pause is
+/** Mounted once at the app root (see App.tsx), not inside a job page - an auto-pause is
  * severe enough that it must interrupt whatever screen the user is on, not just the one for
  * the affected job. Keyed by job_id so more than one printer's pause can be shown at once,
  * though today there is exactly one printer. */
@@ -116,24 +118,24 @@ function AutoPauseBanner({
     };
 
     return (
-      <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-3 rounded-lg border-2 border-red-500 bg-red-950/95 p-4 shadow-xl sm:flex-row sm:justify-between">
-        <div>
-          <p className="text-base font-bold text-red-100">
-            ⚠ Spaghetti detectado {state.consecutiveLayers} capas seguidas en {printerName}
+      <Banner tone="danger" icon={<AlertTriangle size={20} />}>
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold text-fg">
+            Spaghetti detectado {state.consecutiveLayers} capas seguidas en {printerName}
           </p>
-          <p className="text-sm text-red-200">
+          <p className="text-sm text-muted">
             Se va a pausar la impresión automáticamente en{" "}
-            <span className="font-mono text-lg font-bold">{remainingSeconds}s</span> si no se aborta.
+            {/* Not re-announced by screen readers every second. */}
+            <span aria-live="off" className="font-mono text-lg font-bold tabular text-danger-fg">
+              {remainingSeconds}s
+            </span>{" "}
+            si no se aborta.
           </p>
         </div>
-        <button
-          onClick={handleAbort}
-          disabled={busy}
-          className="shrink-0 rounded-md bg-white px-5 py-2.5 text-sm font-bold text-red-900 hover:bg-red-50 disabled:opacity-60"
-        >
+        <Button variant="danger" onClick={handleAbort} disabled={busy}>
           Abortar pausa
-        </button>
-      </div>
+        </Button>
+      </Banner>
     );
   }
 
@@ -152,36 +154,49 @@ function AutoPauseBanner({
     };
 
     return (
-      <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-3 rounded-lg border-2 border-amber-500 bg-amber-950/95 p-4 shadow-xl sm:flex-row sm:justify-between">
-        <div>
-          <p className="text-base font-bold text-amber-100">⏸ {printerName} pausada automáticamente</p>
-          <p className="text-sm text-amber-200">Motivo: spaghetti detectado en varias capas seguidas.</p>
+      <Banner tone="warn" icon={<PauseCircle size={20} />}>
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold text-fg">{printerName} pausada automáticamente</p>
+          <p className="text-sm text-muted">Motivo: spaghetti detectado en varias capas seguidas.</p>
         </div>
         <div className="flex shrink-0 gap-2">
-          <button
-            onClick={handleResume}
-            disabled={busy}
-            className="rounded-md bg-white px-5 py-2.5 text-sm font-bold text-amber-900 hover:bg-amber-50 disabled:opacity-60"
-          >
+          <Button variant="warn" onClick={handleResume} disabled={busy}>
             Reanudar impresión
-          </button>
-          <button onClick={onDismiss} className="rounded-md px-3 py-2.5 text-sm text-amber-300 hover:text-amber-100">
+          </Button>
+          <Button variant="ghost" onClick={onDismiss}>
             Cerrar
-          </button>
+          </Button>
         </div>
-      </div>
+      </Banner>
     );
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl items-center justify-between gap-3 rounded-lg border-2 border-red-500 bg-red-950/95 p-4 shadow-xl">
-      <div>
-        <p className="text-base font-bold text-red-100">✗ No se pudo pausar {printerName} automáticamente</p>
-        <p className="text-sm text-red-200">{state.reason}</p>
+    <Banner tone="danger" icon={<XCircle size={20} />}>
+      <div className="min-w-0 flex-1">
+        <p className="font-semibold text-fg">No se pudo pausar {printerName} automáticamente</p>
+        <p className="text-sm text-muted">{state.reason}</p>
       </div>
-      <button onClick={onDismiss} className="shrink-0 rounded-md px-3 py-2.5 text-sm text-red-300 hover:text-red-100">
+      <Button variant="ghost" onClick={onDismiss}>
         Cerrar
-      </button>
+      </Button>
+    </Banner>
+  );
+}
+
+const BANNER_TONES = {
+  danger: "border-danger/70 text-danger-fg",
+  warn: "border-warn/70 text-warn-fg",
+};
+
+function Banner({ tone, icon, children }: { tone: keyof typeof BANNER_TONES; icon: ReactNode; children: ReactNode }) {
+  return (
+    <div
+      role="alert"
+      className={`mx-auto flex w-full max-w-2xl flex-col gap-3 rounded-xl border-2 bg-surface-2/95 p-4 shadow-2xl backdrop-blur sm:flex-row sm:items-center ${BANNER_TONES[tone]}`}
+    >
+      <span className="hidden shrink-0 sm:block">{icon}</span>
+      {children}
     </div>
   );
 }

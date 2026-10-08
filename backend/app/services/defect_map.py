@@ -139,13 +139,16 @@ async def locate_job_defects(db: AsyncSession, job: PrintJob) -> tuple[list[dict
                 continue
             row, model = calibration
             z = float(layer.z_height)
+            # The bed's own speed (Y) when known; the head's total speed is an upper bound for it.
+            speed = snapshot.get("velocity_y")
+            speed = abs(speed) if speed is not None else snapshot.get("velocity")
             location = bed_map.locate(
                 model,
                 (box[0] + box[2]) / 2,
                 (box[1] + box[3]) / 2,
                 z=z,
                 toolhead_y=snapshot.get("y"),
-                speed=snapshot.get("velocity"),
+                speed=speed,
             )
             located.append(
                 {

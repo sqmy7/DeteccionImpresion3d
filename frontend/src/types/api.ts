@@ -130,6 +130,9 @@ export interface AlertListItem {
   acknowledged_by: number | null;
   acknowledged_at: string | null;
   created_at: string;
+  print_job_id: number | null;
+  layer_number: number | null;
+  file_name: string | null;
 }
 
 // --- Telemetry (backend Fase 1) ---
