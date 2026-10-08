@@ -113,6 +113,63 @@ def test_listener_records_layers_telemetry_and_attributed_events(mock_server, wi
     assert chain["ok"] is True
 
 
+def test_job_found_finished_on_connect_ends_at_its_last_layer(mock_server, with_db):
+    """The print finished while PrintWatch wasn't listening: the job must not end "now"."""
+    from datetime import datetime, timedelta, timezone
+    from decimal import Decimal
+
+    async def scenario(session_factory):
+        async with httpx.AsyncClient(base_url=mock_server) as client:
+            (await client.post("/printer/print/start", params={"filename": "mock_box.gcode"})).raise_for_status()
+            deadline = time.monotonic() + 40
+            while True:
+                state = (await client.get("/printer/objects/query", params={"print_stats": "state"})).json()
+                if state["result"]["status"]["print_stats"]["state"] == "complete":
+                    break
+                assert time.monotonic() < deadline, "the simulated print did not finish"
+                await asyncio.sleep(0.5)
+
+        last_layer_at = datetime.now(timezone.utc) - timedelta(hours=3)
+        async with session_factory() as db:
+            printer = Printer(name="Simulada", octoprint_url=mock_server, octoprint_api_key_encrypted="", integration_type=IntegrationType.moonraker)
+            db.add(printer)
+            await db.flush()
+            job = PrintJob(printer_id=printer.id, file_name="mock_box.gcode", started_at=last_layer_at - timedelta(hours=1))
+            db.add(job)
+            await db.flush()
+            db.add_all(
+                [
+                    Layer(job_id=job.id, layer_number=1, z_height=Decimal("0.2"), detected_at=last_layer_at - timedelta(minutes=30)),
+                    Layer(job_id=job.id, layer_number=2, z_height=Decimal("0.4"), detected_at=last_layer_at),
+                ]
+            )
+            await db.commit()
+            printer_id, job_id = printer.id, job.id
+
+        listener = asyncio.create_task(run_moonraker_listener(printer_id, session_factory, _FakeRedis()))
+        try:
+            async def closed():
+                async with session_factory() as db:
+                    return (await db.get(PrintJob, job_id)).status != JobStatus.running
+
+            await _wait_for(closed, 15, "the job to be closed")
+        finally:
+            listener.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await listener
+
+        async with session_factory() as db:
+            job = await db.get(PrintJob, job_id)
+            connected = (await db.execute(select(PrinterEvent).where(PrinterEvent.event_type == "monitor_connected"))).scalar_one()
+        return job, connected, last_layer_at
+
+    job, connected, last_layer_at = with_db(scenario)
+
+    assert job.status == JobStatus.completed
+    assert job.ended_at == last_layer_at
+    assert connected.detail["closed_on_connect"] is True and connected.print_job_id == job.id
+
+
 def test_interventions_are_attributed_to_console_file_printwatch_or_external(mock_server, with_db, monkeypatch):
     """A print with one change of every kind: programmed in the file (directly and through the
     START_PRINT/END_PRINT macros), typed in the console, made on the printer's screen, and a pause

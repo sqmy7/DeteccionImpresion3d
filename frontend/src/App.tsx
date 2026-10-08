@@ -1,3 +1,4 @@
+import { lazy } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AutoPauseOverlay } from "./components/AutoPauseOverlay";
 import { AppShell } from "./components/layout/AppShell";
@@ -6,13 +7,17 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { PrintersProvider } from "./context/PrintersContext";
 import { WebSocketProvider } from "./context/WebSocketContext";
 import { AlertCenterPage } from "./pages/AlertCenterPage";
-import { CalibrationPage } from "./pages/CalibrationPage";
-import { JobReplayPage } from "./pages/JobReplayPage";
 import { JobsListPage } from "./pages/JobsListPage";
-import { LivePrintPage } from "./pages/LivePrintPage";
 import { LoginPage } from "./pages/LoginPage";
 import { LogbookPage } from "./pages/LogbookPage";
 import { OverviewPage } from "./pages/OverviewPage";
+
+// The pages with charts load on demand: the chart library is most of the bundle, and a phone on
+// the lab Wi-Fi shouldn't download it just to open the overview.
+const LivePrintPage = lazy(() => import("./pages/LivePrintPage").then((module) => ({ default: module.LivePrintPage })));
+const JobReplayPage = lazy(() => import("./pages/JobReplayPage").then((module) => ({ default: module.JobReplayPage })));
+const CalibrationPage = lazy(() => import("./pages/CalibrationPage").then((module) => ({ default: module.CalibrationPage })));
+const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage").then((module) => ({ default: module.AnalyticsPage })));
 
 export function App() {
   return (
@@ -29,6 +34,7 @@ export function App() {
             }
           >
             <Route index element={<OverviewPage />} />
+            <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="alerts" element={<AlertCenterPage />} />
             <Route path="printers/:printerId" element={<PrinterLayout />}>
               <Route index element={<Navigate to="live" replace />} />

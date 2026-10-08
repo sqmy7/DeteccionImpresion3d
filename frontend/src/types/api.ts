@@ -291,6 +291,45 @@ export interface JobBedMap {
   head_path: [number, number][];
 }
 
+// --- Analytics ---
+
+export interface JobAnalytics {
+  id: number;
+  printer_id: number;
+  file_name: string;
+  status: JobStatus;
+  started_at: string;
+  ended_at: string | null;
+  duration_s: number;
+  layers: number;
+  layers_with_defect: number;
+  defect_rate: number | null;
+  classes: Record<string, number>;
+  interventions: Record<string, number>;
+  telemetry_samples: number;
+  nozzle_error_mean_c: number | null;
+  nozzle_error_max_c: number | null;
+  bed_error_mean_c: number | null;
+  filament_m: number | null;
+}
+
+export interface AnalyticsSummary {
+  totals: {
+    jobs: number;
+    success_rate?: number | null;
+    print_hours?: number | null;
+    layers?: number | null;
+    layers_with_defect?: number | null;
+    defect_rate?: number | null;
+    interventions?: number | null;
+    filament_m?: number | null;
+  };
+  status_counts: Record<string, number>;
+  defects_by_class: Record<string, number>;
+  interventions_by_origin: Record<string, number>;
+  jobs: JobAnalytics[];
+}
+
 export interface BedHeatmap {
   printer_id: number;
   cell_mm: number;

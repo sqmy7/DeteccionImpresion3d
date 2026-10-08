@@ -58,7 +58,10 @@ async def create_print_job(db: AsyncSession, printer_id: int, payload: PrintJobC
     return job
 
 
-async def transition_job_status(db: AsyncSession, job: PrintJob, new_status: JobStatus) -> PrintJob:
+async def transition_job_status(
+    db: AsyncSession, job: PrintJob, new_status: JobStatus, ended_at: datetime | None = None
+) -> PrintJob:
+    """ended_at defaults to now; callers that only learn about the end later pass a better time."""
     allowed = _ALLOWED_TRANSITIONS.get(job.status, set())
     if new_status not in allowed:
         raise HTTPException(
@@ -67,7 +70,7 @@ async def transition_job_status(db: AsyncSession, job: PrintJob, new_status: Job
         )
 
     job.status = new_status
-    job.ended_at = datetime.now(timezone.utc)
+    job.ended_at = ended_at or datetime.now(timezone.utc)
     await db.commit()
     await db.refresh(job)
 

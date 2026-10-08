@@ -10,7 +10,7 @@ from urllib.parse import urlsplit, urlunsplit
 
 import websockets
 from fastapi import HTTPException
-from sqlalchemy import insert, select
+from sqlalchemy import func, insert, select
 from sqlalchemy.exc import IntegrityError
 
 from app.db.models import JobStatus, Layer, Printer, PrinterStatus, PrintJob, TelemetrySample
@@ -242,7 +242,7 @@ async def _listen_once(printer_id: int, db_session_factory, redis_client, state:
                     # need syncing here, so attaching to a print already running (backend restart
                     # mid-print) still records the remaining layers.
                     await _sync_printer_status(db_session_factory, printer_id, state)
-                    await _sync_job(db_session_factory, printer_id, state)
+                    job_change = await _sync_job(db_session_factory, printer_id, state, at_connect=True)
                     await _sync_geometry(db_session_factory, printer_id, state)
                     state.connected = True
                     await _record_event_safely(
@@ -250,9 +250,9 @@ async def _listen_once(printer_id: int, db_session_factory, redis_client, state:
                         printer_id,
                         "monitor_connected",
                         EventOrigin.MONITOR,
-                        job_id=state.job_id,
+                        job_id=job_change.get("job_closed") or state.job_id,
                         after=state.state,
-                        detail={"file": state.filename, "layer": state.layer, "layer_count": state.layer_count},
+                        detail={"file": state.filename, "layer": state.layer, "layer_count": state.layer_count, **job_change},
                         klipper_eventtime=state.eventtime,
                     )
                     sampler = asyncio.create_task(_run_sampler(printer_id, base_url, db_session_factory, state))
@@ -354,10 +354,15 @@ async def _running_job_id(db, printer_id: int) -> int | None:
     return result.scalar_one_or_none()
 
 
-async def _sync_job(db_session_factory, printer_id: int, state: _PrinterState) -> dict:
+async def _sync_job(db_session_factory, printer_id: int, state: _PrinterState, at_connect: bool = False) -> dict:
     """Opens a job when the printer starts printing and closes it when Klipper reports a
     terminal state, so a print needs no manual bookkeeping to show up in the timeline. Keeps
-    state.job_id on the open job and returns what changed, for the event log."""
+    state.job_id on the open job and returns what changed, for the event log.
+
+    at_connect: the state comes from the subscription answer, not from a live change. A job found
+    already finished then ended at some unknown point while PrintWatch wasn't listening, so its
+    last recorded layer is a better end time than "now" (which once stretched a 1.5 h print to
+    four days)."""
     async with db_session_factory() as db:
         job_id = await _running_job_id(db, printer_id)
         state.job_id = job_id
@@ -386,14 +391,20 @@ async def _sync_job(db_session_factory, printer_id: int, state: _PrinterState) -
             return {}
 
         job = await db.get(PrintJob, job_id)
+        ended_at = None
+        if at_connect:
+            ended_at = await db.scalar(select(func.max(Layer.detected_at)).where(Layer.job_id == job_id))
         try:
-            await transition_job_status(db, job, new_job_status)
+            await transition_job_status(db, job, new_job_status, ended_at=ended_at)
         except HTTPException:
             logger.warning("Could not close print job %s for printer %s", job_id, printer_id, exc_info=True)
             return {}
         state.job_id = None
         logger.info("Closed print job %s for printer %s as %s", job_id, printer_id, new_job_status.value)
-        return {"job_closed": job_id, "job_status": new_job_status.value}
+        change = {"job_closed": job_id, "job_status": new_job_status.value}
+        if at_connect:
+            change["closed_on_connect"] = True
+        return change
 
 
 async def _sync_geometry(db_session_factory, printer_id: int, state: _PrinterState) -> None:
