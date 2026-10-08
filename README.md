@@ -2,7 +2,7 @@
 
 Sistema de monitoreo en tiempo real de impresoras 3D (FDM) que fotografía cada capa, detecta defectos con un modelo de visión por computador (YOLO11s exportado a ONNX) y avisa al operador mediante una interfaz web. Puede pausar la impresión automáticamente cuando detecta *spaghetti* en capas consecutivas.
 
-**Autor:** Samuel Rodriguez
+**Autores:** Samuel Rodriguez y Adrian Stiven Meneses Ávila
 
 **Defectos que detecta (6 clases):** `spaghetti`, `warping`, `stringing`, `layer_shift`, `under_extrusion`, `blob_over_extrusion`.
 
