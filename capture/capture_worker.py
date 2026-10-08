@@ -2,6 +2,7 @@ import asyncio
 import base64
 import json
 import logging
+import time
 
 import cv2
 from app.db.models import Camera, Layer, LayerCapture
@@ -125,7 +126,12 @@ async def _capture_from_camera(
     try:
         ok, encoded = cv2.imencode(".jpg", frame)
         if ok:
-            await redis_client.set(f"latest_frame:{camera.id}", base64.b64encode(encoded.tobytes()).decode("ascii"))
+            await redis_client.mset(
+                {
+                    f"latest_frame:{camera.id}": base64.b64encode(encoded.tobytes()).decode("ascii"),
+                    f"latest_frame_at:{camera.id}": str(time.time()),
+                }
+            )
     except Exception:
         logger.warning("Failed to cache latest frame for camera %s", camera.id, exc_info=True)
 

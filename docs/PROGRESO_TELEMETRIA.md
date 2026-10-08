@@ -20,7 +20,7 @@ Lo que necesita la impresora real queda preparado para correrlo después y anota
 | 0. Descubrimiento | Parte sin impresora terminada; falta correr el script en el laboratorio |
 | 1. Telemetría con fecha y hora | Terminada y desplegada; falta verificarla con la impresora real |
 | 2. Bitácora de intervenciones | Backend terminado y desplegado; la pantalla de la bitácora va en la Fase 4 |
-| 3. Mapa de la cama | En curso: matemática y servicio listos; faltan API, despliegue y pantalla |
+| 3. Mapa de la cama | Backend terminado y desplegado; falta calibrar la cámara real; la pantalla va en la Fase 4 |
 | 4. Rediseño de la web | Sin empezar |
 | 5. Innovación | Sin empezar |
 
@@ -138,9 +138,9 @@ con la C922.
 - Los comandos de consola llevan la hora de la impresora corregida por la diferencia de relojes,
   estimada con el encabezado `Date` de las respuestas.
 
-## Fase 3: mapa de la cama (en curso)
+## Fase 3: mapa de la cama
 
-**Hecho (sin desplegar todavía):**
+**Hecho:**
 - `app/services/bed_map.py`: homografía imagen-cama a partir de 4 puntos (lo mismo que
   `cv2.findHomography` con cuatro puntos, en Python puro), estimación de la focal y la posición de la
   cámara desde esa homografía (restricciones de Zhang con una vista), corrección de paralaje con la
@@ -149,7 +149,8 @@ con la C922.
 - `app/services/defect_map.py`: ubica cada caja de defecto de un trabajo con la calibración vigente
   al capturar, la foto de telemetría de la capa y los objetos del archivo; mapa de calor por celdas.
 - Migración `d4e8b2c61f05` (a mano): tabla `camera_calibrations` y columna `print_jobs.geometry`.
-  Probada en `printwatch_test` (subir, `alembic check`, bajar, subir). **No aplicada aún a la base real.**
+  Probada en `printwatch_test` (subir, `alembic check`, bajar, subir) y aplicada a la base real el
+  2026-10-08, después de respaldarla en `storage/respaldo_antes_mapa_cama_2026-10-08.sql`.
 - Listener: guarda en el trabajo los límites de los ejes, la malla de la cama y los objetos declarados.
 - Inferencia: cada detección guarda el tamaño del cuadro y el ROI usados (para ubicar sus cajas aunque
   el ROI cambie después). Falta reconstruir el contenedor de inferencia.
@@ -158,9 +159,21 @@ con la C922.
   las 4 esquinas recuperan la focal (±1 %), la posición de la cámara (±1 mm) y ubican un punto sobre
   una pieza de hasta 40 mm de alto, con la cama desplazada, con error menor a 1 mm.
 
-**Pendiente:** API (calibración, foto para calibrar, mapa por trabajo, mapa de calor, geometría en
-vivo), pruebas con base de datos, respaldo + migración de la base real, reconstruir backend e
-inferencia, pantalla de calibración y vista del mapa (con la Fase 4).
+- API: `POST/GET /cameras/{id}/calibration`, `GET /cameras/{id}/calibrations`,
+  `GET /cameras/{id}/snapshot` (con la antigüedad del cuadro en `X-Frame-Age-Seconds`),
+  `GET /print-jobs/{id}/bed-map`, `GET /printers/{id}/bed-heatmap`, `GET /printers/{id}/geometry`.
+  Calibrar solo lee el estado de la impresora (su Y y el tamaño de la cama); no le manda nada.
+- `capture` guarda la hora de cada cuadro junto a la imagen (`latest_frame_at:{camara}`).
+- Prueba de la API contra la base de pruebas: calibra con las esquinas que ve la cámara simulada, ubica
+  un defecto sobre una pieza con la cama quieta (error < 1,5 mm, confiable, objeto correcto) y otro con
+  la cama a 250 mm/s (no confiable); el mapa de calor cuenta solo el confiable. 94 pruebas en total.
+- Desplegado (backend e inferencia reconstruidos). Con los datos reales, sin calibración, los 15
+  recuadros de defectos de los trabajos 34 y 35 se informan como no ubicables.
+- De paso: el listener deja una sola línea de aviso por reintento cuando la impresora no responde (antes
+  una traza completa cada 10 s), y se silenciaron dos avisos de Pydantic del arranque.
+
+**Pendiente:** pantalla de calibración y vista del mapa (con la Fase 4); calibrar la C922 en el
+laboratorio.
 
 **Decisiones:**
 - Una fila por calibración: cada detección se ubica con la calibración vigente cuando se capturó; si
@@ -186,3 +199,8 @@ Antes de cualquier prueba: VPN HotspotShield desconectada, sesión `wsl -- sleep
    que las macros de la Hi se lean de `configfile`. Para comprobar `console` y `external` hace falta que
    alguien cambie algo durante la impresión (por ejemplo el factor de velocidad desde Fluidd y desde la
    pantalla). Eso ya es una orden a la impresora, así que queda a tu criterio; PrintWatch no lo hace.
+4. Fase 3: reiniciar `capture` (para que guarde la hora de cada cuadro) y calibrar la C922 desde la web
+   con la impresora quieta (sin imprimir): marcar las cuatro esquinas de la cama e indicar si la cámara
+   está fija (la cama se mueve en la imagen) o va sobre la cama. Revisar que la posición de cámara
+   estimada sea razonable (altura y distancia aproximadas a la real) y, en la siguiente impresión con
+   detecciones, que los defectos caigan sobre la pieza en el mapa.

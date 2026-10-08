@@ -1,9 +1,10 @@
 import asyncio
 import base64
 import io
+import time
 from collections.abc import AsyncIterator
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.responses import StreamingResponse
 from PIL import Image, ImageDraw
 from sqlalchemy import select
@@ -142,6 +143,23 @@ async def _mjpeg_frames(request: Request, camera_id: int) -> AsyncIterator[bytes
             b"Content-Length: " + str(len(jpeg_bytes)).encode() + b"\r\n\r\n" + jpeg_bytes + b"\r\n"
         )
         await asyncio.sleep(_STREAM_INTERVAL_SECONDS)
+
+
+@stream_router.get("/cameras/{camera_id}/snapshot")
+async def camera_snapshot(
+    camera_id: int, request: Request, db: AsyncSession = Depends(get_db), _user=Depends(get_current_user_query)
+) -> Response:
+    """The latest frame as a still JPEG, e.g. to mark the bed corners on when calibrating. The
+    frame stays in Redis after capture stops, so its age goes in X-Frame-Age-Seconds (absent when
+    the capture process predates that timestamp)."""
+    await _get_camera_or_404(camera_id, db)
+    cached, taken_at = await request.app.state.redis.mget(f"latest_frame:{camera_id}", f"latest_frame_at:{camera_id}")
+    if not cached:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No frame yet: is the capture process running?")
+    headers = {"Cache-Control": "no-store"}
+    if taken_at:
+        headers["X-Frame-Age-Seconds"] = f"{max(0.0, time.time() - float(taken_at)):.1f}"
+    return Response(base64.b64decode(cached), media_type="image/jpeg", headers=headers)
 
 
 @stream_router.get("/cameras/{camera_id}/stream")

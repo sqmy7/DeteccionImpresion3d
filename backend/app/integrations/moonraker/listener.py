@@ -164,6 +164,15 @@ async def run_moonraker_listener(printer_id: int, db_session_factory, redis_clie
             logger.warning(
                 "Moonraker listener for printer %s: %s; reconnecting in %ss", printer_id, error, _RECONNECT_DELAY_SECONDS
             )
+        except (OSError, TimeoutError, websockets.exceptions.WebSocketException) as error:
+            # Printer off or unreachable: expected, one line instead of a traceback every retry.
+            reason = f"{type(error).__name__}: {error}"
+            logger.warning(
+                "Moonraker listener for printer %s: printer unreachable (%s); retrying in %ss",
+                printer_id,
+                reason,
+                _RECONNECT_DELAY_SECONDS,
+            )
         except Exception as error:
             reason = f"{type(error).__name__}: {error}"
             logger.exception(

@@ -74,7 +74,14 @@ async def _stream_once(camera: Camera) -> None:
 
             ok, encoded = await asyncio.to_thread(cv2.imencode, ".jpg", frame)
             if ok:
-                await redis_client.set(f"latest_frame:{camera.id}", base64.b64encode(encoded.tobytes()).decode("ascii"))
+                # The frame and when it was taken, together: a reader of a frame that is no
+                # longer being refreshed (capture stopped) can tell it is stale.
+                await redis_client.mset(
+                    {
+                        f"latest_frame:{camera.id}": base64.b64encode(encoded.tobytes()).decode("ascii"),
+                        f"latest_frame_at:{camera.id}": str(time.time()),
+                    }
+                )
 
             # Account for how long the read+encode+publish above took, so the loop holds
             # ~live_stream_fps even though each iteration isn't free - not interval flat on top.

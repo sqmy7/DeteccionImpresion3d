@@ -48,6 +48,8 @@ app.add_middleware(
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
+    # The web (another origin: Vite on :5173) reads how old a camera snapshot is.
+    expose_headers=["X-Frame-Age-Seconds"],
 )
 
 app.include_router(api_v1_router)

@@ -145,6 +145,21 @@ El listener de Moonraker guarda una muestra por segundo (posición, velocidad, t
 - **Los eventos sin evidencia inmediata se registran con demora:** esperan ~5 s por si aparece el comando de consola, y hasta 3 min si el archivo todavía se está indexando. La hora guardada es la del cambio, no la del registro, así que el orden de la cadena puede no coincidir con el cronológico.
 - **Hora de los comandos de consola:** Moonraker los marca con el reloj de la impresora; se corrigen con la diferencia de relojes estimada a partir del encabezado `Date` de sus respuestas (resolución de 1 s, se afina con cada consulta). Al principio de una conexión puede haber medio segundo de error, y un comando puede aparecer justo después del cambio que provocó.
 - **Lo escrito en la consola antes de que PrintWatch se conectara no se registra** (la primera consulta solo marca el punto de partida).
+
+## 8. Mapa de la cama: precisión de la ubicación de los defectos
+
+**Estado:** backend implementado y probado contra la cámara simulada; falta calibrar la C922 real (ver `docs/PROGRESO_TELEMETRIA.md`).
+
+Cómo funciona (`app/services/bed_map.py`): el usuario marca las cuatro esquinas de la cama sobre una foto de la cámara. Eso da la homografía imagen-cama; de ella se estima la focal y la posición de la cámara, y con eso cada caja de defecto se lleva a milímetros de la cama corrigiendo el paralaje con la altura de la capa. La Creality Hi es de cama móvil: si la cámara está fija al marco o a la mesa, la cama se desplaza en la imagen y se compensa con la posición Y del cabezal en la foto de la capa. Contra la cámara simulada, el error es menor a 1 mm; en la real hay que sumar:
+
+- **Las marcas a mano:** se estima ~1,5 % del tamaño de la cama (~4 mm).
+- **La distorsión del lente**, que no se modela. La C922 deforma un poco los bordes de la imagen; cerca de las esquinas puede sumar varios milímetros.
+- **La altura supuesta:** se asume que el defecto está en la superficie de la capa actual. Un hilo de spaghetti que cayó a la cama queda sobrecorregido.
+- **La sincronización en cama móvil:** la foto y la posición del cabezal pueden estar desfasadas hasta ~0,3 s (Klipper informa cada 250 ms y el video va a ~6 cuadros/s). El error crece con la velocidad (a 200 mm/s, ~60 mm). Cada ubicación lleva su error estimado; las de más de 20 mm se muestran como poco confiables y no entran al mapa de calor.
+- **La estimación de la cámara** supone píxeles cuadrados y el centro óptico en el centro de la imagen. Si la vista es casi perpendicular a la cama, la focal no se puede despejar y se usa el campo de visión típico de la C922 (78°); la web lo avisa.
+- **Si la cámara se mueve hay que recalibrar.** Se guarda el historial: cada detección se ubica con la calibración vigente cuando se capturó (o con la primera posterior, si no había ninguna antes, suponiendo que la cámara no se había movido).
+- **Detecciones anteriores:** las cajas de las primeras 16 detecciones (formato viejo, en píxeles) no se pueden ubicar y se cuentan aparte. Las detecciones previas a este cambio no guardaban el ROI; se asume el cuadro completo, que es lo que se usó siempre (nunca se configuró un ROI).
+- **Antigüedad de la foto para calibrar:** `capture` ahora guarda la hora de cada cuadro y el backend la informa (`X-Frame-Age-Seconds`); hay que reiniciar `capture` para que empiece a hacerlo. Sin eso, la foto puede ser la última que quedó en Redis de una sesión anterior.
 - **La cadena de hashes no lo detecta todo.** Detecta un evento editado o borrado en medio de la bitácora (`/printers/{id}/events/verify`), pero no el borrado de los últimos eventos ni una reescritura completa por alguien con acceso de escritura que recalcule todos los hashes. Para cubrir eso hay que guardar el último hash fuera de la base, por ejemplo impreso en el informe del trabajo.
 - **Reinicios de Klipper:** para no depender de si Moonraker restaura la suscripción cuando Klippy se reinicia, el listener registra el aviso (`notify_klippy_*`), se reconecta y se vuelve a suscribir.
 - **Valores con ruido de redondeo:** las columnas son `REAL` (4 bytes, ~7 cifras significativas); la API redondea a 4 decimales al leer.

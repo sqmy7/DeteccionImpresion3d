@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import CameraCalibration, Detection, Layer, LayerCapture, PrintJob, TelemetrySample
 from app.services import bed_map
+from app.services.telemetry import latest_geometry
 
 _DEFAULT_BED_MM = 260.0  # Creality Hi spec sheet, when Klipper hasn't reported its axis limits
 _MAX_PATH_POINTS = 1500
@@ -192,3 +193,49 @@ def heatmap_grid(points: list[tuple[float, float]], width: float, depth: float, 
         if 0 <= x < width and 0 <= y < depth:
             grid[int(y // cell_mm)][int(x // cell_mm)] += 1
     return grid
+
+
+async def printer_geometry(db: AsyncSession, printer_id: int) -> dict | None:
+    """The bed as last reported live by the listener, else as stored with the latest job."""
+    live = latest_geometry.get(printer_id)
+    if live and live.get("axis_maximum"):
+        return live
+    return await db.scalar(
+        select(PrintJob.geometry)
+        .where(PrintJob.printer_id == printer_id, PrintJob.geometry.is_not(None))
+        .order_by(PrintJob.id.desc())
+        .limit(1)
+    )
+
+
+async def printer_heatmap(db: AsyncSession, printer_id: int, cell_mm: float, classes: set[str] | None) -> dict:
+    """Where on the bed this printer's defects concentrate, over all its jobs. Only locations
+    marked reliable are counted; the rest are reported as a number."""
+    jobs = (await db.execute(select(PrintJob).where(PrintJob.printer_id == printer_id).order_by(PrintJob.id))).scalars().all()
+    points: list[tuple[float, float]] = []
+    unreliable = skipped = 0
+    for job in jobs:
+        located, job_skipped = await locate_job_defects(db, job)
+        skipped += job_skipped
+        for defect in located:
+            if classes and defect["class_name"] not in classes:
+                continue
+            if defect["reliable"]:
+                points.append((defect["x"], defect["y"]))
+            else:
+                unreliable += 1
+
+    geometry = await printer_geometry(db, printer_id)
+    _, _, (width, depth), _ = default_bed_points(geometry)
+    return {
+        "printer_id": printer_id,
+        "cell_mm": cell_mm,
+        "width_mm": width,
+        "depth_mm": depth,
+        "counts": heatmap_grid(points, width, depth, cell_mm),
+        "jobs": len(jobs),
+        "located": len(points),
+        "unreliable": unreliable,
+        "skipped_boxes": skipped,
+        "bed_mesh": (geometry or {}).get("bed_mesh"),
+    }
