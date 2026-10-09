@@ -691,3 +691,14 @@ reanudación anterior la cabeza pasó por X −18,5 (0,5 mm del límite −19) y
 **Riesgo observado en el código y en las lecturas (no probado):** la reanudación tarda ~65 s con el estado aún en `paused`, y la guarda solo
 bloquea repeticiones durante 20 s; un segundo clic entre los 20 y los 65 s se enviaría. Mientras tanto la web ya habrá mostrado el `ReadTimeout`
 (10,3 s).
+
+**Segundo intento de reanudar (12:37:54), sin orden a la impresora (lecturas de las 12:44).** Samuel pulsó «Reanudar impresión» y la impresora siguió en
+pausa. El registro del backend (con hora) muestra `POST /printers/35/resume` → **401 Unauthorized** a las 12:37:54: la sesión de la web había caducado
+(el último inicio de sesión fue a las 12:22:02 y el token dura 60 minutos), así que la petición se rechazó antes de llegar a la guarda y no hubo
+«Manual resume requested» ni orden a Moonraker. Lo mismo ocurrió con un `POST /pause` a las 12:22:52 (401), 13 s antes de la pausa en pantalla de las
+12:23:05: por eso la pausa del atasco acabó pulsándose en la pantalla. Cuánto se ve en la web de ese 401 no se ha revisado.
+Además, la propia impresora enfrió la boquilla en pausa: el objetivo pasó de 140 a 0 °C a las 12:38:21, 15 min 16 s después de la pausa de las
+12:23:05, y el `gcode_store` de Klipper muestra `COOLING_AFTER_PRINTER_PAUSED: Printer is paused` y `DO_COOLING: Start cooling` justo en ese instante
+(el reloj de la impresora va unas 8 h 22 min adelantado; se alinea con las otras marcas). Estado a las 12:44: `paused`, `is_paused` true,
+`resume_err` false, `idle_timeout` Ready con `printing_time` 0,0, boquilla 41,5 °C (objetivo 0), cama 79,8 °C (objetivo 80), posición
+X 0,0 / Y 260,0 / Z 49,94, capa 13.
