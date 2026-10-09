@@ -1,10 +1,11 @@
 import { AlertTriangle, PauseCircle, XCircle } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "./ui";
 import { useAuth } from "../hooks/useAuth";
+import { usePrintAction } from "../hooks/usePrintAction";
+import { progressLabel } from "../lib/printAction";
 import { useWsEvent } from "../hooks/useWebSocket";
-import { ApiError } from "../services/apiClient";
 import { abortAutoPause } from "../services/printJobs";
 import { listPrinters, resumePrinter } from "../services/printers";
 import type {
@@ -134,7 +135,13 @@ function AutoPauseBanner({
 }) {
   const { token } = useAuth();
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const resumeAction = usePrintAction(state.printerId);
+  const resumeSent = useRef(false);
+
+  // Once the resume was accepted the banner stays ("Reanudando…") until the printer's state changes, then it goes away.
+  useEffect(() => {
+    if (resumeSent.current && !resumeAction.pending && !resumeAction.sending && !resumeAction.notice) onDismiss();
+  }, [resumeAction.pending, resumeAction.sending, resumeAction.notice, onDismiss]);
 
   const incidentLink = state.incidentId ? (
     <Link
@@ -239,18 +246,10 @@ function AutoPauseBanner({
 
   if (state.phase === "executed") {
     const handleResume = async () => {
-      if (!token || busy) return;
-      setBusy(true);
-      setError(null);
-      try {
-        await resumePrinter(token, state.printerId);
-        onDismiss();
-      } catch (reason) {
-        // Left visible on failure so the user can see the resume didn't take, and why (the backend
-        // refuses a resume when the printer isn't paused or one was just sent).
-        setError(reason instanceof ApiError ? reason.message : "No se pudo reanudar.");
-      } finally {
-        setBusy(false);
+      // Left visible on failure so the user can see the resume didn't take, and why (the backend
+      // refuses a resume when the printer isn't paused or one was just sent).
+      if (await resumeAction.start("resume", (accessToken) => resumePrinter(accessToken, state.printerId))) {
+        resumeSent.current = true;
       }
     };
 
@@ -259,12 +258,17 @@ function AutoPauseBanner({
         <div className="min-w-0 flex-1">
           <p className="font-semibold text-fg">{printerName} pausada automáticamente</p>
           <p className="text-sm text-muted">Motivo: spaghetti detectado en varias capas seguidas. La impresora confirmó la pausa.</p>
-          {error && <p className="mt-1 text-sm text-danger-fg">{error}</p>}
+          {resumeAction.error && <p className="mt-1 text-sm text-danger-fg">{resumeAction.error}</p>}
+          {resumeAction.notice && <p className="mt-1 text-sm text-muted">{resumeAction.notice}</p>}
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
           {incidentLink}
-          <Button variant="warn" onClick={handleResume} disabled={busy}>
-            Reanudar impresión
+          <Button variant="warn" onClick={handleResume} disabled={busy || resumeAction.sending || resumeAction.pending !== null}>
+            {resumeAction.pending
+              ? progressLabel(resumeAction.pending.kind, resumeAction.seconds)
+              : resumeAction.sending
+                ? "Enviando…"
+                : "Reanudar impresión"}
           </Button>
           <Button variant="ghost" onClick={onDismiss}>
             Cerrar

@@ -12,6 +12,10 @@ be told afterwards. So the web's resume and cancel go through here:
     (a read-only GET of print_stats.state), not what PrintWatch last saw: resume needs `paused`; cancel
     needs `printing` or `paused`. In any other state - error, standby, complete - nothing is sent.
 
+The order goes out in the background and the functions here return it (a PendingAction) as soon as it is sent:
+the printer answers a resume 45 to 65 s later, and that wait is not the guard's to hold (the lock covers the decision
+and noting the order, not the printer's answer).
+
 Cancel cannot be undone, so its endpoint also requires the typed confirmation (see api/v1/printers.py)."""
 
 import asyncio
@@ -19,7 +23,7 @@ import asyncio
 import httpx
 
 from app.integrations.moonraker import command_log
-from app.integrations.moonraker.client import send_print_action
+from app.integrations.moonraker.client import PendingAction, start_print_action
 
 RESUME_COOLDOWN_SECONDS = 20.0
 CANCEL_COOLDOWN_SECONDS = 20.0
@@ -58,7 +62,7 @@ async def _send_guarded(
     refusal: type[ActionRefused],
     verb: str,
     wrong_state: str,
-) -> None:
+) -> PendingAction:
     lock = _locks.setdefault(base_url, asyncio.Lock())
     if lock.locked():  # checked and taken with no await in between: atomic in the event loop
         raise refusal("Ya hay una orden en curso para esta impresora; espera a que termine.")
@@ -71,19 +75,19 @@ async def _send_guarded(
         state = await read_print_state(base_url)
         if state not in allowed_states:
             raise refusal(f"{wrong_state} (estado: {state or 'desconocido'}); no se envió la orden.")
-        await send_print_action(base_url, action, requested_by=requested_by)
+        return start_print_action(base_url, action, requested_by=requested_by)
 
 
-async def resume_safely(base_url: str, requested_by: str | None) -> None:
-    await _send_guarded(
+async def resume_safely(base_url: str, requested_by: str | None) -> PendingAction:
+    return await _send_guarded(
         base_url, "resume", requested_by,
         allowed_states=("paused",), cooldown_seconds=RESUME_COOLDOWN_SECONDS, refusal=ResumeRefused,
         verb="reanudar", wrong_state="La impresora no está en pausa",
     )
 
 
-async def cancel_safely(base_url: str, requested_by: str | None) -> None:
-    await _send_guarded(
+async def cancel_safely(base_url: str, requested_by: str | None) -> PendingAction:
+    return await _send_guarded(
         base_url, "cancel", requested_by,
         allowed_states=("printing", "paused"), cooldown_seconds=CANCEL_COOLDOWN_SECONDS, refusal=CancelRefused,
         verb="cancelar", wrong_state="La impresora no está imprimiendo ni en pausa",

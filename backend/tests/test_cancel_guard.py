@@ -114,7 +114,7 @@ def test_cancel_goes_through_while_printing_and_while_paused_and_is_attributed_t
         return while_printing, state_after_printing, while_paused, await _state(mock)
 
     while_printing, state_after_printing, while_paused, state_after_paused = with_db(_scenario(mock_server, steps))
-    assert (while_printing.status_code, while_paused.status_code) == (204, 204)
+    assert (while_printing.status_code, while_paused.status_code) == (202, 202)
     assert (state_after_printing, state_after_paused) == ("cancelled", "cancelled")
     orders = _sent(mock_server)
     assert len(orders) == 2 and all(o.requested_by.startswith("tester-") and o.requested_by.endswith(" (web)") and o.ok for o in orders)
@@ -137,7 +137,7 @@ def test_two_simultaneous_clicks_send_one_order(with_db, mock_server, monkeypatc
         return await asyncio.gather(client.post(url, json=CONFIRM), client.post(url, json=CONFIRM)), await _state(mock)
 
     responses, state = with_db(_scenario(mock_server, steps))
-    assert sorted(r.status_code for r in responses) == [204, 409]
+    assert sorted(r.status_code for r in responses) == [202, 409]
     assert state == "cancelled" and len(_sent(mock_server)) == 1
 
 
@@ -151,7 +151,7 @@ def test_a_second_cancel_right_after_the_first_is_refused_even_if_printing_again
         return first, second, await _state(mock)
 
     first, second, state = with_db(_scenario(mock_server, steps))
-    assert (first.status_code, second.status_code) == (204, 409)
+    assert (first.status_code, second.status_code) == (202, 409)
     assert "hace" in second.json()["detail"] and state == "printing"
     assert len(_sent(mock_server)) == 1
 
@@ -166,7 +166,7 @@ def test_cancel_and_resume_share_one_lock_so_they_never_run_at_once(with_db, moc
         )
 
     cancel, resume = with_db(_scenario(mock_server, steps))
-    assert sorted([cancel.status_code, resume.status_code]) == [204, 409]
+    assert sorted([cancel.status_code, resume.status_code]) == [202, 409]
     assert len(_sent(mock_server, "cancel")) + len(_sent(mock_server, "resume")) == 1
 
 
@@ -182,7 +182,7 @@ def test_cancel_after_the_cooldown_works_again(with_db, mock_server, monkeypatch
         return first, await client.post(url, json=CONFIRM)
 
     first, second = with_db(_scenario(mock_server, steps))
-    assert (first.status_code, second.status_code) == (204, 204)
+    assert (first.status_code, second.status_code) == (202, 202)
     assert len(_sent(mock_server)) == 2
 
 

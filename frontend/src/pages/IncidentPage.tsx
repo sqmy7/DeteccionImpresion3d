@@ -32,6 +32,8 @@ import { dismissIncident, getIncident, incidentImageUrl, labelIncident } from ".
 import { downloadJobReport } from "../services/insights";
 import { abortAutoPause } from "../services/printJobs";
 import { resumePrinter } from "../services/printers";
+import { usePrintAction } from "../hooks/usePrintAction";
+import { progressLabel } from "../lib/printAction";
 import type { IncidentDetail, IncidentLabel, TelemetryValues } from "../types/api";
 
 type SnapshotView = "opened" | "paused";
@@ -62,6 +64,7 @@ export function IncidentPage() {
   const [view, setView] = useState<SnapshotView>("opened");
   const [busy, setBusy] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const resumeAction = usePrintAction(printer.id);
   const reloadTimer = useRef<number | undefined>(undefined);
 
   // The incident changes while it is open (pause confirmed, decision, new events): follow it, at most once a second.
@@ -111,7 +114,7 @@ export function IncidentPage() {
 
   const resume = () => {
     if (!window.confirm("¿Reanudar la impresión ahora? Verifica primero que la pieza y el cabezal estén bien.")) return;
-    void run("resume", () => resumePrinter(token!, printer.id));
+    void resumeAction.start("resume", (accessToken) => resumePrinter(accessToken, printer.id)).then((accepted) => accepted && incident.reload());
   };
 
   return (
@@ -251,8 +254,18 @@ export function IncidentPage() {
                   </Button>
                 )}
                 {canResume(printerStatus, isAdmin) && (
-                  <Button size="md" variant="ok" icon={<Play size={15} />} disabled={busy !== null} onClick={resume}>
-                    {busy === "resume" ? "Enviando…" : "Reanudar impresión"}
+                  <Button
+                    size="md"
+                    variant="ok"
+                    icon={<Play size={15} />}
+                    disabled={busy !== null || resumeAction.sending || resumeAction.pending !== null}
+                    onClick={resume}
+                  >
+                    {resumeAction.pending
+                      ? progressLabel(resumeAction.pending.kind, resumeAction.seconds)
+                      : resumeAction.sending
+                        ? "Enviando…"
+                        : "Reanudar impresión"}
                   </Button>
                 )}
                 {canCancel(printerStatus, isAdmin) && <CancelPrintButton printerId={printer.id} size="md" onCancelled={incident.reload} />}
@@ -265,7 +278,8 @@ export function IncidentPage() {
             ) : (
               <p className="text-xs text-muted">Solo un administrador puede reanudar, cancelar o cerrar un incidente.</p>
             )}
-            <ActionError message={actionError} />
+            <ActionError message={actionError ?? resumeAction.error} />
+            {resumeAction.notice && <p className="text-sm text-muted">{resumeAction.notice}</p>}
 
             <div className="flex flex-col gap-1.5 border-t border-line/70 pt-3">
               <p className="text-xs font-medium text-fg">¿Qué fue en realidad?</p>

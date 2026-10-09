@@ -83,7 +83,7 @@ def test_resume_goes_through_when_paused_and_two_simultaneous_clicks_send_one_or
         return responses, await _state(mock)
 
     responses, state = with_db(_scenario(mock_server, steps))
-    assert sorted(response.status_code for response in responses) == [204, 409]
+    assert sorted(response.status_code for response in responses) == [202, 409]
     assert state == "printing"
     assert _resumes_sent(mock_server) == 1
 
@@ -97,7 +97,7 @@ def test_a_second_resume_right_after_the_first_is_refused_even_if_paused_again(w
         return first, second
 
     first, second = with_db(_scenario(mock_server, steps))
-    assert first.status_code == 204 and second.status_code == 409
+    assert first.status_code == 202 and second.status_code == 409
     assert "hace" in second.json()["detail"]
     assert _resumes_sent(mock_server) == 1
 
@@ -113,7 +113,7 @@ def test_resume_after_the_cooldown_works_again(with_db, mock_server, monkeypatch
         return first, await client.post(f"/api/v1/printers/{printer_id}/resume")
 
     first, second = with_db(_scenario(mock_server, steps))
-    assert (first.status_code, second.status_code) == (204, 204)
+    assert (first.status_code, second.status_code) == (202, 202)
     assert _resumes_sent(mock_server) == 2
 
 
