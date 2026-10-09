@@ -596,3 +596,19 @@ sigue en `warn`.
 El equipo **no está en la red del laboratorio**: no se pudo leer el estado de la impresora (paso 2), así que no se sabe si está en
 reposo, y por eso no se desplegó ni se siguió. No se tocaron adaptadores, rutas ni la conexión Wi-Fi.
 **Pendiente para reanudar la C0:** que Samuel conecte el equipo a `SalaSteam_UIS` y confirme; se repiten los pasos 1 y 2.
+
+### Etapa C0 repetida (2026-10-09, 11:15 a 11:20 hora local), con el equipo ya en `SalaSteam_UIS`
+
+Solo lecturas hasta el respaldo; la única acción fue reconstruir el backend con la impresora en reposo. Nada se envió a ninguna impresora;
+`AUTO_PAUSE_MODE` sigue en `warn`.
+
+| Paso | Resultado |
+|---|---|
+| 1. Red | SSID `SalaSteam_UIS`, equipo en `192.168.10.102`, VPN desconectada, ping a la .22 con 0 % perdido (3 a 6 ms), `GET /printer/info` 200 (0,05 s). **Estable 60 s**: 7 de 7 lecturas (SSID, ping y GET cada 10 s), 0 fallos |
+| 2. Estado real de la .22 | `print_stats.state = standby`, sin archivo, `pause_resume.is_paused = false`, `idle_timeout = Ready`, ejes referenciados (`xyz`), `live_position` X −5,0 / Y 130,0 / Z 10,1; boquilla 33,1 °C y cama 29,0 °C con objetivos en 0; factores 1,0 / 1,0. Cero trabajos `running` en la base |
+| 3. Despliegue | Respaldo `storage/respaldo_antes_incidentes_2026-10-09.sql` (8,7 MB, 14 tablas, no se versiona). Reconstruido **solo** `infra-backend-1` (`--no-deps`); postgres, redis y el worker siguen con 5 h de actividad. `alembic upgrade head` dentro del backend nuevo: `e7b3c2a91f04 → f1a6d3e82b57`; `alembic current` = `heads` = `f1a6d3e82b57 (head)`. `/health`: base y Redis `ok`. En el contenedor, `AUTO_PAUSE_MODE = warn`, incidentes `spaghetti,layer_shift` ≥ 0,5; en el `.env`, línea 19 `AUTO_PAUSE_MODE=warn`. Listener conectado a la .22 (`standby`). Rutas nuevas con 401 sin sesión; consulta interna de incidentes: 0 en la base real |
+| 4. Cámara | **C922 no conectada** (solo la «USB Camera» genérica, VID 5258). No se cambió `source_uri`. `capture` no está corriendo |
+
+Consecuencia: durante la Etapa C **no habrá fotos ni detecciones** (no hay `capture`); la pausa y la reanudación no las necesitan, pero el incidente
+de una pausa real abrirá sin foto asociada.
+**Esperando la frase «autorizo la C» escrita por Samuel en este chat** para pasar a la C1.
