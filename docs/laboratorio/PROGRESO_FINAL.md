@@ -848,3 +848,33 @@ la causa no está demostrada (coincide con la reconfiguración de la red tras re
   Tampoco se sabe qué provocó la suspensión (tapa o botón de encendido; el registro no lo distingue).
 - Consecuencia: esa pieza no tiene trabajo, capas ni telemetría en PrintWatch. Para la C2: que el equipo no se suspenda durante la prueba (no cerrar la tapa ni pulsar
   el botón de encendido).
+
+### Diagnóstico de la cámara: no se veía en la web (2026-10-09, 18:00 a 18:30)
+
+Solo lecturas hasta arrancar `capture`; nada se mandó a la impresora; no se tocó el backend, la base ni el código de la web (no se reconstruyó nada).
+
+**Causa demostrada: `capture` no estaba corriendo.** `start.ps1` no lo arranca a propósito (avisa de que es un paso manual: `capture\.venv\Scripts\python.exe -m capture.main`,
+sin argumentos; la cámara sale de la base). No había ningún proceso `python`. La última vez que corrió fue el 2026-10-08 (Windows registra el uso de la cámara desde las
+18:55; el último fotograma es de las 19:18:04). Redis conserva ese fotograma sin caducidad (`latest_frame:36` y `latest_frame_at:36`, TTL −1), con **22,9 h** de antigüedad.
+
+| Eslabón | Evidencia |
+|---|---|
+| Vista en vivo, antes | `/stream` 200 (`multipart/x-mixed-replace`) pero con la imagen de reemplazo de 640×480 que dibuja el backend cuando el fotograma tiene más de 15 s («Sin senal: el servicio de captura no esta enviando video», letra pequeña): la imagen no falla, así que el `VideoFeed` no pinta su propio «Sin señal» (solo lo hace si la imagen da error) |
+| Miniatura del panel, antes | `/snapshot` 200 (141 886 bytes, `X-Frame-Age-Seconds: 82330`): la web lo da por viejo (más de 15 s, `feedState.ts`) y pinta «Sin señal» |
+| Cámara | Abre con el mismo código de `capture`: por **índice 0** (backend por defecto, MSMF) abre en 4,4 s la primera vez (0,59 s después), primer fotograma en 62 a 79 ms, 1280×720, ~30 fps, brillo normal, no vacío ni negro. Por **nombre** (`name:USB Camera`, DirectShow) abre pero entrega **0×0** y no lee. El índice 1 no existe. Ningún otro proceso la tenía (Windows conserva un «en uso» antiguo de `python.exe` desde el 8 de octubre: es un resto del registro tras terminar el proceso de golpe) |
+| Con `capture` corriendo (18:11 a 18:28) | Redis: fotograma nuevo cada ~0,17 s, edad de 0,35 a 0,69 s; `/snapshot` 200 con edad 0,2 a 0,4 s; el primer fotograma de `/stream` es real (1280×720); la web pinta el video en vivo y la miniatura, sin «Sin señal» ni errores de consola |
+| Después | `capture` se detuvo a las 18:28 (Samuel lo arrancará en su terminal para la C2); la cámara quedó libre (abre en 0,59 s y se cierra) |
+
+**Observaciones.** Lo que muestra la cámara **no es la cama**: se ve la base de la impresora y su pantalla (en otra captura, una mano), así que la calibración de cámara y cama no
+vale con esta cámara y esta posición. La fila de la cámara en la base se llama **«C922 Principal»** (`usb`, `source_uri = 0`) aunque la conectada es la genérica «USB Camera»
+(VID 5258, PID 4A55); el modo por nombre (`name:C922`) está sin probar con la C922 real. Una advertencia de consola de la web imprimió un token de `samuel` firmado por el backend
+(la web pone el token en la URL del WebSocket); caduca a la hora.
+
+**Pendientes:**
+1. Un aviso claro en la web de «captura detenida» en lugar del texto diminuto de la imagen de reemplazo (hoy el backend manda una imagen con 200 y la web no distingue el caso).
+2. Un script que arranque `capture` comprobando antes que la cámara abre (y avise si no).
+3. Reposicionar la cámara y recalibrar con la C922 (probar antes `name:C922`).
+
+**Para la C2 (con `capture` corriendo).** Se mide además, con solo lecturas, qué capas se capturaron (por capa y hora), si hubo huecos en la pausa y la reanudación, y cuál fue la primera
+captura tras reanudar y cuánto tardó: consultas en [c2_capturas.sql](c2_capturas.sql) (probadas contra los trabajos 44 y 46). En modo `warn` nada actúa. Las capturas se disparan por capa
+(`layer_ready`), así que durante la pausa no se espera ninguna; el video en vivo de Redis sí debería seguir renovándose (edad menor de 2 s).
