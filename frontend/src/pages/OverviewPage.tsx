@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { EventList } from "../components/events/EventList";
 import { PageHeader } from "../components/layout/PageHeader";
 import { Badge, Card, EmptyState, ErrorNote, Kpi, Skeleton } from "../components/ui";
-import { VideoFeed } from "../components/VideoFeed";
+import { SnapshotFeed } from "../components/SnapshotFeed";
 import { JOB_STATUS, PRINTER_STATUS } from "../config/status";
 import { usePrinters } from "../context/PrintersContext";
 import { useActiveAlertsCount } from "../hooks/useActiveAlertsCount";
@@ -52,7 +52,7 @@ function PrinterCard({ printer }: { printer: Printer }) {
     >
       <div className="relative aspect-video w-full bg-surface-2">
         {camera ? (
-          <VideoFeed cameraId={camera.id} />
+          <SnapshotFeed cameraId={camera.id} />
         ) : (
           <div className="flex h-full items-center justify-center text-xs text-faint">{cameras.loading ? "" : "Sin cámara configurada"}</div>
         )}
