@@ -4,3 +4,5 @@ pydantic-settings==2.6.0
 python-dotenv==1.0.1
 redis==5.2.0
 opencv-python-headless==4.10.0.84
+# Windows only: names of the connected cameras, to pick one with source_uri "name:C922" instead of an index.
+pygrabber==0.2; sys_platform == "win32"

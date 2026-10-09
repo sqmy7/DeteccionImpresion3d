@@ -10,6 +10,7 @@ from app.db.models import Camera
 
 from capture.camera_sources.factory import get_camera_source
 from capture.config import settings
+from capture.frame_quality import SignalWatch, is_black_frame
 
 logger = logging.getLogger(__name__)
 
@@ -26,9 +27,18 @@ class LiveFrameStore:
 
     def __init__(self) -> None:
         self._frames: dict[int, tuple[np.ndarray, float]] = {}
+        self._signal_lost: set[int] = set()
 
     def set(self, camera_id: int, frame: np.ndarray) -> None:
         self._frames[camera_id] = (frame, time.monotonic())
+
+    def set_signal_lost(self, camera_id: int, lost: bool) -> None:
+        """The camera delivers only black: its frames are not stored, and callers should not go and
+        read the device themselves (they would get black too)."""
+        (self._signal_lost.add if lost else self._signal_lost.discard)(camera_id)
+
+    def signal_lost(self, camera_id: int) -> bool:
+        return camera_id in self._signal_lost
 
     def get_recent(self, camera_id: int, max_age: float = _STALE_SECONDS) -> np.ndarray | None:
         entry = self._frames.get(camera_id)
@@ -67,12 +77,29 @@ async def _stream_once(camera: Camera) -> None:
 
     try:
         interval = 1.0 / settings.live_stream_fps
+        watch = SignalWatch()
         while True:
             start = time.monotonic()
             frame = await asyncio.to_thread(source.read_frame)
-            live_frames.set(camera.id, frame)
 
-            ok, encoded = await asyncio.to_thread(cv2.imencode, ".jpg", frame)
+            change = watch.observe(frame)
+            if change == "lost":
+                live_frames.set_signal_lost(camera.id, True)
+                logger.warning(
+                    "Camera %s (%s) delivers only black frames: marked as no signal, and no frame is published "
+                    "until it shows an image again (is it the right camera, is the lens covered, is another "
+                    "application using it?)", camera.id, camera.name,
+                )
+            elif change == "back":
+                live_frames.set_signal_lost(camera.id, False)
+                logger.info("Camera %s (%s) delivers images again", camera.id, camera.name)
+
+            # A black frame is fresh but says nothing: leaving it out lets the frame's age grow, which is how the
+            # web (and the stream) tell "no signal" from live video.
+            ok = False
+            if not is_black_frame(frame):
+                live_frames.set(camera.id, frame)
+                ok, encoded = await asyncio.to_thread(cv2.imencode, ".jpg", frame)
             if ok:
                 # The frame and when it was taken, together: a reader of a frame that is no
                 # longer being refreshed (capture stopped) can tell it is stale.

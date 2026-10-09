@@ -80,6 +80,14 @@ async def _capture_from_camera(
     # several times a second - reuse its latest frame instead of opening a second, competing
     # handle to the same device. Only falls back to a direct open/read/close (the old behavior)
     # if the stream hasn't produced anything recent yet, e.g. right at process startup.
+    if live_frames.signal_lost(camera.id):
+        # No photo is better than a black one: the layer is recorded without a capture, a visible gap, and
+        # the model is not asked to find defects in an image with nothing in it.
+        logger.error(
+            "Camera %s delivers only black frames: layer %s of job %s has no photo", camera.id, layer_number, job_id
+        )
+        return
+
     frame = live_frames.get_recent(camera.id)
     if frame is None:
         logger.info("No recent live-stream frame for camera %s, falling back to a direct read", camera.id)
