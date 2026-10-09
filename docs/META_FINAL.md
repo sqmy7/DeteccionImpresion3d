@@ -19,6 +19,10 @@ Convención para distinguir lo comprobado de lo supuesto:
 
 ## a) Definición de «éxito» medible
 
+> **PROVISIONAL (decisión de Samuel, 2026-10-09):** los objetivos de a.2, a.3 y a.4 (tiempo máximo de pausa, tasa de
+> falsos positivos y fallos no detectados tolerables) quedan como **provisionales, pendientes de revisar con el
+> profesor**. Se usan para construir y para medir, pero no son un compromiso hasta esa revisión.
+
 ### a.1 Qué cuenta como fallo inminente
 
 Un **fallo inminente** es un estado de la impresión en el que, si nadie interviene, el daño crece con el tiempo
@@ -242,19 +246,27 @@ sube el umbral de confianza o la persistencia por clase hasta cumplir a.3, y se 
 
 ---
 
-## Decisiones que necesito de Samuel para pasar al Paso 2
+## Decisiones de Samuel para el Paso 2 (2026-10-09)
 
-1. ¿Aceptas (o cambias) los objetivos de a.2, a.3 y a.4 (3 min, ≤ 1 falso por 20 h, 0 pausas falsas en 10 impresiones
-   sanas, recall ≥ 80 %)?
-2. ¿La pantalla de «Incidente» debe mostrar **Cancelar** aunque hoy no existe? Para eso habría que crear un endpoint
-   y una guarda (solo si la impresora dice `printing` o `paused`, confirmación doble y una sola orden a la vez), con
-   pruebas en la simulada. Sin eso, el botón no puede existir.
-3. ¿Qué eventos abren un incidente en el Paso 2? Tal como lo pediste: `auto_pause.would_pause`, una pausa real, o una
-   detección sobre el umbral. Propongo añadir también el aborto de la cuenta como parte del incidente (G2).
-4. ¿El Paso 2 incluye registrar `auto_pause.pending`/`aborted` en la bitácora y confirmar `paused` (G2 y G4)? Son
-   cambios pequeños y necesarios para que el incidente tenga la línea de tiempo completa; propongo que sí.
-5. La regla de la sección c no se implementa en el Paso 2 (la pantalla usa la regla actual, 3 capas de *spaghetti*);
-   queda para un paso posterior, después de recoger datos en `warn`.
+1. **Objetivos de a.2 a a.4: provisionales**, pendientes de revisar con el profesor (anotado arriba).
+2. **Cancelar entra al Paso 2** (endpoint, guarda y botón nuevos).
+3. **Un incidente se abre con:** `auto_pause.would_pause`, una pausa real (por cualquier origen), una detección sobre el
+   umbral y el aborto de la cuenta regresiva.
+4. **Se registran en la bitácora** la cuenta (`auto_pause.pending`), el aborto y la confirmación de que Klipper llegó a
+   `paused` (o «pausa no confirmada» si no llega en 20 s).
+5. **La regla nueva de la sección c NO se implementa;** el Paso 2 usa la regla actual (3 capas de `spaghetti`).
+
+**Cómo se interpretó lo que no estaba definido** (anotado porque contradice o completa este documento):
+
+- *«Detección sobre el umbral»:* el modelo solo emite detecciones por encima de su umbral global (0,25), así que
+  «toda detección» incluiría `stringing` y `blob`, que la sección a.1 declara **no inminentes**. Se implementó
+  configurable: `INCIDENT_CLASSES` (por defecto `spaghetti,layer_shift`) e `INCIDENT_MIN_CONFIDENCE` (por defecto
+  0,50). Una detección suelta abre como máximo **un incidente por clase y trabajo**.
+- *«El aborto de la cuenta regresiva» como motivo de apertura:* la cuenta ya abre el incidente al empezar (en modo `on`);
+  el aborto lo **cierra** con desenlace «ignorado» y queda registrado. Si el aborto llegara sin incidente abierto, lo abre.
+- *Un solo incidente abierto por trabajo y clase:* lo garantiza un índice único parcial en la base. Una pausa real sin
+  detección usa la clase `pausa`; si ya hay un incidente abierto del trabajo, la pausa se **añade a ese** en vez de
+  abrir otro.
 
 ## Lo que haría el Paso 2 (resumen)
 
