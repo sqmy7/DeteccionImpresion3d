@@ -91,6 +91,22 @@ async def _send_guarded(
         return start_print_action(base_url, action, requested_by=requested_by)
 
 
+async def pause_safely(base_url: str, requested_by: str | None) -> PendingAction:
+    """A pause from the web asks the printer for its state first (a read-only GET, 5 s at most), only to know it
+    answers: if it does not, nothing is sent, the failure is noted in the event log and httpx.HTTPError is raised at
+    once. Without this, an unreachable printer (network down: connecting takes up to 10 s) looked like an accepted
+    order. A pause has no other guard: it is allowed in any state, as before, and not limited to one at a time."""
+    try:
+        await read_print_state(base_url)
+    except httpx.HTTPError as error:
+        command_log.record(
+            base_url, "pause", requested_by, ok=False,
+            error=f"No se pudo leer el estado de la impresora, no se envió la orden ({type(error).__name__}: {error})",
+        )
+        raise
+    return start_print_action(base_url, "pause", requested_by=requested_by)
+
+
 async def resume_safely(base_url: str, requested_by: str | None) -> PendingAction:
     return await _send_guarded(
         base_url, "resume", requested_by,

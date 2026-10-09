@@ -13,8 +13,14 @@ from app.api.deps import get_current_user, require_admin
 from app.core.security import encrypt_secret
 from app.db.models import IntegrationType, Printer, User
 from app.db.session import get_db
-from app.integrations.moonraker.client import PendingAction, start_print_action
-from app.integrations.moonraker.print_guard import CancelRefused, ResumeRefused, cancel_safely, resume_safely
+from app.integrations.moonraker.client import PendingAction
+from app.integrations.moonraker.print_guard import (
+    CancelRefused,
+    ResumeRefused,
+    cancel_safely,
+    pause_safely,
+    resume_safely,
+)
 from app.schemas.printer import PrinterCreate, PrinterRead, PrinterUpdate
 
 logger = logging.getLogger(__name__)
@@ -133,10 +139,16 @@ async def pause_printer(
     (app/services/auto_pause.py) - same Moonraker action, triggered directly instead of after a
     detected streak. Proxied through the backend rather than called from the browser directly:
     Moonraker has no auth of its own, so this keeps our own auth/audit log in front of an action
-    that stops a physical machine. Answers "accepted" without waiting for the printer to finish parking the head."""
+    that stops a physical machine. First reads the printer's state (to know it answers: unreachable, 502 at once and
+    noted in the event log), then answers "accepted" without waiting for the printer to finish parking the head."""
     printer = await _get_moonraker_printer_or_404(printer_id, db)
     logger.warning("Manual pause requested for printer %s (%s)", printer.id, printer.octoprint_url)
-    pending = start_print_action(printer.octoprint_url, "pause", requested_by=f"{user.username} (web)")
+    try:
+        pending = await pause_safely(printer.octoprint_url, f"{user.username} (web)")
+    except httpx.HTTPError as exc:
+        # The printer did not answer the state read: nothing was sent.
+        logger.warning("Pause not sent for printer %s, its state could not be read: %s", printer.id, type(exc).__name__)
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=_failure_detail(exc, "pause")) from exc
     return await _accepted(pending, "pause")
 
 
