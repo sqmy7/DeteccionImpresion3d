@@ -19,7 +19,7 @@ solo con la frase exacta ("autorizo la C", "autorizo la limpieza").
 | D. Impresora .21 | pendiente (la .21 no respondía en la Etapa 0) |
 | E. Datos del modelo | pendiente (faltan `args.yaml`, `results.csv`, `best.pt`) |
 | F. Limpiar historial | pendiente (necesita "autorizo la limpieza" y la pregunta sobre la política del curso) |
-| G. Cierre | pendiente |
+| G. Cierre | **hecha** (2026-10-09): `RESULTADOS.md`, `KNOWN_LIMITATIONS.md`, `PROGRESO_TELEMETRIA.md` y `HALLAZGOS_PARA_INFORME.md` |
 
 ## Etapa 0: revisión previa (2026-10-08)
 
@@ -396,7 +396,7 @@ Samuel después de imprimir; sigue íntegra). Estado de Klipper al terminar: `co
 - Red: SalaSteam_UIS, sin VPN, la .22 responde; la .21 sigue sin responder. Contenedores sanos. Modo de la pausa
   automática: `warn` (volver a `on`: ver la sección «Pausa automática en modo aviso»).
 
-## Pendientes, en orden
+## Pendientes, en orden (versión del 2026-10-08, reemplazada por la última sección de este archivo)
 
 **Con la red del laboratorio (necesitan la impresora o la cámara físicas):**
 1. **Confirmar qué cámara es** y dejarla fija. Colocarla de modo que se vea la superficie de la cama y la pieza
@@ -453,3 +453,57 @@ detección, por su mejor calidad. Consecuencias:
    `MODELO.md`, `RESULTADOS.md`, `PROGRESO_HORA.md`, `PROGRESO_TELEMETRIA.md`). Los comentarios del código que hablan
    de la C922 como referencia (907 px, 78°) siguen: describen la cámara final.
 6. **Sin confirmar:** el modelo exacto de la cámara genérica (no cambia nada) y si la C922 sigue funcionando.
+
+## Trabajo desde casa, sin la impresora (2026-10-09)
+
+Sin red de la impresora, sin desplegar ni reconstruir nada, sin `git push`, commits sin coautoría. Un commit por tarea,
+todos con pruebas y la web compilando:
+
+| # | Tarea | Commit | Qué quedó |
+|---|---|---|---|
+| 1 | Panel general, lista de trabajos y «En vivo» | `3333a4b` | La API da `printed_s` (reloj de la impresora, el máximo de `print_duration` por trabajo, una consulta agrupada, sin migración). La tarjeta muestra la capa del propio trabajo (la capa en vivo solo si ese trabajo es el que imprime) y la duración real, con la nota «PrintWatch lo siguió X» cuando se unió tarde; los trabajos viejos muestran solo la duración seguida. Lógica pura en `lib/jobFacts.ts` con 9 pruebas; 1 prueba de API. |
+| 2 | Miniatura negra | `3a47c83` | No se pudo reproducir la miniatura negra de Samuel (en la demostración, con navegador, se pintaba bien: 640×480 en una tarjeta de 368×276). Sí se midió que cada video en vivo mantiene una conexión y que a las 6 pestañas con video el navegador deja sin cargar todo lo demás. La miniatura pide ahora una foto cada 2 s (0 flujos, 5 fotos en 7,5 s, medido en la demostración) y el video de «En vivo» se cierra con la pestaña oculta y se reintenta a los 5 s si falla. 3 pruebas (`feedState`). |
+| 3 | Reporte PDF | `47e32cd` | El aviso «se unió ya al X %» se decide por la capa de la primera muestra (la 274 del trabajo 43: tardío; la 0 del 44: no); el peso lleva dos decimales bajo 1 g (0,29 g). PDFs 43 y 44 regenerados. 2 pruebas. |
+| 4 | `capture` | `2d465ab` | Un cuadro todo negro (media < 2, ningún píxel > 24) cuenta como «sin señal»: no se publica, la capa queda sin foto y el log lo dice una vez. La cámara USB puede elegirse por nombre (`name:C922`, DirectShow con `pygrabber`): si no está conectada, error claro y reintento cada 5 s, nunca otra cámara. 14 pruebas nuevas en `capture/tests` (incluida una del bucle completo con cámara y Redis simulados). **No se reinició `capture`** (ya no estaba corriendo) y no se probó con hardware. |
+| 5 | Calibración | `91c26a5` | `focal_unusual` y «con la focal de la C922 una marca no encajaría» pasan de avisos a notas (`notes`); `mark_far_from_corner`, con la focal en uso, sigue siendo aviso. La focal estimada sigue siendo el valor por defecto. |
+| 6 | Documentación de la cámara | `2bc14d3` | Textos corregidos donde afirmaban que lo medido era de la C922; «C922 Principal» **no** se cambió en la base ni en la web. Aclaración en este archivo. |
+| 7 | Etapa G | (el commit de este resumen) | `RESULTADOS.md` (sección 6 y pendientes), `KNOWN_LIMITATIONS.md` (sección 10), `PROGRESO_TELEMETRIA.md` y `HALLAZGOS_PARA_INFORME.md` (28 puntos). |
+
+**Pruebas al cerrar:** backend 156 pasan (143 al empezar el laboratorio), `capture` 14, web 12 (`vitest`), y la web compila.
+
+**Cambios en este equipo (no están en git):** se reabrió la sesión `wsl -- sleep infinity`; en `frontend/` se instaló
+`vitest` (dependencia de desarrollo, sí queda en `package.json`); en `capture\.venv` se instalaron `pygrabber` y `pytest`;
+se corrieron la demostración y un segundo servidor de la web para reproducir la miniatura y luego se detuvieron (la base
+`printwatch_demo` queda, como siempre). El backend en ejecución en los contenedores sigue siendo el del 8 de octubre con
+`AUTO_PAUSE_MODE=warn`: nada de lo de hoy está desplegado.
+
+## Pendientes, en orden
+
+**Necesitan la red del laboratorio, la impresora o la cámara:**
+1. **Desplegar lo de hoy:** reconstruir solo el backend (respaldo de la base antes; `docker compose --env-file .env -f
+   infra/docker-compose.yml --profile full up -d --build --no-deps backend`) y, si se quiere, volver a `on` la pausa
+   automática (borrar `AUTO_PAUSE_MODE=warn` del `.env`; ver «Pausa automática en modo aviso»).
+2. **Conectar la C922**, poner su `source_uri` en `name:C922` (`UPDATE cameras SET source_uri = 'name:C922' WHERE id =
+   36;`) y reiniciar `capture` (en su entorno ya están `pygrabber` y `pytest`). Comprobar que el cuadro es una imagen
+   real y probar tapando el lente que la web pasa a «Sin señal» y que, al destaparlo, vuelve (no se probó con hardware).
+3. **Colocar la cámara donde se vea la superficie de la cama y la pieza, y recalibrar con la C922** desde la web con la
+   impresora quieta (se espera una focal cerca de 907 px a 1280×720; si no, la tabla de errores dice qué marca falla).
+4. **Los dos cambios de factor de velocidad** (primero la pantalla de la impresora, luego Fluidd), con la impresora en
+   `standby`, y leer el origen y la hora en la bitácora.
+5. **Una impresión más larga (10 a 20 min) con la pieza visible:** fotos con la pieza, detecciones del modelo, mapa de
+   defectos, y decidir entonces si la pausa automática vuelve a `on`.
+6. **Confirmar con Ctrl+F5** en el navegador real que la miniatura del Panel ya no sale negra.
+7. **Etapa C (pausa y reanudación):** solo con «autorizo la C». **Etapa D (impresora .21):** cuando se encienda.
+
+**Se pueden hacer desde casa, sin la impresora:**
+8. **Precios reales** (filamento y kWh) en «Precios y potencias» desde la web con la pila local arriba (con
+   `wsl -- sleep infinity` abierto); y revisar las potencias de los calentadores (50 W y 300 W siguen sin confirmar).
+9. **Etapa E (datos del modelo):** cuando Samuel traiga de Colab o Drive la carpeta del entrenamiento (`args.yaml`,
+   `results.csv`, `best.pt`, matriz de confusión); evaluación con pocos hilos de CPU.
+10. **Etapa F (limpiar el historial de git):** solo con «autorizo la limpieza», y antes preguntar si revisó la política del
+    curso sobre declarar el uso de herramientas de IA. Sin `git push`.
+11. **Revisar los commits de hoy** (`git log 1e0211b..HEAD`) y, si procede, el SQL opcional del trabajo 34
+    (`UPDATE print_jobs SET ended_at = (SELECT max(detected_at) FROM layers WHERE job_id = 34) WHERE id = 34;`).
+12. **Mejoras de código opcionales** (no pedidas): ver el error de reproyección de las marcas antes de guardar la
+    calibración (hoy se ve al guardar); guardar el tiempo de inferencia del modelo en cada detección (la latencia pura
+    del ONNX no está medida); pruebas automáticas de los componentes de la web.

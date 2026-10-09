@@ -208,3 +208,36 @@ Cómo funciona (`app/services/bed_map.py`): el usuario marca las cuatro esquinas
 - **Energía: solo los calentadores**, como PWM × potencia nominal. No cuenta motores, ventiladores, electrónica, pantalla ni cámara (decenas de vatios), ni el consumo en espera. La potencia de la cama depende del voltaje: 1000 W a 220 V según la ficha, ~300 W a 120 V (supuesto de la configuración por defecto) y ~250 W a 110 V. Los huecos de más de 5 s en la telemetría no se cuentan.
 - **Precios únicos** para toda la instalación (no por material ni por impresora), configurables en la web por un administrador. Hasta que alguien los configure, son valores de ejemplo y la web lo avisa.
 - **En la analítica** el costo de cada trabajo se calcula con una muestra = 1 s (la frecuencia del muestreo); en la página del trabajo se usa el tiempo real entre muestras. La diferencia es mínima, pero las cifras pueden no coincidir al último peso.
+
+## 10. Lo que dejó el laboratorio del 2026-10-08 y 2026-10-09 (límites vigentes)
+
+Detalle y cifras en `docs/laboratorio/HALLAZGOS_PARA_INFORME.md`.
+
+- **La cámara de las pruebas no era la C922** (era una USB genérica provisional; la C922 será la de la
+  implementación final). Las calibraciones guardadas (ids 1 y 2, focal ~1.500 px) y los 32 cuadros del trabajo 44 son
+  de esa cámara: con la C922 hay que recalibrar, y el modelo sigue sin evaluarse con imágenes de la cámara final.
+- **La posición de la cámara de prueba no deja ver la pieza** (baja y de frente): los cuadros muestran la máquina, no
+  la superficie de la cama. Con la cámara final hay que colocarla donde se vea la pieza.
+- **`capture` abre la cámara USB por índice por defecto** (`source_uri = 0`); al conectar o desconectar otra cámara, el
+  índice cambia sin aviso. Se puede elegir por nombre (`name:C922`, solo Windows y con `pygrabber`); si esa cámara no
+  está conectada, `capture` falla y reintenta cada 5 s en vez de leer otra. Sin probar con hardware.
+- **Un cuadro todo negro es «sin señal»**: `capture` ya no lo publica y no hace foto de la capa (queda un hueco
+  visible). Un cuarto muy oscuro con alguna luz encendida no cuenta como negro (media < 2 y ningún píxel > 24).
+- **Tiempo restante:** el del laminador (total del nombre del archivo menos `print_duration`) no sabe del
+  calentamiento que ocurre con el estado `printing` y `print_duration` en 0 (~52 s en el trabajo 44), y en impresiones
+  cortas el laminador subestima (+9,4 % en el trabajo 44; +0,3 % en el de 6 h). Solo dos impresiones medidas.
+- **El video en vivo ocupa una conexión HTTP mientras la página está abierta**, y un navegador admite ~6 por servidor:
+  con 6 pestañas con video, las demás se quedan sin cargar. La página en vivo cierra el flujo con la pestaña oculta y lo
+  reintenta a los 5 s si falla; la miniatura del Panel pide una foto cada 2 s y no mantiene conexión.
+- **Duración de un trabajo:** el reloj de la impresora (`print_duration`) solo existe para trabajos desde el
+  2026-10-08; los anteriores muestran solo el tiempo que PrintWatch los siguió (puede ser menos que la impresión).
+- **Reporte PDF:** el aviso de unión tardía se decide por la capa de la primera muestra; si esa muestra no trae capa,
+  solo cuenta un avance de más del 15 %.
+- **Pausa automática:** `AUTO_PAUSE_MODE` (`on`, `warn`, `off`; ver la sección 0). La ruta `warn` solo se probó con la
+  impresora simulada; con la real no hubo capas con *spaghetti*. La pausa y la reanudación reales siguen sin probarse
+  (Etapa C, con autorización).
+- **Los cambios de factor de velocidad** (pantalla y Fluidd) no se han probado con la impresora real: la impresión de
+  prueba terminó antes.
+- **Pruebas de la web:** hay `vitest` para la lógica pura (`npm test` en `frontend/`); los componentes no tienen pruebas
+  automáticas, se miran en el navegador (la demostración sirve para eso). Las de `capture` se corren con su propio
+  entorno: `capture\.venv\Scripts\python.exe -m pytest capture\tests`.

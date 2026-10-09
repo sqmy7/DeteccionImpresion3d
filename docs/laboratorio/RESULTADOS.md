@@ -8,8 +8,13 @@ detalle por paso está en `docs/PROGRESO_TELEMETRIA.md`; los volcados, en `docs/
 (los logs y muestras grandes no se versionan).
 
 Estado: **la impresión terminó** (trabajo 43, `completed`, 16:58:42 hora de Colombia, capa 486). El análisis
-del cierre está en la sección 1b y en `docs/laboratorio/analisis_trabajo_43.md`. Lo que depende de la
-impresora quieta (calibrar la cámara, arrancar `capture`, desplegar el backend) sigue pendiente de ti.
+del cierre está en la sección 1b y en `docs/laboratorio/analisis_trabajo_43.md`.
+
+**Actualización (2026-10-09):** después se desplegó el backend, se arrancó `capture`, se calibró la cámara, se hizo
+una segunda impresión corta (trabajo 44) y se corrigió lo que salió mal; está en la sección 6. La lista numerada de
+lo que cambió respecto de lo supuesto, para el informe, está en `docs/laboratorio/HALLAZGOS_PARA_INFORME.md`.
+**Aclaración:** las pruebas del 8 de octubre se hicieron con una cámara USB genérica provisional, no con la C922
+(que será la cámara de la implementación final).
 
 ## 1. Qué se comprobó de verdad
 
@@ -110,13 +115,15 @@ código (el backend desplegado se reconstruye cuando termine la impresión).
 
 ## 3. Qué sigue sin comprobarse
 
-- **Atribución de origen con datos reales** (`console`, `external`, `gcode_file`): la impresión ya estaba
-  en marcha, así que no se vio la secuencia de inicio, y no se provocó nada (exigiría mandar órdenes).
-  El índice del archivo sí funcionó (10 MB, 1.519 comandos relevantes en ~10 s).
-- **Fotos, detecciones, pausa automática y mapa de defectos reales**: `capture` está apagado (a propósito:
-  arrancarlo durante esta impresión reactivaría la pausa automática).
-- **Calibración de la cámara final (C922)**, reporte PDF de un trabajo real, precios y costo reales.
-- **Salud**: hacen falta al menos 6 trabajos terminados con telemetría.
+(Al cierre del 2026-10-08. Lo que se comprobó después está en la sección 6; esta lista conserva lo que sigue abierto.)
+
+- ~~Atribución de origen con datos reales~~: **comprobada** con el trabajo 44 (`gcode_file` con la macro, `external`,
+  `printer`; sección 6). Sin comprobar: los cambios de factor de velocidad desde la pantalla y desde Fluidd.
+- ~~Fotos y detecciones reales~~: **comprobadas** con el trabajo 44 (32 fotos, 32 detecciones), pero con una
+  cámara genérica y sin la pieza a la vista. Sin comprobar: pausa automática y mapa de defectos con detecciones
+  reales, y el modelo con imágenes de la cámara final.
+- **Calibración con la cámara final (C922)**, precios y costo reales. (El reporte PDF con datos reales ya se hizo.)
+- **Salud**: hacen falta al menos 6 trabajos terminados con telemetría (hay 2).
 - **Potencias reales de los calentadores y cámara interna** (ver 2.5 y 2.6).
 - **Si la Hi publica `estimated_time`** en algún otro lugar: no aparece en ningún objeto ni en los
   metadatos de los cuatro archivos revisados.
@@ -156,16 +163,35 @@ secuencia de reanudación de Creality, una reanudación remota merece tratarse c
 ya registra cada orden enviada y cada cambio de estado, de modo que el próximo incidente sí quedará con hora
 exacta.
 
-## 5. Pendientes (cuando termine la impresión; esperan tu aviso)
+## 5. Pendientes
 
-1. **Desplegar el backend** con las correcciones (reconstruir el contenedor): no se hizo para no
-   reiniciarlo durante la impresión.
-2. **Reiniciar `capture`** (para que guarde la hora de cada cuadro) y **calibrar la cámara (la C922 final)** desde la web,
-   con la impresora quieta.
-3. Decidido el cálculo de gramos: se mantiene la densidad (ver 2.7). Falta solo revisar el PDF con los precios
-   reales.
+1. ~~Desplegar el backend~~, ~~reiniciar `capture`~~ y ~~elegir el tiempo restante y el cálculo de gramos~~: hechos
+   (secciones 1b, 2 y 6).
+2. **Calibrar con la cámara final (la C922)** desde la web, con la impresora quieta, y configurar `capture` con
+   `name:C922`.
+3. **Precios reales** (filamento y kWh) en «Precios y potencias», y confirmar las potencias de los calentadores.
+4. **Probar los dos cambios de factor de velocidad** (pantalla y Fluidd) y una impresión más larga con la pieza
+   visible.
+5. **Etapa C (pausa y reanudación)**, solo con autorización; impresora .21; datos del entrenamiento del modelo.
+6. Opcional: probar el stream de la cámara interna si alguien dice cómo se accede (Moonraker no publica ninguna).
 
-4. ~~Elegir el cálculo del tiempo restante~~: hecho (laminador; ver 1b y 2.8).
+## 6. Después del 8 de octubre por la tarde: impresora quieta, trabajo 44 y correcciones
 
-5. **Precios reales** (filamento y kWh) en "Precios y potencias".
-6. Opcional: probar, ya sin imprimir, el stream de la cámara si aparece alguna URL publicada.
+Todo con lecturas; a ninguna impresora se le mandó nada. Detalle cronológico en `PROGRESO_FINAL.md`; lista para el
+informe en `HALLAZGOS_PARA_INFORME.md`.
+
+- **Despliegue:** backend reconstruido con las correcciones (respaldo de la base antes), `alembic` sin cambios,
+  `capture` arrancado, la pausa automática en modo `warn` (`AUTO_PAUSE_MODE`) para la prueba.
+- **Descubrimiento con la impresora quieta** (`COMPARACION_QUIETA_IMPRIMIENDO.md`): configuración idéntica a la
+  medida imprimiendo (117 objetos, 71 macros); 54 campos solo se mueven imprimiendo; ningún log contiene
+  `out of range`.
+- **Calibración:** falló al guardar porque, quieta y sin malla, la cama medía 0 × 0 (corregido); se añadió fijar la
+  focal y el error de reproyección por marca. Dos calibraciones con la cámara genérica dieron ~1.490 y ~1.499 px.
+- **Trabajo 44** (`Cubo_PETG_2m28s.gcode`, 32 capas, 3 min 36 s, seguido desde el inicio): cerró `completed`, 206
+  muestras, 32 fotos y 32 detecciones (0 con defecto), cadena íntegra; las macros `START_PRINT`/`END_PRINT` quedaron
+  como `gcode_file`; el tiempo restante del laminador tuvo 13,5 s de error medio; el filamento, +2,5 %; el cabezal
+  se movió dentro del polígono del cubo; latencia de punta a punta por capa, p90 2,5 s; 0 eventos «habría pausado».
+  Reporte: `reporte_trabajo_44.pdf`.
+- **Corregido después, solo código y pruebas:** la duración y la capa de la tarjeta del último trabajo, la
+  miniatura del Panel (ahora por fotos), el aviso falso del reporte, el cuadro negro en `capture` y la selección de
+  la cámara por nombre, y el aviso de focal (ahora una nota).

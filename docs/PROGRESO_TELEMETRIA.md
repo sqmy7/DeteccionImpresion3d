@@ -444,3 +444,20 @@ Antes de cualquier prueba: VPN HotspotShield desconectada, sesión `wsl -- sleep
    `estimated_time` en `cur_print_data.metadata`); configurar los precios reales (filamento y kWh) en
    "Precios y potencias"; mirar el puntaje combinado de las detecciones que haya, y después de unas 6
    impresiones parecidas, la pestaña "Salud".
+
+## Cierre del laboratorio y del trabajo desde casa (2026-10-09)
+
+- **Etapa A (impresora quieta):** `lab-ausente` unida a `main`; backend desplegado (respaldo previo, `alembic` sin
+  cambios); `capture` arrancado; descubrimiento completo con la impresora quieta; calibración (con el error del
+  tamaño de cama en reposo corregido). **Etapa B:** una impresión corta (trabajo 44) con la pausa automática en modo
+  `warn`; resultados y desmentidos en `docs/laboratorio/PROGRESO_FINAL.md` y `HALLAZGOS_PARA_INFORME.md`.
+- **Desde casa, sin la impresora** (un commit por tarea, sin desplegar nada): duración real y capa del propio trabajo
+  en el Panel, la lista de trabajos y «En vivo»; miniatura del Panel por fotos y video que se suelta con la pestaña
+  oculta; reporte PDF sin el aviso falso de unión tardía y con el peso a dos decimales bajo 1 g; `capture` con cuadros
+  negros como «sin señal» y cámara por nombre; la focal distinta de la C922 pasa a ser una nota; documentación de que
+  la cámara de prueba no era la C922.
+- **Pruebas:** backend 156 (eran 143 al empezar el laboratorio), `capture` 14, web 12 (`vitest`), y la web compila.
+- **Cómo cambia el despliegue:** nada de esto está desplegado. Al volver al laboratorio: reconstruir el backend
+  (con `AUTO_PAUSE_MODE` según se decida), reiniciar `capture` (necesita `pygrabber`: `pip install -r
+  capture/requirements.txt` en `capture\.venv`) y pasar la cámara 36 a `name:C922` cuando la C922 esté conectada.
+- **Pendiente con la impresora o la cámara:** `docs/laboratorio/PROGRESO_FINAL.md`, la última sección, «Pendientes, en orden».
