@@ -4,6 +4,10 @@ Reglas: solo lectura sobre las impresoras (GET, WebSocket de lectura, SELECT, le
 commits sin línea de coautoría; las etapas avanzan solo con la confirmación escrita de Samuel; la C y la F
 solo con la frase exacta ("autorizo la C", "autorizo la limpieza").
 
+> **Aclaración (Samuel, 2026-10-09):** las pruebas del 2026-10-08 se hicieron con una cámara USB genérica provisional,
+> no con la Logitech C922, que será la cámara de la implementación final. Donde este registro dice «C922» al hablar
+> de lo medido ese día, léase «la cámara de prueba». Detalle al final, en «Aclaración sobre la cámara».
+
 ## Estado
 
 | Etapa | Estado |
@@ -425,3 +429,27 @@ Samuel después de imprimir; sigue íntegra). Estado de Klipper al terminar: `co
     calentadores (50 W y 300 W siguen sin confirmar).
 14. Revisar y, si procede, el SQL opcional del trabajo 34 (`UPDATE print_jobs SET ended_at = (SELECT max(detected_at)
     FROM layers WHERE job_id = 34) WHERE id = 34;`), que solo corrige una duración mal registrada.
+
+## Aclaración sobre la cámara (Samuel, 2026-10-09)
+
+Samuel aclaró que la cámara que se detectó el 2026-10-08 («USB Camera», VID 5258, PID 4A55) era una cámara genérica
+que usó mientras tanto, y que la Logitech C922 es la que piensa usar en la implementación final, cuando haga la
+detección, por su mejor calidad. Consecuencias:
+
+1. **Las dos calibraciones guardadas (ids 1 y 2) son de la cámara genérica, no de la C922.** Su focal de ~1.500 px
+   (campo de visión de ~52° en diagonal) es la de esa cámara. Con la C922 se recalibra; ahí sí se espera cerca de
+   907 px a 1280×720 (78° en diagonal) y la opción de fijar la focal y el error por marca sirven para ver cuál
+   marca está mal puesta. Las calibraciones viejas quedan como historial: no se borran.
+2. **Los 32 cuadros del trabajo 44 y las latencias medidas son de la cámara genérica**, sin la pieza a la vista. Las
+   latencias (de la foto al resultado) dependen del modelo y del equipo, no de la cámara; lo que no vale es la
+   «detección» como evaluación del modelo: no se ha evaluado con la C922.
+3. **El aviso «focal inusual» era una falsa alarma** con esa cámara; ahora es una nota informativa (la focal
+   estimada sigue siendo el valor por defecto).
+4. **El nombre «C922 Principal» de la cámara 36 no se cambió** en la base ni en la web: es el nombre de la cámara
+   final. Su `source_uri` sigue siendo `0` (índice). Para no volver a leer una cámara equivocada cuando se conecte
+   la C922, `capture` ya acepta `name:C922`: `UPDATE cameras SET source_uri = 'name:C922' WHERE id = 36;` (cambio
+   de configuración que se hace con la C922 conectada, en el laboratorio; no se tocó).
+5. **Textos corregidos** donde afirmaban que lo medido era de la C922 (`KNOWN_LIMITATIONS.md`, `PREGUNTAS.md`,
+   `MODELO.md`, `RESULTADOS.md`, `PROGRESO_HORA.md`, `PROGRESO_TELEMETRIA.md`). Los comentarios del código que hablan
+   de la C922 como referencia (907 px, 78°) siguen: describen la cámara final.
+6. **Sin confirmar:** el modelo exacto de la cámara genérica (no cambia nada) y si la C922 sigue funcionando.

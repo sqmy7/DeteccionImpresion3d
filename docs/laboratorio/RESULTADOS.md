@@ -115,7 +115,7 @@ código (el backend desplegado se reconstruye cuando termine la impresión).
   El índice del archivo sí funcionó (10 MB, 1.519 comandos relevantes en ~10 s).
 - **Fotos, detecciones, pausa automática y mapa de defectos reales**: `capture` está apagado (a propósito:
   arrancarlo durante esta impresión reactivaría la pausa automática).
-- **Calibración de la C922**, reporte PDF de un trabajo real, precios y costo reales.
+- **Calibración de la cámara final (C922)**, reporte PDF de un trabajo real, precios y costo reales.
 - **Salud**: hacen falta al menos 6 trabajos terminados con telemetría.
 - **Potencias reales de los calentadores y cámara interna** (ver 2.5 y 2.6).
 - **Si la Hi publica `estimated_time`** en algún otro lugar: no aparece en ningún objeto ni en los
@@ -160,7 +160,7 @@ exacta.
 
 1. **Desplegar el backend** con las correcciones (reconstruir el contenedor): no se hizo para no
    reiniciarlo durante la impresión.
-2. **Reiniciar `capture`** (para que guarde la hora de cada cuadro) y **calibrar la C922** desde la web,
+2. **Reiniciar `capture`** (para que guarde la hora de cada cuadro) y **calibrar la cámara (la C922 final)** desde la web,
    con la impresora quieta.
 3. Decidido el cálculo de gramos: se mantiene la densidad (ver 2.7). Falta solo revisar el PDF con los precios
    reales.

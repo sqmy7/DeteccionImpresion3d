@@ -69,7 +69,7 @@ del `push`).
    guardia de reanudación).
 2. **Reiniciar `capture`** (guarda la hora de cada cuadro). Ojo: reactiva las detecciones y, con ellas, la pausa
    automática.
-3. **Calibrar la C922** desde la web con la impresora quieta (necesita un usuario administrador).
+3. **Calibrar la cámara (la C922 final)** desde la web con la impresora quieta (necesita un usuario administrador).
 4. **Precios reales** (filamento y kWh) en "Precios y potencias".
 5. Revisar la rama `lab-ausente` antes de unirla a `main` (`git log main..lab-ausente`).
 6. **Encender la .21** o darme su IP actual, y correr los dos comandos de `impresora_21/RESULTADOS.md`.

@@ -57,12 +57,12 @@ que el cuaderno lee, no un registro de lo que corrió.
 - **Las dos series no son comparables entre sí**: una es del modelo FP32 con la tubería de producción a nivel
   imagen; la otra es del INT8 con la tubería de Ultralytics a nivel caja (mAP). Además, el INT8 **no** es el
   desplegado.
-- Todas se midieron sobre fotos de Roboflow Universe; **ninguna sobre imágenes de la C922 con la Hi** (todavía no
+- Todas se midieron sobre fotos de Roboflow Universe; **ninguna sobre imágenes de la cámara final (C922) con la Hi** (los únicos cuadros reales, 32 del trabajo 44, son de una cámara genérica provisional y no muestran la pieza) (todavía no
   hay detecciones reales: `capture` estuvo apagado).
 
 ## Lo que haría falta para cerrar esto
 
 1. Copiar a este equipo `args.yaml` y `results.csv` de la corrida de Colab (y, si se quiere, `best.pt`).
 2. Tener el conjunto de prueba procesado para repetir la calibración del FP32 con pocos hilos.
-3. Reunir detecciones reales con la C922 y etiquetarlas: es lo único que dirá cuánto se parece el rendimiento
+3. Reunir detecciones reales con la C922 (la cámara final) y etiquetarlas: es lo único que dirá cuánto se parece el rendimiento
    real al de las métricas.

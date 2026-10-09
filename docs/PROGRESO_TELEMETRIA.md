@@ -172,7 +172,7 @@ con la C922.
 - De paso: el listener deja una sola línea de aviso por reintento cuando la impresora no responde (antes
   una traza completa cada 10 s), y se silenciaron dos avisos de Pydantic del arranque.
 
-**Pendiente:** calibrar la C922 en el laboratorio (la pantalla de calibración y la vista del mapa se
+**Pendiente:** calibrar la cámara (la C922 final) en el laboratorio (la pantalla de calibración y la vista del mapa se
 hicieron en la Fase 4).
 
 **Decisiones:**
@@ -249,7 +249,7 @@ en la repetición).
 - La demostración nunca usa la base, el Redis ni las fotos del sistema real, y sus detecciones son
   sintéticas: sirve para mostrar la interfaz y el flujo, no mide el modelo.
 
-**Pendiente:** ver la web con la impresora real (video de la C922, telemetría real, mapa con la
+**Pendiente:** ver la web con la impresora real (video de la cámara, telemetría real, mapa con la
 calibración real) y desde el celular en la red del laboratorio.
 
 ## Fase 5: innovación
@@ -431,7 +431,7 @@ Antes de cualquier prueba: VPN HotspotShield desconectada, sesión `wsl -- sleep
    que las macros de la Hi se lean de `configfile`. Para comprobar `console` y `external` hace falta que
    alguien cambie algo durante la impresión (por ejemplo el factor de velocidad desde Fluidd y desde la
    pantalla). Eso ya es una orden a la impresora, así que queda a tu criterio; PrintWatch no lo hace.
-4. Fase 3: reiniciar `capture` (para que guarde la hora de cada cuadro) y calibrar la C922 desde la web
+4. Fase 3: reiniciar `capture` (para que guarde la hora de cada cuadro) y calibrar la cámara (la C922 final) desde la web
    con la impresora quieta (sin imprimir): marcar las cuatro esquinas de la cama e indicar si la cámara
    está fija (la cama se mueve en la imagen) o va sobre la cama. Revisar que la posición de cámara
    estimada sea razonable (altura y distancia aproximadas a la real) y, en la siguiente impresión con

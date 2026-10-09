@@ -37,7 +37,7 @@ que tenemos. Cada una lleva por qué importa y qué se intentó.
 ## El modelo y la detección
 
 8. **¿Con qué criterio se valida el modelo con la cámara y las piezas reales?** Las métricas del entrenamiento
-   salen de fotos de Roboflow Universe; todavía no hay detecciones de la C922 con la Hi. ¿Qué tamaño de
+   salen de fotos de Roboflow Universe; todavía no hay detecciones de la cámara final (C922) con la Hi: los 32 cuadros del trabajo 44 son de una cámara genérica provisional, sin la pieza a la vista. ¿Qué tamaño de
    muestra etiquetada y qué métrica se consideran suficientes antes de dejar que el modelo pause una
    impresión real?
 9. **¿Puede el puntaje combinado (modelo + telemetría) llegar a influir en las alertas?** Hoy solo se
@@ -47,7 +47,7 @@ que tenemos. Cada una lleva por qué importa y qué se intentó.
 10. **Política de la pausa automática:** ¿debe PrintWatch poder pausar por su cuenta, o solo avisar? Hoy
     pausa tras 3 capas seguidas de *spaghetti* con 15 s de gracia, y no hay forma de dejarlo solo en aviso
     salvo apagar la captura.
-11. **Calibración de la cámara:** el modelo ignora la distorsión del lente de la C922 (puede sumar varios
+11. **Calibración de la cámara:** el modelo ignora la distorsión del lente de la cámara (la C922 final o la genérica de prueba) (puede sumar varios
     milímetros en las esquinas). ¿Se justifica un patrón de calibración (tablero de ajedrez) o basta con
     el error estimado que ya se muestra?
 
