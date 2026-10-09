@@ -73,6 +73,19 @@ def recent(base_url: str, action: str, within_seconds: float) -> RecentCommand |
     return None
 
 
+def in_progress(base_url: str, action: str, within_seconds: float) -> RecentCommand | None:
+    """The newest order of this kind to this printer that the printer has not answered yet, if it was sent within the
+    window. A resume is answered when the printer is back to printing (45 to 65 s on the Creality Hi), and until
+    then its state still says "paused": a second resume sent in that time would pile up behind the first."""
+    now = time.monotonic()
+    for command in reversed(_commands):
+        if now - command.monotonic > within_seconds:
+            break
+        if command.base_url == base_url and command.action == action and command.ok is None:
+            return RecentCommand(command.action, command.ok, now - command.monotonic)
+    return None
+
+
 def claim_recent(base_url: str, action: str, within_seconds: float) -> SentCommand | None:
     """The newest unclaimed order of this kind sent to this printer within the window, marked so
     one order explains at most one state change. Failed orders count too: a request that timed

@@ -944,6 +944,9 @@ printer: SimulatedPrinter
 # Seconds the pause answer is held back after the state has changed: the real PAUSE macro parks the head
 # (~9 s on the Creality Hi) before Moonraker answers.
 pause_seconds = 0.0
+# Seconds a resume takes: the real RESUME macro reheats the nozzle and travels back to the part, the state stays
+# "paused" until it ends and the request is answered then (45 to 65 s on the Creality Hi).
+resume_seconds = 0.0
 auth_required_prefixes: tuple[str, ...] = ()
 auto_start = False
 
@@ -1158,6 +1161,8 @@ async def print_pause():
 
 @app.post("/printer/print/resume")
 async def print_resume():
+    if resume_seconds and printer.state == "paused":
+        await asyncio.sleep(resume_seconds)
     return await _print_action(printer.resume)
 
 
@@ -1448,7 +1453,7 @@ async def websocket_endpoint(ws: WebSocket) -> None:
 
 
 def main() -> None:
-    global printer, auth_required_prefixes, auto_start, camera_on_bed, pause_seconds
+    global printer, auth_required_prefixes, auto_start, camera_on_bed, pause_seconds, resume_seconds
 
     parser = argparse.ArgumentParser(description="Impresora Klipper/Moonraker simulada para pruebas.")
     parser.add_argument("--host", default="127.0.0.1", help="0.0.0.0 para aceptar conexiones de otros equipos/contenedores")
@@ -1466,6 +1471,10 @@ def main() -> None:
         "--pause-seconds", type=float, default=0.0,
         help="segundos que tarda en responder la pausa, con el estado ya cambiado (la real: ~9 s)",
     )
+    parser.add_argument(
+        "--resume-seconds", type=float, default=0.0,
+        help="segundos que tarda la reanudacion: el estado sigue en paused hasta el final (la real: 45 a 65 s)",
+    )
     parser.add_argument("--seed", type=int, default=7)
     args = parser.parse_args()
 
@@ -1474,6 +1483,7 @@ def main() -> None:
     auto_start = args.auto_start
     camera_on_bed = args.camera_on_bed
     pause_seconds = args.pause_seconds
+    resume_seconds = args.resume_seconds
     printer = SimulatedPrinter(
         args.layers, args.layer_seconds, args.layer_height, args.seed, heater_tau_scale=0.05 if args.fast_heat else 1.0
     )

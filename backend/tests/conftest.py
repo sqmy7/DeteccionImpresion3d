@@ -44,6 +44,7 @@ def mock_moonraker():
     mock.auth_required_prefixes = ()
     mock.auto_start = False
     mock.pause_seconds = 0.0
+    mock.resume_seconds = 0.0
     return mock
 
 

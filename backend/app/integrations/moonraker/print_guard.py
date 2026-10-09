@@ -6,6 +6,9 @@ be told afterwards. So the web's resume and cancel go through here:
 
   - one order at a time per printer (resume and cancel share the same lock): a second click while the
     first is in flight is refused;
+  - no new order of the same kind while the previous one is still being carried out (the printer has not answered it
+    yet; at most IN_PROGRESS_SECONDS): a resume takes 45 to 65 s and its state stays "paused" until it ends, so a
+    second click in that time would otherwise pass the state check below;
   - no new order of the same kind within COOLDOWN_SECONDS of the last one, whatever its outcome (an
     order that timed out may still have reached the printer);
   - the order is only sent if the printer itself says it is in a state where it makes sense right now
@@ -27,6 +30,9 @@ from app.integrations.moonraker.client import PendingAction, start_print_action
 
 RESUME_COOLDOWN_SECONDS = 20.0
 CANCEL_COOLDOWN_SECONDS = 20.0
+# Longest time a resume or cancel is considered "still being carried out": the longest resume seen took 65 s.
+RESUME_IN_PROGRESS_SECONDS = 90.0
+CANCEL_IN_PROGRESS_SECONDS = 90.0
 _STATE_TIMEOUT_SECONDS = 5.0
 
 _locks: dict[str, asyncio.Lock] = {}
@@ -59,6 +65,7 @@ async def _send_guarded(
     *,
     allowed_states: tuple[str, ...],
     cooldown_seconds: float,
+    in_progress_seconds: float,
     refusal: type[ActionRefused],
     verb: str,
     wrong_state: str,
@@ -67,6 +74,12 @@ async def _send_guarded(
     if lock.locked():  # checked and taken with no await in between: atomic in the event loop
         raise refusal("Ya hay una orden en curso para esta impresora; espera a que termine.")
     async with lock:
+        running = command_log.in_progress(base_url, action, in_progress_seconds)
+        if running is not None:
+            raise refusal(
+                f"La orden de {verb} que se pidió hace {running.age_seconds:.0f} s sigue en curso: la impresora tarda "
+                "hasta un minuto en terminar. Espera a que cambie de estado; no hace falta repetirla."
+            )
         recent = command_log.recent(base_url, action, cooldown_seconds)
         if recent is not None:
             raise refusal(
@@ -81,7 +94,8 @@ async def _send_guarded(
 async def resume_safely(base_url: str, requested_by: str | None) -> PendingAction:
     return await _send_guarded(
         base_url, "resume", requested_by,
-        allowed_states=("paused",), cooldown_seconds=RESUME_COOLDOWN_SECONDS, refusal=ResumeRefused,
+        allowed_states=("paused",), cooldown_seconds=RESUME_COOLDOWN_SECONDS,
+        in_progress_seconds=RESUME_IN_PROGRESS_SECONDS, refusal=ResumeRefused,
         verb="reanudar", wrong_state="La impresora no está en pausa",
     )
 
@@ -89,6 +103,7 @@ async def resume_safely(base_url: str, requested_by: str | None) -> PendingActio
 async def cancel_safely(base_url: str, requested_by: str | None) -> PendingAction:
     return await _send_guarded(
         base_url, "cancel", requested_by,
-        allowed_states=("printing", "paused"), cooldown_seconds=CANCEL_COOLDOWN_SECONDS, refusal=CancelRefused,
+        allowed_states=("printing", "paused"), cooldown_seconds=CANCEL_COOLDOWN_SECONDS,
+        in_progress_seconds=CANCEL_IN_PROGRESS_SECONDS, refusal=CancelRefused,
         verb="cancelar", wrong_state="La impresora no está imprimiendo ni en pausa",
     )
