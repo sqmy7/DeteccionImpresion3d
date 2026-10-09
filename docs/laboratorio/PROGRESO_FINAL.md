@@ -578,3 +578,21 @@ cada `stringing` ni `blob`, que con la lectura literal habrían abierto uno.
 impresión normal y ver si aparecen incidentes por una sola foto (y etiquetarlos); (2) la pausa y la reanudación reales
 (Etapa C, solo con «autorizo la C»), mirando que el incidente quede `paused` con la confirmación y se cierre como
 «Se reanudó»; (3) la cancelación real, solo con una pieza desechable.
+
+## Etapa C (2026-10-09): C0 detenida en el paso 1, sin red del laboratorio
+
+Hora local del equipo: 11:11 a 11:12. Solo lecturas; no se envió nada a ninguna impresora, no se desplegó nada, `AUTO_PAUSE_MODE`
+sigue en `warn`.
+
+| Comprobación | Resultado |
+|---|---|
+| VPN HotspotShield | desconectada (bien) |
+| SSID | la primera lectura dijo `SalaSteam_UIS`, pero medio minuto después la interfaz Wi-Fi figura **«desconectado»** (sin SSID) |
+| Dirección del equipo | `10.149.43.182` (puerta `10.149.43.17`), no una `192.168.10.x` |
+| Ping a 192.168.10.22 y a la puerta del laboratorio 192.168.10.1 | 100 % perdidos |
+| `GET http://192.168.10.22:7125/printer/info` | sin respuesta (HTTP 000, 10 s) |
+| ARP | sin entrada de la .22 |
+
+El equipo **no está en la red del laboratorio**: no se pudo leer el estado de la impresora (paso 2), así que no se sabe si está en
+reposo, y por eso no se desplegó ni se siguió. No se tocaron adaptadores, rutas ni la conexión Wi-Fi.
+**Pendiente para reanudar la C0:** que Samuel conecte el equipo a `SalaSteam_UIS` y confirme; se repiten los pasos 1 y 2.
