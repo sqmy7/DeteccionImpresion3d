@@ -512,3 +512,88 @@ export interface JobCost {
   settings: CostSettings;
   settings_are_default: boolean;
 }
+
+// --- Incidents (docs/META_FINAL.md) ---
+
+export type IncidentReason = "would_pause" | "auto_pause" | "pause" | "detection";
+export type IncidentStatus = "open" | "paused" | "unconfirmed" | "closed";
+export type IncidentOutcome = "resumed" | "cancelled" | "ignored" | "error";
+export type IncidentLabel = "unlabeled" | "correct" | "false_positive";
+
+export interface IncidentStreakItem {
+  layer: number;
+  detection_id: number;
+  capture_id: number;
+  confidence: number | null;
+  captured_at: string | null;
+}
+
+/** The printer when the incident opened: the job's latest telemetry sample, the layer's row, and the time
+ * printed and left by the slicer's estimate. */
+export interface IncidentSnapshot {
+  taken_at: string;
+  sample: (TelemetryValues & { ts: string }) | null;
+  layer: { layer_number: number; z_height: number; telemetry: (Partial<TelemetryValues> & { current_object?: string }) | null } | null;
+  printed_s: number | null;
+  estimated_total_s: number | null;
+  remaining_s: number | null;
+}
+
+export interface Incident {
+  id: number;
+  print_job_id: number;
+  printer_id: number;
+  camera_id: number | null;
+  opened_at: string;
+  reason: IncidentReason;
+  mode: "on" | "warn" | null;
+  defect_class: string;
+  streak: IncidentStreakItem[];
+  detection_id: number | null;
+  first_defect_at: string | null;
+  announced_at: string | null;
+  pause_sent_at: string | null;
+  paused_at: string | null;
+  status: IncidentStatus;
+  outcome: IncidentOutcome | null;
+  decided_by: string | null;
+  decided_at: string | null;
+  label: IncidentLabel;
+  labeled_by: string | null;
+  labeled_at: string | null;
+  telemetry_snapshot: IncidentSnapshot | null;
+  detail: Record<string, unknown> | null;
+  updated_at: string;
+  job_file_name: string | null;
+  seconds_to_pause: number | null;
+}
+
+export interface IncidentBox {
+  class_name: string;
+  confidence: number;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}
+
+export interface IncidentDetection {
+  detection_id: number;
+  capture_id: number;
+  layer_number: number;
+  z_height: number | null;
+  captured_at: string | null;
+  confidence: number | null;
+  image_url: string;
+  boxes: IncidentBox[];
+}
+
+export interface IncidentDetail extends Incident {
+  job: { id?: number; file_name?: string; status?: JobStatus; started_at?: string; ended_at?: string | null; estimated_layers?: number | null };
+  detections: IncidentDetection[];
+  events: PrinterEvent[];
+  chain: ChainVerification;
+  report_url: string;
+  telemetry_at_pause: (TelemetryValues & { ts: string }) | null;
+}
+

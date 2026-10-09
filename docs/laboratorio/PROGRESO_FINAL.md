@@ -507,3 +507,230 @@ se corrieron la demostración y un segundo servidor de la web para reproducir la
 12. **Mejoras de código opcionales** (no pedidas): ver el error de reproyección de las marcas antes de guardar la
     calibración (hoy se ve al guardar); guardar el tiempo de inferencia del modelo en cada detección (la latencia pura
     del ONNX no está medida); pruebas automáticas de los componentes de la web.
+
+## Meta final, rama `incidente-web`: Paso 1 (2026-10-09)
+
+**Meta:** que PrintWatch detecte un fallo inminente e intervenga con éxito, mostrando en la web el reporte completo y
+los parámetros de la impresora. Reglas: solo lecturas y `SELECT`, sin `git push`, commits sin coautoría.
+
+- **Paso 1 hecho** (solo lectura, **sin cambiar código**): `docs/META_FINAL.md` con (a) la definición de éxito medible,
+  (b) la auditoría de brechas leyendo el código real y (c) la propuesta de la regla de «inminente», sin implementarla.
+  **Esperando el ok de Samuel** antes del Paso 2 (pantalla de «Incidente»).
+- **Lo más importante que salió de la auditoría:**
+  - La auto-pausa nunca se ha ejecutado de punta a punta contra la impresora real; la reanudación real ya falló una
+    vez (25-09) y su guarda nunca se probó con la Hi; el modelo no se ha evaluado con la cámara final.
+  - **Cancelar no existe** (ni endpoint ni guarda ni botón): el Paso 2 lo necesita si el botón «Cancelar» va a estar.
+  - **No hay «incidente» como registro:** la cuenta regresiva y el «Abortar» no quedan en la bitácora, y «ejecutada» se
+    emite al responder el HTTP, no cuando Klipper queda en `paused`.
+  - Solo `spaghetti` puede pausar; la persistencia se cuenta en capas y una capa lenta (24 min medidos) la dispara tarde;
+    la cámara no tiene `roi`; el aviso depende de que haya una web abierta.
+- **Decisiones que necesita de Samuel** (al final de `META_FINAL.md`): los objetivos de a.2 a a.4, si el Paso 2 incluye
+  Cancelar (crear endpoint y guarda), qué abre un incidente, y registrar la cuenta y el aborto en la bitácora y
+  confirmar `paused`.
+
+## Meta final, rama `incidente-web`: Paso 2 (2026-10-09, en curso)
+
+Decisiones de Samuel anotadas en `docs/META_FINAL.md`. Reglas: nada se manda a ninguna impresora (todo con la simulada
+y la base de pruebas), sin desplegar, sin `git push`, commits sin coautoría. Estado por tarea:
+
+| Tarea | Estado |
+|---|---|
+| 1. Registro del incidente (backend) | **hecha**: tabla `incidents` (migración `f1a6d3e82b57`, reversible, probada en la base de pruebas: subir, `alembic check`, bajar sin dejar tabla ni índices, subir), servicio `app/services/incidents.py`, eventos `auto_pause.pending/aborted/confirmed/not_confirmed`, confirmación de `paused` con lecturas del estado (20 s), API de incidentes. 168 pruebas del backend pasan (12 nuevas). |
+| 2. Cancelar (backend y web) | **hecha**: `POST /printers/{id}/cancel` (solo administrador, con la palabra `CANCELAR` exigida también por el servidor), guarda `cancel_safely` (una orden a la vez compartida con reanudar, enfriamiento de 20 s, solo si la propia impresora dice `printing` o `paused` por una lectura GET), botón con doble confirmación en la web. 179 pruebas del backend y 14 de la web. |
+| 3. Pantalla de Incidente (web) | **hecha (falta la revisión en navegador, tarea 4)**: pestaña «Incidentes» por impresora (lista con aciertos / falsos positivos / sin etiquetar), pantalla de detalle (foto con cajas y selector de capa de la racha, clase, confianza, capa y hora, estado completo de la impresora al abrirse y al pausarse, tiempo impreso y restante, línea de tiempo con el estado de la cadena, reporte PDF, Reanudar con la guarda, Cancelar con doble confirmación, Abortar, Ignorar y etiquetar), aviso fijo en todas las pantallas con la marca `(!)` en el título de la pestaña, y los banners de la pausa automática ahora distinguen «enviada», «confirmada» y «NO confirmada». 22 pruebas de la web. |
+| 4. Verificación con la demostración | **hecha**: un incidente en modo `warn` y otro en modo `on`, recorridos en el navegador (escritorio y celular), sin errores de consola, capturas y resultados en `docs/laboratorio/incidente/`. Salieron y se corrigieron: el motivo del incidente se juzga por todos sus disparadores (sin eso, en modo `on` faltaba el botón «Abortar»), una galería con las fotos de la racha, textos cortados, y el `favicon.ico` que daba un 404 en consola. |
+
+### Paso 2: resumen y qué hay que hacer al desplegar
+
+**Hecho (cuatro tareas, un commit cada una):** registro de incidentes (tabla, migración reversible, eventos, confirmación
+de `paused`, API), cancelar (endpoint, guarda y botón con doble confirmación), pantalla de Incidente (lista, detalle, aviso
+fijo, banners) y su verificación con la demostración. Pruebas al cerrar: backend 179 (168 tras la tarea 1, 179 tras la 2), `capture` 14,
+web `vitest` 24, `alembic check` sin diferencias en la base de pruebas, y la web compila. Se resolvieron las decisiones de Samuel tal como las dio; las interpretaciones propias
+están en `docs/META_FINAL.md` («Cómo se interpretó lo que no estaba definido»). **La regla de la sección c no se
+implementó.** Nada de esto está desplegado.
+
+**Contradicciones o dudas con `META_FINAL.md` que quedaron a la vista:** «detección sobre el umbral» (ver arriba: se
+limita a `spaghetti` y `layer_shift` con confianza ≥ 0,50, configurable); y que `META_FINAL.md` a.1 no pide un incidente por
+cada `stringing` ni `blob`, que con la lectura literal habrían abierto uno.
+
+**Qué hay que hacer al desplegar (en el laboratorio o desde casa, con `wsl -- sleep infinity` abierto), en este orden:**
+
+1. **Respaldo de la base real** (como siempre): `docker exec infra-postgres-1 sh -c 'pg_dump -U "$POSTGRES_USER" -d
+   "$POSTGRES_DB"' > storage/respaldo_antes_incidentes_AAAA-MM-DD.sql` (no se versiona).
+2. **Migración:** `alembic upgrade head` contra la base real (revisión `f1a6d3e82b57`, solo crea la tabla `incidents`; es
+   reversible con `alembic downgrade -1`, que la borra con sus datos). Con el contenedor nuevo se puede hacer así:
+   reconstruir el backend (paso 3) y ejecutar dentro `docker exec infra-backend-1 alembic upgrade head`; el backend
+   viejo sigue funcionando con la tabla nueva presente. La base de pruebas (`printwatch_test`) **ya está en esa
+   revisión**; quien tenga otra base de pruebas debe ejecutar `alembic upgrade head` allí antes de correr las pruebas.
+3. **Reconstruir solo el backend:** `docker compose --env-file .env -f infra/docker-compose.yml --profile full up -d
+   --build --no-deps backend` (desde la raíz, en WSL). No hace falta tocar `inference-worker`, `capture`, postgres ni redis.
+4. **Comprobar:** contenedor `healthy`, `alembic current` = `f1a6d3e82b57 (head)`, `/health` con base y Redis `ok`, y la lista
+   `GET /api/v1/incidents` responde (vacía al principio). Con la impresora conectada, el listener debe conectar.
+5. **Web:** reiniciar el servidor de la web (`npm run dev` en `frontend/`, o `npm run build` y servir `dist/`) y recargar
+   con Ctrl+F5: aparece la pestaña «Incidentes» y el botón «Cancelar impresión».
+6. **Variables del `.env` (opcionales):** `AUTO_PAUSE_MODE` sigue en `warn` en el `.env` real hasta que se decida volver a
+   `on`; `INCIDENT_CLASSES` e `INCIDENT_MIN_CONFIDENCE` (por defecto `spaghetti,layer_shift` y `0.50`) están documentadas
+   en `.env.example`.
+7. **Para volver atrás:** `git revert` de los commits de la rama (o volver al commit anterior), reconstruir el backend y,
+   si se quiere, `alembic downgrade -1` (borra los incidentes guardados). Dejar la tabla no estorba al backend anterior.
+
+**Lo primero que conviene probar con la impresora real, de menos a más riesgo:** (1) con `AUTO_PAUSE_MODE=warn`, una
+impresión normal y ver si aparecen incidentes por una sola foto (y etiquetarlos); (2) la pausa y la reanudación reales
+(Etapa C, solo con «autorizo la C»), mirando que el incidente quede `paused` con la confirmación y se cierre como
+«Se reanudó»; (3) la cancelación real, solo con una pieza desechable.
+
+## Etapa C (2026-10-09): C0 detenida en el paso 1, sin red del laboratorio
+
+Hora local del equipo: 11:11 a 11:12. Solo lecturas; no se envió nada a ninguna impresora, no se desplegó nada, `AUTO_PAUSE_MODE`
+sigue en `warn`.
+
+| Comprobación | Resultado |
+|---|---|
+| VPN HotspotShield | desconectada (bien) |
+| SSID | la primera lectura dijo `SalaSteam_UIS`, pero medio minuto después la interfaz Wi-Fi figura **«desconectado»** (sin SSID) |
+| Dirección del equipo | `10.149.43.182` (puerta `10.149.43.17`), no una `192.168.10.x` |
+| Ping a 192.168.10.22 y a la puerta del laboratorio 192.168.10.1 | 100 % perdidos |
+| `GET http://192.168.10.22:7125/printer/info` | sin respuesta (HTTP 000, 10 s) |
+| ARP | sin entrada de la .22 |
+
+El equipo **no está en la red del laboratorio**: no se pudo leer el estado de la impresora (paso 2), así que no se sabe si está en
+reposo, y por eso no se desplegó ni se siguió. No se tocaron adaptadores, rutas ni la conexión Wi-Fi.
+**Pendiente para reanudar la C0:** que Samuel conecte el equipo a `SalaSteam_UIS` y confirme; se repiten los pasos 1 y 2.
+
+### Etapa C0 repetida (2026-10-09, 11:15 a 11:20 hora local), con el equipo ya en `SalaSteam_UIS`
+
+Solo lecturas hasta el respaldo; la única acción fue reconstruir el backend con la impresora en reposo. Nada se envió a ninguna impresora;
+`AUTO_PAUSE_MODE` sigue en `warn`.
+
+| Paso | Resultado |
+|---|---|
+| 1. Red | SSID `SalaSteam_UIS`, equipo en `192.168.10.102`, VPN desconectada, ping a la .22 con 0 % perdido (3 a 6 ms), `GET /printer/info` 200 (0,05 s). **Estable 60 s**: 7 de 7 lecturas (SSID, ping y GET cada 10 s), 0 fallos |
+| 2. Estado real de la .22 | `print_stats.state = standby`, sin archivo, `pause_resume.is_paused = false`, `idle_timeout = Ready`, ejes referenciados (`xyz`), `live_position` X −5,0 / Y 130,0 / Z 10,1; boquilla 33,1 °C y cama 29,0 °C con objetivos en 0; factores 1,0 / 1,0. Cero trabajos `running` en la base |
+| 3. Despliegue | Respaldo `storage/respaldo_antes_incidentes_2026-10-09.sql` (8,7 MB, 14 tablas, no se versiona). Reconstruido **solo** `infra-backend-1` (`--no-deps`); postgres, redis y el worker siguen con 5 h de actividad. `alembic upgrade head` dentro del backend nuevo: `e7b3c2a91f04 → f1a6d3e82b57`; `alembic current` = `heads` = `f1a6d3e82b57 (head)`. `/health`: base y Redis `ok`. En el contenedor, `AUTO_PAUSE_MODE = warn`, incidentes `spaghetti,layer_shift` ≥ 0,5; en el `.env`, línea 19 `AUTO_PAUSE_MODE=warn`. Listener conectado a la .22 (`standby`). Rutas nuevas con 401 sin sesión; consulta interna de incidentes: 0 en la base real |
+| 4. Cámara | **C922 no conectada** (solo la «USB Camera» genérica, VID 5258). No se cambió `source_uri`. `capture` no está corriendo |
+
+Consecuencia: durante la Etapa C **no habrá fotos ni detecciones** (no hay `capture`); la pausa y la reanudación no las necesitan, pero el incidente
+de una pausa real abrirá sin foto asociada.
+**Esperando la frase «autorizo la C» escrita por Samuel en este chat** para pasar a la C1.
+
+### Etapa C1 (2026-10-09, 11:40 a 11:47): pieza corta, sin pausa; la prueba real de pausa sigue pendiente
+
+Samuel dio «Autorizo C» y empezó desde la pantalla de la impresora `Cubo_PETG_2m55s.gcode` (35 capas, unos 3 minutos). Era **más corta que los
+10 minutos pedidos** y no hubo aviso de «voy por la capa 10 o más», así que **no se hizo C2 ni C3**: no se pausó ni se reanudó nada, y yo no mandé
+ninguna orden a la impresora (observación con un `GET` por segundo, guardada en un archivo fuera del repositorio).
+
+Medido (trabajo 45, lecturas de la .22 y base de datos):
+
+| Dato | Valor |
+|---|---|
+| Inicio de la impresión (`printing`) | 11:40:52 |
+| Capa 10 | 11:42:38 (aprox. 6 a 7 s por capa) |
+| Fin del trazado / `complete` | 11:44:56 / 11:44:57 |
+| Estados vistos | solo `printing` y `complete`; `pause_resume.is_paused` siempre `false`; ningún `error` ni `cancelled` |
+| Boquilla durante el trazado (capa ≥ 2) | 248,1 a 252,7 °C (objetivo 250) |
+| Cama durante el trazado (capa ≥ 2) | 78,8 a 81,6 °C (objetivo 80) |
+| Recorrido de la cabeza (`live_position`, capa ≥ 2) | X −4,4 a 133,3; Y 126,7 a 180,0; Z 0,3 a 57,2 (la Z final es el levantamiento del fin de impresión) |
+| Línea base en la capa 10 | pos. (128,9; 128,9; 1,9), boquilla 250,3/250, cama 81,0/80, factor de velocidad 1,0, flujo 1,0, ventilador 0,4, ventilador del hotend 1,0, `print_duration` 53,1 s |
+| Después del fin | `complete`, posición (0,0; 260,0; 57,2), `idle_timeout = Ready`, temperaturas bajando (11:47: boquilla 135 °C, cama 75 °C) |
+| Registro en PrintWatch | trabajo 45 `completed`, 35 capas, 243 muestras de telemetría, **0 incidentes** (esperable: `AUTO_PAUSE_MODE=warn` y sin `capture`, no hubo detecciones) |
+
+Nota de lo que **no** se midió: segundos hasta `paused`, posición de la cabeza al pausar, temperaturas tras la pausa, y si la reanudación funciona
+con esta impresora. Siguen sin datos y no se suponen.
+
+**Para repetir:** Samuel inicia una pieza desechable de 10 minutos o más desde la pantalla de la impresora, se queda junto a ella con la mano cerca
+de la parada de emergencia y avisa al pasar de la capa 10. Después, la pausa (C2) la pulsa él en la web y la reanudación (C3) solo si escribe «reanuda».
+
+### Etapa C2 y C3 (2026-10-09, 12:16 a 12:30): pausa real, reanudación real y segunda pausa por filamento atascado
+
+Pieza: `Cubo_PETG_18m27s.gcode` (86 capas), trabajo 46. Samuel la inició en la pantalla de la impresora (12:16:13). Yo no mandé ninguna orden a la
+impresora; solo lecturas (`GET` cada segundo, archivo fuera del repositorio) y consultas `SELECT`. `AUTO_PAUSE_MODE=warn` todo el tiempo.
+
+**Medido** (bitácora `printer_events` del trabajo 46 y lecturas de la .22; horas locales):
+
+| Hora | Hecho | Origen en la bitácora |
+|---|---|---|
+| 12:19:09 | Capa 10; boquilla 248,6/250 °C, cama 80,0/80 °C | lectura |
+| 12:19:13,28 | Samuel pulsa «Pausar impresión» en la web (registro del backend «Manual pause requested»); el listener ve `paused` a las 12:19:13,97, **0,7 s después** |
+| 12:19:14 | `print_stats.state`: `printing` → `paused` en la capa 10 (cabeza en X 128,0 / Y 122,0 / Z 2,1) | `external` (no hay orden de PrintWatch antes) |
+| 12:19:15 a 12:19:22 | La cabeza sube en Z a 49,94; luego va al rincón X 0,0 / Y 260,0 | lectura |
+| 12:19:22 | Orden `printer/print/pause` de PrintWatch, pedida por «samuel (web)», `ok: true`, con la impresora ya pausada | `printwatch` |
+| 12:19:44 a 12:20:20 | El objetivo de la boquilla baja de 250 a 140 °C (boquilla 228 → 182 °C); cama ~80 °C sin cambio; ventilador de pieza 0,39 igual; ventilador del hotend 1,0 | lectura |
+| 12:21:20 | Comprobación previa a reanudar: `paused`, sin `resume_err`, X 0,0 / Y 260,0 dentro de los límites (margen 19 mm en X y 13 mm en Y) | lectura |
+| 12:21:26,4 | Samuel pulsa «Reanudar impresión» en la web (registro del backend «Manual resume requested»): a las 12:21:27 el objetivo de la boquilla sube a 250 °C; la boquilla tarda ~45 s en llegar; la cabeza baja a la pieza | lectura |
+| 12:21:36 | Orden `printer/print/resume` registrada como `ok: false, error: ReadTimeout`, aunque la reanudación sí ocurrió | `printwatch` |
+| 12:22:31 | `paused` → `printing` (64,9 s después del clic); sin error de Klipper; el incidente 1 se cierra como `resumed` por «samuel (web)» | `printwatch` |
+| 12:22:39 a 12:23:04 | Capas 11, 12 y 13 (8, 12 y 13 s por capa) | lectura |
+| 12:23:05 | `printing` → `paused` en la capa 13 (cabeza en X 131,1 / Y 137,7 / Z 2,5); cabeza al rincón X 0 / Y 260 / Z 49,9; objetivo de boquilla a 140 °C | `external` (sin orden de PrintWatch) |
+
+**Intervención de Samuel:** según él, volvió a pausar porque se atascó filamento y lo está retirando a mano con la impresora pausada. Él no indicó
+la hora ni desde dónde pausó (su mensaje llegó con «HH:MM» sin rellenar). La hora que consta es la de la bitácora, 12:23:05. En cuanto al medio:
+la bitácora **no** muestra una orden de PrintWatch en ese momento, así que no fue desde la web; entre pantalla de la impresora y aplicación del
+fabricante no se puede distinguir con estos registros. La pausa de las 12:19:14 tampoco tiene orden de PrintWatch antes: fue externa; la orden «web»
+llegó 8 s después. No se mandó nada desde el equipo durante la intervención.
+
+**Resumen de pausas del trabajo 46:** 2 cambios de estado a `paused` (12:19:14 y 12:23:05), ambos `external`; 1 reanudación, `printwatch`; órdenes de
+PrintWatch: pausa (12:19:22, ok) y reanudación (12:21:36, `ReadTimeout`). **Incidentes:** 2, ambos `reason=pause`, modo `warn`, `pause_sent_at`
+vacío; el 1 cerrado como `resumed` por «samuel (web)» a las 12:22:31, el 2 en estado `paused` (abierto 12:23:05). Cadena de la bitácora del
+printer 35: íntegra (179 eventos revisados, ninguno roto). Sensor de filamento: 0 eventos en el trabajo 46.
+
+**No medido:** los segundos entre el clic en la web y `paused` (la pausa llegó desde fuera de PrintWatch); si el atasco tiene relación con la
+pausa o la reanudación previas (no se afirma ninguna causa). **Hallazgo pendiente:** la orden de reanudar tarda más que el tiempo de espera de
+PrintWatch (el `ReadTimeout` aparece con la reanudación realizada); la causa en el código no se ha revisado todavía.
+
+**Aclaración de Samuel y lecturas previas a reanudar (12:31, solo lectura).** Samuel cuenta que pulsó Pausar en la web, vio que la cabeza siguió
+moviéndose unos segundos y pausó otra vez desde la pantalla de la impresora; después se atascó filamento y lo retira a mano. No dio las horas
+(«HH:MM» sin rellenar). Lo que consta: orden web a las 12:19:13,28 (0,7 s hasta `paused`; la orden HTTP no devolvió hasta las 12:19:22,1, mientras la
+cabeza subía en Z a 49,94 y se iba al rincón: ese es el movimiento posterior a `paused`). Una segunda pausa pulsada en pantalla entre las 12:19:14
+y las 12:19:22 no dejaría rastro (la impresora ya estaba en `paused`); la única pausa externa registrada es la de las 12:23:05, después de la
+reanudación. Qué pasó en realidad entre las dos no se puede distinguir con estos registros.
+
+Lecturas a las 12:31: `paused`, `is_paused` true, `resume_err` false, sin mensaje; capa 13/86; `live_position` X 0,0 / Y 260,0 / Z 49,94 (dentro
+de los límites; márgenes 19 y 13 mm); boquilla 140,5/140 °C, cama 80,4/80 °C; ventilador de pieza 0,39; sensor de filamento `filament_detected`
+true. El estado guardado por Klipper al pausar (`SAVE_GCODE_STATE`) no se puede consultar; `gcode_move` solo da la posición actual. Durante la
+reanudación anterior la cabeza pasó por X −18,5 (0,5 mm del límite −19) y por X 279,6 (5,4 mm del límite 285) sin error.
+**Riesgo observado en el código y en las lecturas (no probado):** la reanudación tarda ~65 s con el estado aún en `paused`, y la guarda solo
+bloquea repeticiones durante 20 s; un segundo clic entre los 20 y los 65 s se enviaría. Mientras tanto la web ya habrá mostrado el `ReadTimeout`
+(10,3 s).
+
+**Segundo intento de reanudar (12:37:54), sin orden a la impresora (lecturas de las 12:44).** Samuel pulsó «Reanudar impresión» y la impresora siguió en
+pausa. El registro del backend (con hora) muestra `POST /printers/35/resume` → **401 Unauthorized** a las 12:37:54: la sesión de la web había caducado
+(el último inicio de sesión fue a las 12:22:02 y el token dura 60 minutos), así que la petición se rechazó antes de llegar a la guarda y no hubo
+«Manual resume requested» ni orden a Moonraker. Lo mismo ocurrió con un `POST /pause` a las 12:22:52 (401), 13 s antes de la pausa en pantalla de las
+12:23:05: por eso la pausa del atasco acabó pulsándose en la pantalla. Cuánto se ve en la web de ese 401 no se ha revisado.
+Además, la propia impresora enfrió la boquilla en pausa: el objetivo pasó de 140 a 0 °C a las 12:38:21, 15 min 16 s después de la pausa de las
+12:23:05, y el `gcode_store` de Klipper muestra `COOLING_AFTER_PRINTER_PAUSED: Printer is paused` y `DO_COOLING: Start cooling` justo en ese instante
+(el reloj de la impresora va unas 8 h 22 min adelantado; se alinea con las otras marcas). Estado a las 12:44: `paused`, `is_paused` true,
+`resume_err` false, `idle_timeout` Ready con `printing_time` 0,0, boquilla 41,5 °C (objetivo 0), cama 79,8 °C (objetivo 80), posición
+X 0,0 / Y 260,0 / Z 49,94, capa 13.
+
+### Etapa C (2026-10-09): cierre
+
+La pieza `Cubo_PETG_18m27s.gcode` (trabajo 46, 86 capas) terminó en `complete` a las 13:11:10 después de **dos pausas y dos reanudaciones reales**,
+sin ningún error de Klipper ni «Move out of range». Tiempos y valores medidos, lo no medido y los hallazgos por revisar están en
+[ETAPA_C.md](ETAPA_C.md). Resumen medido: clic en la web → `paused` en 0,7 s; reanudación en 64,9 s (boquilla desde 140 °C) y en 44,5 s (boquilla ya
+caliente); estacionamiento en X 0 / Y 260 / Z 49,94; 2 incidentes, ambos cerrados `resumed` por «samuel (web)»; cadena de la bitácora íntegra (188
+eventos). El incidente del 25-09 **no** se repitió en estas dos reanudaciones; no se declara su causa. Pendiente: pausa automática inducida («autorizo la
+C»), cancelación real («autorizo cancelar»), decidir `AUTO_PAUSE_MODE`, y los hallazgos de `ReadTimeout` y de la guarda de repeticiones.
+
+### Hallazgos de la Etapa C arreglados en el código (2026-10-09, sin desplegar)
+
+Rama `incidente-web`, un commit por hallazgo (`76e58f2` el 4, `b4e7904` el 1, `3451c3b` el 2, `d425820` el 3) más `bd21511` (la
+demostración con la simulada lenta y el recorrido en el navegador). Pruebas: backend 195 pasan contra la base de pruebas, web 44 pasan y
+compila. Nada se mandó a ninguna impresora, no se desplegó y no hubo `git push`. Detalle y decisiones en
+[ETAPA_C.md](ETAPA_C.md). Lo que ya se comprobó y lo que no: contra la **simulada** (y en un navegador contra la demostración); contra la
+Creality Hi real, no.
+
+**Qué hacer al desplegar esto: solo backend y web, sin migración** (no hay cambios de base de datos):
+1. Con la impresora **en reposo** (`standby` o `complete`; nunca con una impresión en curso: reconstruir el backend corta el listener).
+   Si se quiere, un respaldo de la base como antes, aunque no hay migración.
+2. Reconstruir **solo el backend**, con `--no-deps` y `--env-file .env` (igual que `start.ps1`); no tocar Postgres, Redis ni el worker.
+   Comprobar `/health` y que `alembic current` siga en `f1a6d3e82b57`. El `.env` puede quedarse como está: la variable nueva
+   `JWT_MAX_SESSION_HOURS` es opcional (24 por defecto) y `JWT_EXPIRE_MINUTES` no cambia (60).
+3. La web: con el servidor de desarrollo (`npm run dev`) los cambios ya se sirven solos; con una compilación, `npm run build` y
+   servir `dist/`. Hay que recargar la pestaña abierta.
+4. Compatibilidad entre ambos lados durante el cambio: la web nueva con el backend viejo funciona (la pausa y la reanudación dan 204 y
+   la renovación del token da 404 y se ignora); la web vieja con el backend nuevo también (el 202 no la rompe). Mejor backend primero.
+5. Con la impresora real, **nada se prueba sin tu autorización**: la pausa y la reanudación reales con estos arreglos (que «Reanudando… N s»
+   dure lo que tarda la impresora y que ninguna orden salga como `ReadTimeout`) quedan para otra prueba en una pieza desechable.
+6. Las sesiones abiertas antes del cambio siguen valiendo hasta que caduquen y se renuevan sin volver a entrar; como su token no lleva
+   `auth_time`, el tope de 24 h les cuenta desde la primera renovación.

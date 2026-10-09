@@ -25,9 +25,11 @@ def verify_password(password: str, hashed_password: str) -> bool:
     return bcrypt.checkpw(password.encode(), hashed_password.encode())
 
 
-def create_access_token(subject: str, expires_delta: timedelta | None = None) -> str:
-    expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=settings.jwt_expire_minutes))
-    payload = {"sub": subject, "exp": expire}
+def create_access_token(subject: str, expires_delta: timedelta | None = None, auth_time: datetime | None = None) -> str:
+    """auth_time is when the user typed the password; a renewed token carries the original one."""
+    now = datetime.now(timezone.utc)
+    expire = now + (expires_delta or timedelta(minutes=settings.jwt_expire_minutes))
+    payload = {"sub": subject, "exp": expire, "auth_time": int((auth_time or now).timestamp())}
     return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 
 

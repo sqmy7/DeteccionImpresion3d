@@ -24,7 +24,7 @@ from app.integrations.moonraker.interventions import (
     print_phase,
 )
 from app.schemas.print_job import PrintJobCreate
-from app.services import telemetry
+from app.services import incidents, telemetry
 from app.services.print_jobs import create_print_job, transition_job_status
 from app.services.printer_events import EventOrigin, record_event
 from app.ws.manager import manager
@@ -38,7 +38,9 @@ _SAMPLE_INTERVAL_SECONDS = 1.0
 # One insert every ~10 s instead of one per sample.
 _SAMPLES_PER_INSERT = 10
 # A state change within this window after a PrintWatch order of the same kind is attributed to it.
-_COMMAND_ATTRIBUTION_SECONDS = 60
+# The order is noted when it is sent and a resume takes up to ~65 s to change the state (45 to 65 s measured on the
+# Creality Hi, 2026-10-09), so the window has to outlast it.
+_COMMAND_ATTRIBUTION_SECONDS = 120
 # After any of these Moonraker has dropped this connection's subscription (Klippy restarted or
 # stopped), so the listener reconnects to subscribe again.
 _KLIPPY_RESET_NOTIFICATIONS = {"notify_klippy_disconnected", "notify_klippy_shutdown", "notify_klippy_ready"}
@@ -493,6 +495,10 @@ async def _record_state_change(
     if new_state == "error" and state.message:
         detail["error"] = _parse_klipper_message(state.message)
 
+    await _note_incidents(
+        db_session_factory, printer_id, job_id, previous_state, new_state, origin, detail.get("printwatch_order")
+    )
+
     if origin is None and tracker is not None:
         tracker.add(
             DetectedChange(
@@ -525,6 +531,22 @@ async def _record_state_change(
         detail={**detail, "phase": previous_phase},
         klipper_eventtime=state.eventtime,
     )
+
+
+async def _note_incidents(db_session_factory, printer_id, job_id, previous_state, new_state, origin, order) -> None:
+    """Opens, confirms or closes incidents for this state change. Never allowed to break the listener."""
+    try:
+        await incidents.on_state_change(
+            db_session_factory,
+            printer_id=printer_id,
+            job_id=job_id,
+            previous_state=previous_state,
+            new_state=new_state,
+            origin=origin.value if origin is not None else None,
+            order=order,
+        )
+    except Exception:
+        logger.exception("Incident bookkeeping failed for printer %s (%s -> %s)", printer_id, previous_state, new_state)
 
 
 async def _handle_field_changes(
@@ -582,6 +604,16 @@ async def _log_sent_commands(db_session_factory, printer_id: int, base_url: str,
             field=f"printer/print/{command.action}",
             detail=_describe_command(command),
             ts=command.sent_at,
+        )
+    for command in command_log.take_failed_unreported(base_url):
+        await _record_event_safely(
+            db_session_factory,
+            printer_id,
+            "printwatch_command",
+            EventOrigin.PRINTWATCH,
+            job_id=state.job_id,
+            field=f"printer/print/{command.action}",
+            detail={**_describe_command(command), "followup": True},
         )
 
 

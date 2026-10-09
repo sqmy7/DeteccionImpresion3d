@@ -1,6 +1,7 @@
 import { Activity, BarChart3, Bell, LayoutDashboard, LogOut, Menu, Printer as PrinterIcon, X } from "lucide-react";
 import { Suspense, useEffect, useState, type ReactNode } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import { IncidentNotice } from "../IncidentNotice";
 import { Skeleton } from "../ui";
 import { PRINTER_STATUS } from "../../config/status";
 import { usePrinters } from "../../context/PrintersContext";
@@ -166,6 +167,7 @@ export function AppShell() {
         </header>
 
         <main className="mx-auto w-full max-w-[1600px] px-4 py-4 sm:px-6 sm:py-6">
+          <IncidentNotice />
           <Suspense fallback={<Skeleton className="h-96 w-full" />}>
             <Outlet />
           </Suspense>

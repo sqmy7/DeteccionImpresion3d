@@ -1,4 +1,4 @@
-import { api, ApiError, API_BASE_URL } from "./apiClient";
+import { api, ApiError, API_BASE_URL, freshToken } from "./apiClient";
 import type { BedGeometry, BedHeatmap, CalibrationCreate, CameraCalibration, JobBedMap } from "../types/api";
 
 export function getJobBedMap(token: string, jobId: number): Promise<JobBedMap> {
@@ -35,7 +35,7 @@ export interface Snapshot {
 /** The camera's latest frame as a still, with how old it is (a frame can outlive the capture
  * process that wrote it). */
 export async function fetchSnapshot(token: string, cameraId: number): Promise<Snapshot> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/cameras/${cameraId}/snapshot?token=${encodeURIComponent(token)}`);
+  const response = await fetch(`${API_BASE_URL}/api/v1/cameras/${cameraId}/snapshot?token=${encodeURIComponent(freshToken(token))}`);
   if (!response.ok) {
     let detail = response.statusText;
     try {

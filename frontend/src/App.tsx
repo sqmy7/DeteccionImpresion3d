@@ -7,6 +7,8 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { PrintersProvider } from "./context/PrintersContext";
 import { WebSocketProvider } from "./context/WebSocketContext";
 import { AlertCenterPage } from "./pages/AlertCenterPage";
+import { IncidentPage } from "./pages/IncidentPage";
+import { IncidentsListPage } from "./pages/IncidentsListPage";
 import { JobsListPage } from "./pages/JobsListPage";
 import { LoginPage } from "./pages/LoginPage";
 import { LogbookPage } from "./pages/LogbookPage";
@@ -43,6 +45,8 @@ export function App() {
               <Route path="jobs" element={<JobsListPage />} />
               <Route path="jobs/:jobId" element={<JobReplayPage />} />
               <Route path="logbook" element={<LogbookPage />} />
+              <Route path="incidents" element={<IncidentsListPage />} />
+              <Route path="incidents/:incidentId" element={<IncidentPage />} />
               <Route path="camera" element={<CalibrationPage />} />
               <Route path="health" element={<HealthPage />} />
             </Route>

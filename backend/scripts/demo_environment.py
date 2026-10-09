@@ -95,14 +95,14 @@ def child_env() -> dict:
     }
 
 
-def start_processes(layers: int, layer_seconds: float) -> list[subprocess.Popen]:
+def start_processes(layers: int, layer_seconds: float, pause_seconds: float = 0.0, resume_seconds: float = 0.0) -> list[subprocess.Popen]:
     subprocess.run([sys.executable, "-m", "alembic", "upgrade", "head"], cwd=BACKEND, env=child_env(), check=True)
     STORAGE.mkdir(parents=True, exist_ok=True)
     # Heaters at the simulation's normal speed (seconds, not instant), so the printer-health page
     # can measure heat-ups.
     mock = subprocess.Popen(
         [sys.executable, "scripts/mock_moonraker.py", "--port", str(MOCK_PORT), "--layers", str(layers),
-         "--layer-seconds", str(layer_seconds)],
+         "--layer-seconds", str(layer_seconds), "--pause-seconds", str(pause_seconds), "--resume-seconds", str(resume_seconds)],
         cwd=BACKEND,
     )
     backend = subprocess.Popen(
@@ -382,6 +382,18 @@ async def health_prints(capture: DemoCapture, count: int = 8) -> None:
     await mock_post("/mock/heater", heater="bed", tau=6.0)
 
 
+async def incident_print(capture: DemoCapture) -> None:
+    """Spaghetti in three layers in a row and nothing else: with AUTO_PAUSE_MODE=on the simulated printer ends up
+    paused (and stays so), with warn it keeps printing; either way an incident is open to look at."""
+    print("Un incidente: spaghetti en tres capas seguidas (el modo de la pausa automática es el del entorno)", flush=True)
+    capture.plan = {
+        8: [("spaghetti", 165.0, 132.0, 0.74)],
+        9: [("spaghetti", 168.0, 130.0, 0.81), ("stringing", 92.0, 152.0, 0.43)],
+        10: [("spaghetti", 166.0, 128.0, 0.92)],
+    }
+    await mock_post("/printer/print/start", filename="mock_box.gcode")
+
+
 async def live_print(capture: DemoCapture) -> None:
     print("Una impresión en curso con algunos defectos sintéticos, sin pausa", flush=True)
     capture.plan = {
@@ -399,14 +411,29 @@ async def main() -> None:
     parser.add_argument("--layer-seconds", type=float, default=3.0)
     parser.add_argument("--no-scenario", action="store_true", help="solo levantar todo, sin imprimir")
     parser.add_argument("--live", action="store_true", help="en vez del escenario completo, una sola impresión en curso")
+    parser.add_argument("--incident", action="store_true", help="en vez del escenario completo, una impresión con spaghetti en tres capas seguidas (un incidente)")
+    parser.add_argument(
+        "--pause-seconds", type=float, default=0.0,
+        help="segundos que tarda en responder la pausa de la simulada (la real: ~9 s)",
+    )
+    parser.add_argument(
+        "--resume-seconds", type=float, default=0.0,
+        help="segundos que tarda la reanudación de la simulada, con el estado en paused hasta el final (la real: 45 a 65 s)",
+    )
+    parser.add_argument(
+        "--auto-pause-mode", choices=["on", "warn", "off"], default=None,
+        help="AUTO_PAUSE_MODE del backend de la demostración (por defecto el del entorno)",
+    )
     parser.add_argument(
         "--health", action="store_true",
         help="en vez del escenario, 8 impresiones cortas con desgaste simulado al final (usar con --layers 30 --layer-seconds 2)",
     )
     args = parser.parse_args()
 
+    if args.auto_pause_mode:
+        os.environ["AUTO_PAUSE_MODE"] = args.auto_pause_mode  # the backend child inherits it (see child_env)
     await ensure_database(args.reset)
-    processes = start_processes(args.layers, args.layer_seconds)
+    processes = start_processes(args.layers, args.layer_seconds, args.pause_seconds, args.resume_seconds)
     engine = create_async_engine(demo_database_url())
     redis_client = redis.from_url(f"{settings.redis_url.rsplit('/', 1)[0]}/{REDIS_DB}", decode_responses=True)
     tasks: list[asyncio.Task] = []
@@ -421,7 +448,10 @@ async def main() -> None:
         print(f"Modo demostración listo: backend en http://localhost:{API_PORT} (usuario {USERNAME} / {PASSWORD}).", flush=True)
         if not args.no_scenario:
             await asyncio.sleep(3)  # let the listener connect
-            await (live_print(capture) if args.live else health_prints(capture) if args.health else scenario(capture))
+            await (
+                incident_print(capture) if args.incident else live_print(capture) if args.live
+                else health_prints(capture) if args.health else scenario(capture)
+            )
         await asyncio.Event().wait()  # keep everything up until Ctrl+C
     finally:
         for task in tasks:

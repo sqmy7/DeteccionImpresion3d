@@ -43,6 +43,8 @@ def mock_moonraker():
     mock.printer = mock.SimulatedPrinter(layers=4, layer_seconds=2.0, layer_height=0.2, seed=1, heater_tau_scale=0.05)
     mock.auth_required_prefixes = ()
     mock.auto_start = False
+    mock.pause_seconds = 0.0
+    mock.resume_seconds = 0.0
     return mock
 
 

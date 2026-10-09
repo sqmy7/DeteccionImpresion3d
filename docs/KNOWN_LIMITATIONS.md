@@ -241,3 +241,23 @@ Detalle y cifras en `docs/laboratorio/HALLAZGOS_PARA_INFORME.md`.
 - **Pruebas de la web:** hay `vitest` para la lógica pura (`npm test` en `frontend/`); los componentes no tienen pruebas
   automáticas, se miran en el navegador (la demostración sirve para eso). Las de `capture` se corren con su propio
   entorno: `capture\.venv\Scripts\python.exe -m pytest capture\tests`.
+
+## 11. Incidentes y cancelar (rama `incidente-web`)
+
+Definición, criterios y brechas en `docs/META_FINAL.md`.
+
+- **Probado solo con la impresora simulada, la base de pruebas y la demostración.** La auto-pausa nunca se ha ejecutado
+  de punta a punta contra la Hi real; la pausa y la reanudación reales (Etapa C) siguen sin probarse, y la
+  cancelación real tampoco.
+- **Cancelar no se puede deshacer.** Solo administradores; el servidor exige la palabra `CANCELAR`; la guarda lee
+  el estado de la propia impresora (`printing` o `paused`), manda una orden a la vez (compartida con reanudar) y espera
+  20 s entre dos cancelaciones. La web pide confirmar dos veces.
+- **Pausa confirmada = Klipper dijo `paused`** (se lee con GET hasta 20 s después de enviar la orden). Si no llega, el
+  incidente queda «Pausa no confirmada» y hay que mirar la impresora; la web no reintenta la pausa.
+- **Una detección suelta abre un incidente** solo para `spaghetti` y `layer_shift` con confianza ≥ 0,50
+  (`INCIDENT_CLASSES`, `INCIDENT_MIN_CONFIDENCE`), a lo sumo uno por clase y trabajo. Puede haber incidentes por
+  una sola foto equivocada: por eso existe la etiqueta de falso positivo.
+- **Los incidentes no van en la cadena de hashes** (sus eventos sí). Un reinicio del backend durante la cuenta
+  regresiva deja el incidente abierto hasta que algo lo cierre (pausa, reanudar, cancelar o fin del trabajo).
+- **El aviso es solo de la web:** banner fijo y marca `(!)` en el título; sin sonido ni mensajes fuera de la web.
+

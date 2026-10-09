@@ -1,0 +1,71 @@
+{
+  "checks": {
+    "token_renewed_while_open": true,
+    "token_in_storage_is_valid": true,
+    "no_reload_on_renewal": true,
+    "pause_shows_progress_or_finishes": true,
+    "resume_shows_Reanudando_with_seconds": true,
+    "resume_ended_printing": true,
+    "no_error_text_shown": true,
+    "401_goes_to_login": true,
+    "401_says_session_expired": true,
+    "token_removed": true,
+    "printer_not_paused_by_the_401": true,
+    "wrong_password_message": true,
+    "wrong_password_hides_expired_note": true,
+    "stale_token_on_open_goes_to_login": true,
+    "stale_token_says_expired": true,
+    "login_again_works": true
+  },
+  "console_errors": [
+    [
+      "error",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ],
+    [
+      "error",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ],
+    [
+      "error",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ],
+    [
+      "error",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ],
+    [
+      "error",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ],
+    [
+      "error",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ],
+    [
+      "error",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ],
+    [
+      "error",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ]
+  ],
+  "timeline": [
+    [
+      "pause button flow seconds",
+      3.5
+    ],
+    [
+      "resume seconds until the button is back",
+      10.1,
+      [
+        "Reanudando… 0 s",
+        "Reanudando… 0 s"
+      ],
+      [
+        "Reanudando… 5 s"
+      ]
+    ]
+  ]
+}

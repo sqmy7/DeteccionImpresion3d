@@ -43,6 +43,10 @@ export const EVENT_LABELS: Record<string, string> = {
   state_changed: "Cambio de estado",
   printwatch_command: "Orden de PrintWatch",
   "auto_pause.would_pause": "Habría pausado (modo aviso)",
+  "auto_pause.pending": "Cuenta regresiva de la pausa automática",
+  "auto_pause.aborted": "Cuenta abortada",
+  "auto_pause.confirmed": "Pausa confirmada por la impresora",
+  "auto_pause.not_confirmed": "Pausa NO confirmada",
   target_changed: "Temperatura objetivo",
   speed_factor_changed: "Factor de velocidad",
   flow_factor_changed: "Factor de flujo",
@@ -129,6 +133,7 @@ export function describeEvent(event: PrinterEvent): string {
       const action = (detail?.action as string) ?? "";
       const verb = { pause: "pausar", resume: "reanudar", cancel: "cancelar" }[action] ?? action;
       const who = detail?.source === "auto_pause" ? "pausa automática por spaghetti" : (detail?.requested_by as string) ?? "web";
+      if (detail?.followup) return `La orden de ${verb} (${who}) no se completó: ${detail?.error ?? "sin detalle"}`;
       const failed = detail?.ok === false ? ` — falló: ${detail?.error ?? "sin detalle"}` : "";
       return `Pidió ${verb} (${who})${failed}`;
     }
@@ -137,6 +142,18 @@ export function describeEvent(event: PrinterEvent): string {
       const confidence = typeof detail?.confidence === "number" ? `, confianza ${Math.round(detail.confidence * 100)} %` : "";
       return `Spaghetti en ${detail?.consecutive_layers ?? 3} capas seguidas (${layer}${confidence}); no se envió nada`;
     }
+    case "auto_pause.pending": {
+      const grace = typeof detail?.grace_seconds === "number" ? `${detail.grace_seconds} s` : "unos segundos";
+      return `Spaghetti en ${detail?.streak ? (detail.streak as unknown[]).length : 3} capas seguidas: la pausa se enviará en ${grace} si nadie la aborta`;
+    }
+    case "auto_pause.aborted":
+      return `La cuenta se abortó${detail?.requested_by ? ` (${String(detail.requested_by)})` : ""}: no se envió la pausa`;
+    case "auto_pause.confirmed":
+      return `Klipper pasó a «pausa» ${typeof detail?.seconds_after_sending === "number" ? `${detail.seconds_after_sending} s después de enviar la orden` : "tras la orden"}`;
+    case "auto_pause.not_confirmed":
+      return detail?.reason === "send_failed"
+        ? `No se pudo enviar la pausa${detail?.error ? `: ${String(detail.error)}` : ""}`
+        : `La impresora no confirmó la pausa en ${String(detail?.timeout_seconds ?? 20)} s (estado leído: ${String(detail?.last_state ?? "desconocido")})`;
     case "object_excluded":
       return String(after);
     case "console_command":
@@ -178,5 +195,6 @@ export function eventTone(event: PrinterEvent): Tone {
     return "danger";
   }
   if (event.event_type === "printwatch_command" && event.detail?.ok === false) return "danger";
+  if (event.event_type === "auto_pause.not_confirmed") return "danger";
   return ORIGIN_INFO[event.origin]?.tone ?? "neutral";
 }

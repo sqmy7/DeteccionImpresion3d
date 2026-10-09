@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, require_admin
-from app.db.models import Printer, PrintJob
+from app.db.models import Printer, PrintJob, User
 from app.db.session import get_db
 from app.schemas.print_job import JobSummaryRead, PrintJobCreate, PrintJobRead, PrintJobTransition, TimelineEntryRead
 from app.services.auto_pause import auto_pause_manager
@@ -82,9 +82,11 @@ async def get_print_job_summary(job_id: int, db: AsyncSession = Depends(get_db))
     status_code=status.HTTP_204_NO_CONTENT,
     dependencies=[Depends(require_admin)],
 )
-async def abort_auto_pause(job_id: int, db: AsyncSession = Depends(get_db)) -> None:
+async def abort_auto_pause(
+    job_id: int, db: AsyncSession = Depends(get_db), user: User = Depends(require_admin)
+) -> None:
     await _get_job_or_404(job_id, db)
-    aborted = await auto_pause_manager.abort(job_id)
+    aborted = await auto_pause_manager.abort(job_id, requested_by=f"{user.username} (web)")
     if not aborted:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,

@@ -157,6 +157,8 @@ def describe_event(event) -> str:
     if kind == "printwatch_command":
         verb = {"pause": "pausar", "resume": "reanudar", "cancel": "cancelar"}.get(detail.get("action"), detail.get("action") or "")
         who = "pausa automática por spaghetti" if detail.get("source") == "auto_pause" else detail.get("requested_by") or "web"
+        if detail.get("followup"):
+            return f"La orden de {verb} ({who}) no se completó: {detail.get('error') or 'sin detalle'}"
         failed = f" (falló: {detail.get('error') or 'sin detalle'})" if detail.get("ok") is False else ""
         return f"Pidió {verb} ({who}){failed}"
     if kind in ("object_excluded", "console_command", "gcode_error"):

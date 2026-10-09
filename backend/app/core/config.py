@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     jwt_secret_key: str
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 60
+    # A session renewed with POST /auth/refresh (the web does it while it is open) ends this many hours after the
+    # login that started it, however often it is renewed: a stolen token cannot be kept alive for ever.
+    jwt_max_session_hours: int = 24
     field_encryption_key: str
     cors_allow_origins: str = "*"
     storage_root: Path = Path("/app/storage/snapshots")
@@ -30,6 +33,15 @@ class Settings(BaseSettings):
     #   off  - do nothing at all (no announcement, no event, no pause).
     # A value that is none of these stops the backend at startup instead of silently pausing (or not).
     auto_pause_mode: str = "on"
+    # Which detections open an incident by themselves (without waiting for the auto-pause streak): classes the
+    # project calls imminent (docs/META_FINAL.md a.1) seen at or above this confidence. stringing and
+    # blob_over_extrusion are cosmetic and never open one. One incident per job and class at most.
+    incident_classes: str = "spaghetti,layer_shift"
+    incident_min_confidence: float = 0.50
+
+    @property
+    def incident_class_list(self) -> list[str]:
+        return [name.strip() for name in self.incident_classes.split(",") if name.strip()]
 
     @field_validator("auto_pause_mode", mode="before")
     @classmethod

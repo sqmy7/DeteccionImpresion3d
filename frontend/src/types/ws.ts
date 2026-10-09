@@ -19,6 +19,10 @@ export type WsEventType =
   | "auto_pause.executed"
   | "auto_pause.failed"
   | "auto_pause.would_pause"
+  | "auto_pause.confirmed"
+  | "auto_pause.not_confirmed"
+  | "incident.opened"
+  | "incident.updated"
   | "telemetry.sample"
   | "printer.event";
 
@@ -109,22 +113,43 @@ export interface AutoPausePendingEvent {
   reason: string;
   consecutive_layers: number;
   executes_at: string; // ISO timestamp - compute the countdown from this, not a local timer
+  incident_id?: number | null;
 }
 
 export interface AutoPauseAbortedEvent {
   job_id: number;
 }
 
+/** The pause order went out; whether Klipper paused is told by auto_pause.confirmed or auto_pause.not_confirmed. */
 export interface AutoPauseExecutedEvent {
   job_id: number;
   printer_id: number;
   reason: string;
+  incident_id?: number | null;
+}
+
+export interface AutoPauseConfirmedEvent {
+  job_id: number;
+  printer_id: number;
+  incident_id?: number | null;
+  seconds: number;
+}
+
+/** The pause was sent and Klipper did not say "paused" within 20 s, or it could not be sent (reason "send_failed"). */
+export interface AutoPauseNotConfirmedEvent {
+  job_id: number;
+  printer_id: number;
+  incident_id?: number | null;
+  reason: "timeout" | "send_failed";
+  last_state?: string;
+  error?: string;
 }
 
 export interface AutoPauseFailedEvent {
   job_id: number;
   printer_id: number;
   reason: string;
+  incident_id?: number | null;
 }
 
 /** Warn mode (AUTO_PAUSE_MODE=warn): the streak was reached and the pause would have been sent. */
@@ -135,4 +160,18 @@ export interface AutoPauseWouldPauseEvent {
   consecutive_layers: number;
   layer: number | null;
   confidence: number | null;
+  incident_id?: number | null;
+}
+
+/** incident.opened / incident.updated: enough to know an incident exists and where it stands. */
+export interface IncidentEvent {
+  incident_id: number;
+  printer_id: number;
+  job_id: number;
+  reason: string;
+  mode: string | null;
+  defect_class: string;
+  status: string;
+  outcome: string | null;
+  opened_at: string;
 }
