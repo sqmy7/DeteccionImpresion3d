@@ -639,3 +639,39 @@ con esta impresora. Siguen sin datos y no se suponen.
 
 **Para repetir:** Samuel inicia una pieza desechable de 10 minutos o más desde la pantalla de la impresora, se queda junto a ella con la mano cerca
 de la parada de emergencia y avisa al pasar de la capa 10. Después, la pausa (C2) la pulsa él en la web y la reanudación (C3) solo si escribe «reanuda».
+
+### Etapa C2 y C3 (2026-10-09, 12:16 a 12:30): pausa real, reanudación real y segunda pausa por filamento atascado
+
+Pieza: `Cubo_PETG_18m27s.gcode` (86 capas), trabajo 46. Samuel la inició en la pantalla de la impresora (12:16:13). Yo no mandé ninguna orden a la
+impresora; solo lecturas (`GET` cada segundo, archivo fuera del repositorio) y consultas `SELECT`. `AUTO_PAUSE_MODE=warn` todo el tiempo.
+
+**Medido** (bitácora `printer_events` del trabajo 46 y lecturas de la .22; horas locales):
+
+| Hora | Hecho | Origen en la bitácora |
+|---|---|---|
+| 12:19:09 | Capa 10; boquilla 248,6/250 °C, cama 80,0/80 °C | lectura |
+| 12:19:14 | `print_stats.state`: `printing` → `paused` en la capa 10 (cabeza en X 128,0 / Y 122,0 / Z 2,1) | `external` (no hay orden de PrintWatch antes) |
+| 12:19:15 a 12:19:22 | La cabeza sube en Z a 49,94; luego va al rincón X 0,0 / Y 260,0 | lectura |
+| 12:19:22 | Orden `printer/print/pause` de PrintWatch, pedida por «samuel (web)», `ok: true`, con la impresora ya pausada | `printwatch` |
+| 12:19:44 a 12:20:20 | El objetivo de la boquilla baja de 250 a 140 °C (boquilla 228 → 182 °C); cama ~80 °C sin cambio; ventilador de pieza 0,39 igual; ventilador del hotend 1,0 | lectura |
+| 12:21:20 | Comprobación previa a reanudar: `paused`, sin `resume_err`, X 0,0 / Y 260,0 dentro de los límites (margen 19 mm en X y 13 mm en Y) | lectura |
+| ~12:21:27 | Samuel pulsa «Reanudar impresión» en la web: el objetivo de la boquilla sube a 250 °C; la boquilla tarda ~45 s en llegar; la cabeza baja a la pieza | lectura |
+| 12:21:36 | Orden `printer/print/resume` registrada como `ok: false, error: ReadTimeout`, aunque la reanudación sí ocurrió | `printwatch` |
+| 12:22:31 | `paused` → `printing` (~64 s después del clic); sin error de Klipper; el incidente 1 se cierra como `resumed` por «samuel (web)» | `printwatch` |
+| 12:22:39 a 12:23:04 | Capas 11, 12 y 13 (8, 12 y 13 s por capa) | lectura |
+| 12:23:05 | `printing` → `paused` en la capa 13 (cabeza en X 131,1 / Y 137,7 / Z 2,5); cabeza al rincón X 0 / Y 260 / Z 49,9; objetivo de boquilla a 140 °C | `external` (sin orden de PrintWatch) |
+
+**Intervención de Samuel:** según él, volvió a pausar porque se atascó filamento y lo está retirando a mano con la impresora pausada. Él no indicó
+la hora ni desde dónde pausó (su mensaje llegó con «HH:MM» sin rellenar). La hora que consta es la de la bitácora, 12:23:05. En cuanto al medio:
+la bitácora **no** muestra una orden de PrintWatch en ese momento, así que no fue desde la web; entre pantalla de la impresora y aplicación del
+fabricante no se puede distinguir con estos registros. La pausa de las 12:19:14 tampoco tiene orden de PrintWatch antes: fue externa; la orden «web»
+llegó 8 s después. No se mandó nada desde el equipo durante la intervención.
+
+**Resumen de pausas del trabajo 46:** 2 cambios de estado a `paused` (12:19:14 y 12:23:05), ambos `external`; 1 reanudación, `printwatch`; órdenes de
+PrintWatch: pausa (12:19:22, ok) y reanudación (12:21:36, `ReadTimeout`). **Incidentes:** 2, ambos `reason=pause`, modo `warn`, `pause_sent_at`
+vacío; el 1 cerrado como `resumed` por «samuel (web)» a las 12:22:31, el 2 en estado `paused` (abierto 12:23:05). Cadena de la bitácora del
+printer 35: íntegra (179 eventos revisados, ninguno roto). Sensor de filamento: 0 eventos en el trabajo 46.
+
+**No medido:** los segundos entre el clic en la web y `paused` (la pausa llegó desde fuera de PrintWatch); si el atasco tiene relación con la
+pausa o la reanudación previas (no se afirma ninguna causa). **Hallazgo pendiente:** la orden de reanudar tarda más que el tiempo de espera de
+PrintWatch (el `ReadTimeout` aparece con la reanudación realizada); la causa en el código no se ha revisado todavía.
