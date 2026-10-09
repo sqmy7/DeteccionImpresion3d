@@ -761,3 +761,37 @@ llegando como 502 y una pausa que la impresora tarda en responder se acepta al m
 reconstruir el backend; lo desplegado hoy tiene la espera de 3 s.
 
 Pendiente: la prueba real de pausa y reanudación con estos arreglos, en una pieza desechable, con autorización aparte.
+
+### Corrección del fallo de la prueba de la impresora inalcanzable y nuevo despliegue del backend (2026-10-09, 14:30 a 14:50 hora local)
+
+Commit `38e12ad` en `main`; sin `git push`. Nada se mandó a ninguna impresora (solo la simulada y la base de pruebas, y `GET` a la .22).
+
+Resuelve el fallo descrito en la sección anterior: se eligió leer el estado antes de pausar en vez de la propuesta de «la petición ya salió» (la lectura previa es la misma que ya usan reanudar y cancelar y no depende de cuánto tarda la máquina).
+
+**Qué cambió.** El endpoint de pausar lee antes de enviar el estado de la impresora (`pause_safely` en `print_guard.py`, el mismo `GET` de 5 s
+que usan reanudar y cancelar). Si no responde: 502 al momento, no se envía nada y el fallo queda anotado en la bitácora (orden con
+`ok: false`, «no se pudo leer el estado de la impresora, no se envió la orden»). Si responde: sigue igual (202 «aceptada»; la pausa se permite
+en cualquier estado, como antes). No se tocó `ACCEPT_WAIT_SECONDS` ni la lógica del 202 de reanudar y cancelar.
+**Pruebas:** la de la impresora inalcanzable ya no mide tiempos: pone la espera a cero y comprueba el 502 y la orden anotada como fallida; otra
+con la lectura de estado fallando comprueba que nada llega a la impresora simulada (sigue imprimiendo); otra, que una pausa con la simulada
+lenta (`--pause-seconds`) contesta 202 sin esperar su respuesta (al contestar, la orden aún no estaba respondida). Sin la lectura previa, las dos
+pruebas del 502 fallan (comprobado quitándola).
+
+| Comprobación | Resultado |
+|---|---|
+| Backend, corrida 1 (sola) | **196 pasan**, 0 fallan (2 min 34 s) |
+| Backend, corrida 2 (con la web compilándose tres veces en paralelo) | **196 pasan**, 0 fallan (2 min 47 s) |
+| Web | 44 pasan, tipos y lint sin errores, 3 compilaciones sin errores |
+| Antes de reconstruir | Red `SalaSteam_UIS`; `klippy` ready, `print_stats.state = standby`, sin archivo, `is_paused` falso, `idle_timeout = Ready`; 0 trabajos `running` |
+| Respaldo | `storage/respaldo_antes_pausa_estado_2026-10-09.sql` (11 MB, 15 tablas; `.gitignore`) |
+| Reconstrucción | Solo `infra-backend-1` (`--no-deps`, `--env-file .env`); Postgres, Redis y el worker con su arranque original (11:30 UTC) |
+| `/health` | base y Redis `ok` |
+| `alembic current` | `f1a6d3e82b57 (head)` = `heads` (sin migración) |
+| `AUTO_PAUSE_MODE` | `warn` en el contenedor y en `.env` (línea 19) |
+| Código nuevo en el contenedor | `pause_safely` presente |
+| Sesión | `POST /auth/refresh` → 200 con un token de `samuel` (mismo `sub` y `auth_time`, 60 min); `/auth/me` 200; token anterior al cambio 200; sin token 401 |
+| Listener | Reconectado a la .22 a las 19:44:28 UTC, línea base `standby`, capa 0/0 |
+| Cadena de la bitácora | **íntegra, 191 eventos** |
+
+**No comprobado en el despliegue:** una pausa real (no se manda nada a la .22). El comportamiento nuevo de pausar con la impresora inalcanzable
+queda cubierto por las pruebas con la simulada; con la impresora real se verá en la prueba de pausa y reanudación con autorización aparte.
