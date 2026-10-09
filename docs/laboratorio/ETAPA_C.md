@@ -61,15 +61,30 @@ Antes hubo una prueba corta, `Cubo_PETG_2m55s.gcode` (trabajo 45, 11:40 a 11:44)
 - **Pausa automática por detección** (`AUTO_PAUSE_MODE=on`) y **cancelación real**: no se probaron.
 - **Duración del enfriamiento por pausa prolongada**: se midió una vez (15 min 16 s); no se sabe si es un temporizador fijo.
 
-## Hallazgos a revisar en el código
+## Hallazgos: resueltos en el código (rama `incidente-web`, 2026-10-09)
 
-1. **`ReadTimeout` en la reanudación.** La orden de reanudar tarda 45 a 65 s en devolver respuesta (la impresora la ejecuta hasta el final) y
-   PrintWatch espera 10,3 s. La reanudación se hace, pero la web recibe un 502 y la bitácora guarda `ok: false`. Pasó las dos veces.
-2. **Guarda frente a repeticiones.** Solo bloquea 20 s; mientras la reanudación sigue (45 a 65 s) el estado continúa en `paused`, así que un segundo
-   clic entre los 20 y los 65 s se enviaría. No probado, deducido del código y de las lecturas.
-3. **Sesión web.** El token dura 60 min; tras caducar, los clics de pausar/reanudar dan 401. No se revisó qué muestra la web en ese caso.
-4. **Origen de la pausa en la bitácora.** La orden se anota al terminar la petición HTTP, después del cambio de estado, así que la pausa pedida desde
-   la web quedó como `external` (la reanudación sí quedó como `printwatch`).
+Los cuatro quedaron arreglados con pruebas contra la impresora **simulada** y la base de pruebas, un commit por
+hallazgo; no se mandó nada a ninguna impresora real, no se desplegó y no hubo `git push`. **Falta comprobarlos con la
+Creality Hi real** (solo se simuló su tardanza); hasta entonces es lo supuesto a partir de lo medido el 2026-10-09.
+
+| # | Hallazgo | Estado | Commit | Qué se hizo |
+|---|---|---|---|---|
+| 1 | `ReadTimeout` al reanudar: la web veía 502 y la bitácora `ok: false` aunque la impresora obedecía | Resuelto | `b4e7904` | La orden va en segundo plano con 120 s para la respuesta (10 s para conectar). Pausar, reanudar y cancelar esperan 3 s por si hay un rechazo rápido (sigue llegando como 502) y responden **202 «aceptada»**. La bitácora anota la orden como enviada (`ok` vacío) y, si falla después, añade una segunda entrada. La web (controles, pantalla de incidente y aviso de pausa automática) muestra «Reanudando… N s» hasta que el estado de la impresora cambia o pasan 2 minutos, y entonces dice que la orden se envió pero el estado no cambió, sin llamarlo error |
+| 2 | La guarda solo bloqueaba 20 s; un segundo clic entre los 20 y los 65 s se enviaba | Resuelto | `3451c3b` | Una orden de reanudar o cancelar que la impresora aún no ha respondido cuenta como «en curso» (tope de 90 s) y otra del mismo tipo se rechaza con 409. Una orden ya respondida o fallida no bloquea: se puede reanudar una pausa nueva (como la del atasco, 34 s después). La simulada acepta `--pause-seconds` y `--resume-seconds`; con la regla anulada, la prueba deja pasar el segundo clic |
+| 3 | Sesión web caducada a mitad de la impresión: 401 sin explicación | Resuelto | `d425820` | El token se queda en 60 min y se **renueva** (`POST /auth/refresh`) cuando quedan menos de 30 min, cada 5 min y al volver a la pestaña; la sesión termina 24 h después del login que la inició (`JWT_MAX_SESSION_HOURS`, por defecto 24). Un 401 en una petición con token cierra la sesión y el login dice «Tu sesión caducó. Inicia sesión de nuevo.»; usuario o clave mal puestos siguen diciendo lo suyo |
+| 4 | La pausa pedida desde la web quedaba como `external` en la bitácora | Resuelto | `76e58f2` | La orden se anota **antes** de enviarla, así aparece antes del cambio de estado y este queda atribuido a `printwatch`; la ventana de atribución pasa de 60 a 120 s. La cadena de hashes sigue íntegra (la bitácora es solo de añadir) |
+
+Decisión del hallazgo 3 (por qué renovar y no alargar el token): alargarlo deja un token robado vivo más tiempo;
+renovarlo mantiene la hora de vida y deja una sesión activa viva solo mientras la web esté abierta, con un tope total
+de 24 h para que un token robado no se pueda renovar para siempre. Efecto lateral cuidado: el token que ve cada
+pantalla no cambia al renovarse (el renovado va al cliente de la API y al almacenamiento), así que ninguna página se
+recarga y el WebSocket no se reconecta. Un token anterior al cambio no tiene `auth_time`: su sesión cuenta desde la
+primera renovación.
+
+Comprobado además en el navegador (Edge) contra la demostración: `docs/laboratorio/hallazgos_etapa_c/`.
+
+Sin cubrir: `fetchSnapshot` (la miniatura de cámara) llama a `fetch` directamente y no pasa por el aviso de sesión
+caducada; la pausa desde la web sigue sin guarda contra repeticiones (no se pidió).
 
 ## ¿Se repitió el incidente del 25-09?
 
@@ -81,4 +96,5 @@ No se declara causa del incidente del 25-09.
 1. **Pausa automática inducida** con «autorizo la C» otra vez (modo `on`, en una pieza desechable).
 2. **Cancelación real** probada por separado, solo si Samuel escribe «autorizo cancelar».
 3. **Decidir `AUTO_PAUSE_MODE`** (por ahora `warn`).
-4. Corregir los hallazgos 1 y 2 antes de depender de la reanudación desde la web.
+4. Desplegar los arreglos de los hallazgos 1 a 4 (solo backend y web, sin migración; ver `PROGRESO_FINAL.md`) y probarlos con la
+   impresora real, con tu autorización.

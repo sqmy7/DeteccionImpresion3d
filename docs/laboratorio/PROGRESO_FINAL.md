@@ -711,3 +711,26 @@ sin ningún error de Klipper ni «Move out of range». Tiempos y valores medidos
 caliente); estacionamiento en X 0 / Y 260 / Z 49,94; 2 incidentes, ambos cerrados `resumed` por «samuel (web)»; cadena de la bitácora íntegra (188
 eventos). El incidente del 25-09 **no** se repitió en estas dos reanudaciones; no se declara su causa. Pendiente: pausa automática inducida («autorizo la
 C»), cancelación real («autorizo cancelar»), decidir `AUTO_PAUSE_MODE`, y los hallazgos de `ReadTimeout` y de la guarda de repeticiones.
+
+### Hallazgos de la Etapa C arreglados en el código (2026-10-09, sin desplegar)
+
+Rama `incidente-web`, un commit por hallazgo (`76e58f2` el 4, `b4e7904` el 1, `3451c3b` el 2, `d425820` el 3) más `bd21511` (la
+demostración con la simulada lenta y el recorrido en el navegador). Pruebas: backend 195 pasan contra la base de pruebas, web 44 pasan y
+compila. Nada se mandó a ninguna impresora, no se desplegó y no hubo `git push`. Detalle y decisiones en
+[ETAPA_C.md](ETAPA_C.md). Lo que ya se comprobó y lo que no: contra la **simulada** (y en un navegador contra la demostración); contra la
+Creality Hi real, no.
+
+**Qué hacer al desplegar esto: solo backend y web, sin migración** (no hay cambios de base de datos):
+1. Con la impresora **en reposo** (`standby` o `complete`; nunca con una impresión en curso: reconstruir el backend corta el listener).
+   Si se quiere, un respaldo de la base como antes, aunque no hay migración.
+2. Reconstruir **solo el backend**, con `--no-deps` y `--env-file .env` (igual que `start.ps1`); no tocar Postgres, Redis ni el worker.
+   Comprobar `/health` y que `alembic current` siga en `f1a6d3e82b57`. El `.env` puede quedarse como está: la variable nueva
+   `JWT_MAX_SESSION_HOURS` es opcional (24 por defecto) y `JWT_EXPIRE_MINUTES` no cambia (60).
+3. La web: con el servidor de desarrollo (`npm run dev`) los cambios ya se sirven solos; con una compilación, `npm run build` y
+   servir `dist/`. Hay que recargar la pestaña abierta.
+4. Compatibilidad entre ambos lados durante el cambio: la web nueva con el backend viejo funciona (la pausa y la reanudación dan 204 y
+   la renovación del token da 404 y se ignora); la web vieja con el backend nuevo también (el 202 no la rompe). Mejor backend primero.
+5. Con la impresora real, **nada se prueba sin tu autorización**: la pausa y la reanudación reales con estos arreglos (que «Reanudando… N s»
+   dure lo que tarda la impresora y que ninguna orden salga como `ReadTimeout`) quedan para otra prueba en una pieza desechable.
+6. Las sesiones abiertas antes del cambio siguen valiendo hasta que caduquen y se renuevan sin volver a entrar; como su token no lleva
+   `auth_time`, el tope de 24 h les cuenta desde la primera renovación.
