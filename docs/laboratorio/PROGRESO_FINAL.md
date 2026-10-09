@@ -10,7 +10,7 @@ solo con la frase exacta ("autorizo la C", "autorizo la limpieza").
 |---|---|
 | 0. Revisión previa | **Hecha** |
 | A. Impresora quieta | **en curso**: pasos 1, 2, 3 y 6 hechos; 4 y 5 los hace Samuel; 7 pendiente |
-| B. Impresión corta | **preparada**: línea base anotada; falta decidir la pausa automática y que Samuel escriba «inicié» |
+| B. Impresión corta | **hecha, con un punto sin hacer**: faltan los dos cambios de velocidad (la impresión duró 3 min 36 s). Ver el resumen al final |
 | C. Pausa y reanudación | pendiente (necesita "autorizo la C") |
 | D. Impresora .21 | pendiente (la .21 no respondía en la Etapa 0) |
 | E. Datos del modelo | pendiente (faltan `args.yaml`, `results.csv`, `best.pt`) |
@@ -320,3 +320,108 @@ Samuel mandó una captura de «En vivo» con el video negro. Comprobado (solo le
 - **Mejoras propuestas (no hechas):** que `capture` trate un cuadro todo negro como «sin señal» (hoy la web lo
   muestra como video vivo porque el cuadro es reciente) y que identifique la cámara por nombre o identificador en
   vez de por índice (el índice cambia al desconectar o conectar otra cámara).
+
+## Etapa B: resumen (trabajo 44, 2026-10-08, 19:07:53 a 19:11:29 hora de Colombia)
+
+`Cubo_PETG_2m28s.gcode`, 32 capas de 0,2 mm, un cubo de 6,4 mm en el centro de la cama. Iniciada desde la pantalla de la
+.22; la preparación previa (calentar, nivelar) duró ~10 minutos con `print_stats` aún en `standby`. La pausa
+automática estuvo en modo `warn` toda la prueba. Nada se envió a ninguna impresora.
+
+**Cierre en la base (solo `SELECT`):** `completed`, inicio 00:07:53 UTC, fin 00:11:29 UTC (3 min 36 s); 206 muestras
+(una por segundo, sin huecos de más de 3 s); 32 capas (1 a 32) con 32 fotos y 32 detecciones; 0 alertas. Cadena de
+eventos íntegra (75 eventos al cerrar; 82 al generar el reporte, tras unas operaciones con filamento que hizo
+Samuel después de imprimir; sigue íntegra). Estado de Klipper al terminar: `complete` y, ~1,5 min después, `standby`.
+
+### Comprobado
+- **Fotos por capa:** 32 de 32, 1280×720, ~152 KB cada una. La foto sale 0,29 a 1,77 s (media 0,52) después de que
+  PrintWatch detecta el cambio de capa.
+- **Latencia de la detección:** del cuadro al resultado, 0,49 a 2,40 s (media 0,87); del cambio de capa al resultado,
+  p90 2,5 s y máximo 3,2 s. CPU del worker: pico de ~33 % (un hilo) en cada inferencia, 0 % entre capas; backend
+  0,2 a 1,8 %. La carga no estorba a una impresión de 5 s por capa.
+- **Mapa de la cama:** la geometría que publica la impresora pone el cubo en (130, 130) mm, con un polígono de
+  126,8 a 133,2 mm; durante las capas 3 a 31 el cabezal se movió entre X 127 y 133, Y 127 y 133 mm. Coinciden. La
+  malla de ese trabajo es la `default` (10 a 250 mm → cama de 260 × 260 mm).
+- **Origen de los eventos del inicio:** `M104 S250`, `M140 S0` y `START_PRINT EXTRUDER_TEMP=250 BED_TEMP=80` →
+  `gcode_file`, con la línea del archivo, el desplazamiento y la macro (`via_macro: START_PRINT`). Al final,
+  `END_PRINT` → `gcode_file` (`via_macro: END_PRINT`). El paso `standby → printing` → `external` (con
+  `job_opened: 44`): PrintWatch no distingue la pantalla de Fluidd. El paso a `complete` → `printer`.
+  Los cambios de temperatura de la preparación previa, antes de que hubiera archivo en curso → `external`.
+- **Tiempo restante contra el real** (reemplay en segundos): el del laminador (total del nombre del archivo, 148 s,
+  menos `print_duration`) dio error medio de 13,5 s (siempre de menos); por capas, 80 s; por avance del archivo,
+  265 s (el avance ya marca 7 % al empezar, por el G-code inicial, y por eso sobrestima). Se confirma la elección
+  de la Etapa 2: el del laminador. Dos límites: la impresión duró 162,0 s de reloj de la impresora, 14 s (+9,4 %)
+  más que los 148 s del nombre, así que en los últimos 14 s marca 0; y los ~52 s de calentamiento de la boquilla
+  ocurren con el estado `printing` pero con `print_duration` en 0, así que al principio promete 148 s cuando
+  faltan 214 s de reloj de pared. En un trabajo de 6 h no se nota.
+- **Filamento:** 94,1 mm → 0,287 g por densidad contra 0,28 g del laminador (+2,5 %, como el +3,1 % del trabajo 43).
+- **Lo desplegado hoy funcionó con datos reales:** `print_duration` se guardó en las 206 muestras; el tiempo estimado
+  (148 s, origen `filename`) y el peso del laminador (0,28 g) quedaron en la geometría del trabajo; el reporte PDF usa
+  el reloj de la impresora (2 min 42 s, +9,4 % sobre el laminador).
+- **Reporte PDF:** `docs/laboratorio/reporte_trabajo_44.pdf` (2 páginas).
+- **Pausa automática en modo aviso:** 0 eventos `auto_pause.would_pause` (en este trabajo y en total): el modelo no
+  marcó ninguna de las 32 capas (0 con defecto, 0 con *spaghetti*). La ruta `warn` solo se probó con la simulada,
+  no con datos reales.
+
+### Desmentido o sin poder comprobar
+- **El video de la cámara no es de una C922.** Windows ya no tiene conectada la C922 (última llegada: 22-09); la
+  cámara en uso es una «USB Camera» genérica (VID 5258, PID 4A55), conectada hoy a las 18:55:39. Antes de eso el
+  video salió negro un rato. Encaja con la focal de ~1.500 px (campo de visión de ~52°, no los 78° de la C922): el
+  aviso `focal_unusual` era una falsa alarma. La documentación y el nombre «C922 Principal» dicen otra cosa. Falta
+  que Samuel confirme qué cámara es físicamente.
+- **El modelo no puede ver la pieza con esa cámara en esa posición:** está baja y de frente; se ve la máquina y el
+  cabezal, pero no la superficie de la cama con el cubo (6 mm). La detección corrió sobre imágenes sin pieza. Por eso
+  «0 defectos» no dice nada sobre la calidad de la pieza. Y la calibración 2 se hizo con otra posición de cámara:
+  ya no vale.
+- **El mapa de la cama contra un defecto real no se pudo comprobar** (no hubo defectos que ubicar).
+- **Latencia pura del modelo (ONNX):** no existe: la detección no guarda el tiempo de inferencia, solo las horas de
+  la foto y del resultado. Lo medido es de extremo a extremo.
+- **Los dos cambios de velocidad: no se hicieron.** La impresión terminó en 3 min 36 s sin que hubiera tiempo; no hay
+  ningún `speed_factor_changed` en la bitácora. Queda pendiente (se puede probar con la impresora en `standby`).
+- **El reporte PDF afirma «PrintWatch se unió a esta impresión ya al 7 % (capa 0)»**, y no es cierto: se abrió al
+  inicio. La regla (avance de la primera muestra > 2 %) falla en archivos cortos, donde el G-code inicial ya es el 7 %.
+  Además el peso sale «0,3 g» (un decimal) cuando el laminador dice 0,28 g.
+- **Pre-impresión:** el estado `print_stats` seguía en `standby` ~10 minutos mientras la impresora nivelaba
+  (`idle_timeout` en `Printing`, ejes referenciados): PrintWatch abre el trabajo solo cuando Klipper pasa a
+  `printing`, así que esa fase no queda en el trabajo (solo en la bitácora, con origen `external`).
+
+### Estado al cerrar (19:15 hora de Colombia)
+- Impresora en `standby`, sin archivo, `speed_factor` 100 %, **objetivos de boquilla y cama en 0 (apagados)**. Sigue
+  caliente por inercia: boquilla ~177 °C y cama ~67 °C, enfriándose. No se apagó nada desde aquí.
+- Después de imprimir, Samuel hizo una operación con filamento (objetivo de boquilla 250 °C de 19:13:27 a 19:14:10;
+  sensor de filamento principal `filament_sensor` sin filamento desde 19:14:56): el filamento está descargado.
+- Red: SalaSteam_UIS, sin VPN, la .22 responde; la .21 sigue sin responder. Contenedores sanos. Modo de la pausa
+  automática: `warn` (volver a `on`: ver la sección «Pausa automática en modo aviso»).
+
+## Pendientes, en orden
+
+**Con la red del laboratorio (necesitan la impresora o la cámara físicas):**
+1. **Confirmar qué cámara es** y dejarla fija. Colocarla de modo que se vea la superficie de la cama y la pieza
+   (más alta o más inclinada), y **recalibrarla** desde la web con la impresora quieta (admin). Si no es una C922, la
+   focal estimada (~1.500 px) es probablemente la correcta; no fijar 907 px.
+2. **Probar los dos cambios de velocidad** (primero desde la pantalla, luego desde Fluidd), con la impresora en
+   `standby`, y leer en la bitácora el origen y la hora de cada uno.
+3. **Una impresión más larga (unos 10 a 20 min) con una pieza visible** para medir de verdad: fotos con la pieza,
+   detecciones, mapa de la cama con defectos, y los cambios de velocidad en vivo.
+4. **Etapa C (pausa y reanudación)**: solo con «autorizo la C».
+5. **Etapa D (impresora .21)**: cuando se encienda.
+
+**Desde casa, sin la impresora (código, documentación, base local):**
+6. **Panel general:** la tarjeta del último trabajo muestra «Capa 0 / 486 · 2 h 45 min» (usa la capa en vivo de la
+   impresora quieta y la duración seguida por PrintWatch, no la real) y la miniatura sale negra (reproducir con el
+   entorno de demostración). Diagnóstico en la sección «Pendiente para después de la Etapa B». Con pruebas.
+7. **Reporte PDF:** quitar el aviso falso de «se unió al 7 %» en archivos cortos (usar la capa de la primera muestra
+   o el origen del trabajo, no el avance) y mostrar el peso con más decimales cuando es menor de 1 g.
+8. **`capture`:** tratar un cuadro todo negro como «sin señal» y elegir la cámara por nombre o identificador, no por
+   índice; corregir en la documentación que la cámara no es la C922 (cuando Samuel lo confirme).
+9. **Pausa automática:** decidir si vuelve a `on` o se queda en `warn` hasta tener detecciones reales; cambiar es
+   reconstruir solo el backend (funciona sin la impresora; el listener solo no conectará).
+10. **Etapa G (cierre):** actualizar `RESULTADOS.md`, `KNOWN_LIMITATIONS.md` y `PROGRESO_TELEMETRIA.md`, y crear
+    `docs/laboratorio/HALLAZGOS_PARA_INFORME.md`.
+11. **Etapa E (datos del modelo)**, cuando Samuel traiga la carpeta del entrenamiento de Colab o Drive; evaluación con
+    pocos hilos y nunca durante una impresión.
+12. **Etapa F (limpiar el historial de git)**: solo con «autorizo la limpieza», y antes preguntar si revisó la política
+    del curso sobre declarar el uso de herramientas de IA. Sin `git push`.
+13. **Precios reales** (filamento por kg y kWh) en «Precios y potencias» desde la web, y revisar las potencias de los
+    calentadores (50 W y 300 W siguen sin confirmar).
+14. Revisar y, si procede, el SQL opcional del trabajo 34 (`UPDATE print_jobs SET ended_at = (SELECT max(detected_at)
+    FROM layers WHERE job_id = 34) WHERE id = 34;`), que solo corrige una duración mal registrada.
