@@ -612,3 +612,30 @@ Solo lecturas hasta el respaldo; la única acción fue reconstruir el backend co
 Consecuencia: durante la Etapa C **no habrá fotos ni detecciones** (no hay `capture`); la pausa y la reanudación no las necesitan, pero el incidente
 de una pausa real abrirá sin foto asociada.
 **Esperando la frase «autorizo la C» escrita por Samuel en este chat** para pasar a la C1.
+
+### Etapa C1 (2026-10-09, 11:40 a 11:47): pieza corta, sin pausa; la prueba real de pausa sigue pendiente
+
+Samuel dio «Autorizo C» y empezó desde la pantalla de la impresora `Cubo_PETG_2m55s.gcode` (35 capas, unos 3 minutos). Era **más corta que los
+10 minutos pedidos** y no hubo aviso de «voy por la capa 10 o más», así que **no se hizo C2 ni C3**: no se pausó ni se reanudó nada, y yo no mandé
+ninguna orden a la impresora (observación con un `GET` por segundo, guardada en un archivo fuera del repositorio).
+
+Medido (trabajo 45, lecturas de la .22 y base de datos):
+
+| Dato | Valor |
+|---|---|
+| Inicio de la impresión (`printing`) | 11:40:52 |
+| Capa 10 | 11:42:38 (aprox. 6 a 7 s por capa) |
+| Fin del trazado / `complete` | 11:44:56 / 11:44:57 |
+| Estados vistos | solo `printing` y `complete`; `pause_resume.is_paused` siempre `false`; ningún `error` ni `cancelled` |
+| Boquilla durante el trazado (capa ≥ 2) | 248,1 a 252,7 °C (objetivo 250) |
+| Cama durante el trazado (capa ≥ 2) | 78,8 a 81,6 °C (objetivo 80) |
+| Recorrido de la cabeza (`live_position`, capa ≥ 2) | X −4,4 a 133,3; Y 126,7 a 180,0; Z 0,3 a 57,2 (la Z final es el levantamiento del fin de impresión) |
+| Línea base en la capa 10 | pos. (128,9; 128,9; 1,9), boquilla 250,3/250, cama 81,0/80, factor de velocidad 1,0, flujo 1,0, ventilador 0,4, ventilador del hotend 1,0, `print_duration` 53,1 s |
+| Después del fin | `complete`, posición (0,0; 260,0; 57,2), `idle_timeout = Ready`, temperaturas bajando (11:47: boquilla 135 °C, cama 75 °C) |
+| Registro en PrintWatch | trabajo 45 `completed`, 35 capas, 243 muestras de telemetría, **0 incidentes** (esperable: `AUTO_PAUSE_MODE=warn` y sin `capture`, no hubo detecciones) |
+
+Nota de lo que **no** se midió: segundos hasta `paused`, posición de la cabeza al pausar, temperaturas tras la pausa, y si la reanudación funciona
+con esta impresora. Siguen sin datos y no se suponen.
+
+**Para repetir:** Samuel inicia una pieza desechable de 10 minutos o más desde la pantalla de la impresora, se queda junto a ella con la mano cerca
+de la parada de emergencia y avisa al pasar de la capa 10. Después, la pausa (C2) la pulsa él en la web y la reanudación (C3) solo si escribe «reanuda».
