@@ -77,6 +77,30 @@ def _num(value: float | None, digits: int = 1) -> str:
     return text.replace(",", "\x00").replace(".", ",").replace("\x00", ".")
 
 
+def _grams(value: float | None) -> str:
+    """Grams with one decimal, or two under 1 g (a short print weighs 0,28 g, not 0,3)."""
+    if value is None:
+        return "-"
+    return _num(value, 2 if abs(value) < 1 else 1)
+
+
+# The first sample of a job followed from the start is at layer 0 or 1; a job joined mid-print starts at the
+# layer the printer was on.
+_FIRST_LAYER_SLACK = 2
+# With no layer in the first sample, only a share this large says the print was already well under way.
+_LATE_PROGRESS = 0.15
+
+
+def joined_late(first_layer: int | None, first_progress: float | None) -> bool:
+    """Whether PrintWatch joined a print that was already under way, from the layer of its first sample.
+    The file progress is no good for this: it starts above 0 (job 44 began at 7 % in layer 0, because the
+    start G-code is part of the file and a 2,5 minute print is mostly that), so on a short file it called a
+    job followed from the start a late one."""
+    if first_layer is not None:
+        return first_layer > _FIRST_LAYER_SLACK
+    return first_progress is not None and first_progress > _LATE_PROGRESS
+
+
 def _money(value: float | None, currency: str) -> str:
     if value is None:
         return "-"
@@ -473,7 +497,7 @@ async def build_report(db: AsyncSession, job: PrintJob) -> bytes:
         .limit(1)
     )
     first_progress = series[0].get("progress") if series else None
-    mid_print = first_progress is not None and first_progress > 0.02
+    mid_print = bool(series) and joined_late(series[0].get("layer_number"), first_progress)
     title = f"Reporte del trabajo #{job.id} · {job.file_name}"
     pdf = _Report(title)
     pdf.add_page()
@@ -527,11 +551,11 @@ async def build_report(db: AsyncSession, job: PrintJob) -> bytes:
     filament = cost["filament"]
     filament_text = "-"
     if filament["used_mm"] is not None:
-        filament_text = f"{_num(filament['used_mm'] / 1000, 2)} m · {_num(filament['used_g'], 1)} g"
+        filament_text = f"{_num(filament['used_mm'] / 1000, 2)} m · {_grams(filament['used_g'])} g"
         if filament["estimated_mm"]:
             estimate = f"{_num(filament['estimated_mm'] / 1000, 2)} m"
             if filament["estimated_g"]:
-                estimate += f" · {_num(filament['estimated_g'], 1)} g"
+                estimate += f" · {_grams(filament['estimated_g'])} g"
             filament_text += f" (laminador, archivo completo: {estimate})"
     energy = cost["energy"]
     currency = cost["currency"]

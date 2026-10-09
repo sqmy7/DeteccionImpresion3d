@@ -193,6 +193,27 @@ def test_report_text_helpers():
     assert report.describe_event(event) == "Flujo: 100 % -> 90 %"
 
 
+def test_grams_get_two_decimals_under_one_gram():
+    assert report._grams(0.28) == "0,28"
+    assert report._grams(0.287) == "0,29"
+    assert report._grams(0.999) == "1,00"  # rounds up to one gram, still two decimals
+    assert report._grams(1.0) == "1,0"
+    assert report._grams(201.83) == "201,8"
+    assert report._grams(None) == "-"
+
+
+def test_joining_late_is_decided_by_the_layer_not_by_the_file_progress():
+    # Job 44 (2 min 28 s print): followed from the start, yet the file progress was already 7 % at layer 0.
+    assert report.joined_late(0, 0.07) is False
+    assert report.joined_late(1, 0.09) is False
+    # Job 43 (6 h print): PrintWatch joined at layer 275, 45 % in.
+    assert report.joined_late(275, 0.45) is True
+    # No layer in the first sample: only a large progress counts.
+    assert report.joined_late(None, 0.07) is False
+    assert report.joined_late(None, 0.45) is True
+    assert report.joined_late(None, None) is False
+
+
 def test_density_method_matches_the_slicer_on_the_real_print():
     """Measured on job 43 of the real Hi (docs/laboratorio/analisis_trabajo_43.md): the printer reported 68,220 mm
     of filament used; the slicer's weight for the whole file is 201.83 g. Density x diameter gives +3.1 %, so
