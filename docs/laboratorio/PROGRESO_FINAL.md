@@ -527,3 +527,15 @@ los parámetros de la impresora. Reglas: solo lecturas y `SELECT`, sin `git push
 - **Decisiones que necesita de Samuel** (al final de `META_FINAL.md`): los objetivos de a.2 a a.4, si el Paso 2 incluye
   Cancelar (crear endpoint y guarda), qué abre un incidente, y registrar la cuenta y el aborto en la bitácora y
   confirmar `paused`.
+
+## Meta final, rama `incidente-web`: Paso 2 (2026-10-09, en curso)
+
+Decisiones de Samuel anotadas en `docs/META_FINAL.md`. Reglas: nada se manda a ninguna impresora (todo con la simulada
+y la base de pruebas), sin desplegar, sin `git push`, commits sin coautoría. Estado por tarea:
+
+| Tarea | Estado |
+|---|---|
+| 1. Registro del incidente (backend) | **hecha**: tabla `incidents` (migración `f1a6d3e82b57`, reversible, probada en la base de pruebas: subir, `alembic check`, bajar sin dejar tabla ni índices, subir), servicio `app/services/incidents.py`, eventos `auto_pause.pending/aborted/confirmed/not_confirmed`, confirmación de `paused` con lecturas del estado (20 s), API de incidentes. 168 pruebas del backend pasan (12 nuevas). |
+| 2. Cancelar (backend y web) | pendiente |
+| 3. Pantalla de Incidente (web) | pendiente |
+| 4. Verificación con la demostración | pendiente |

@@ -41,6 +41,7 @@ def _run_streak(mock_server, with_db, monkeypatch, mode: str) -> dict:
     the third layer arrives. Returns what happened to the printer and in the event log."""
     monkeypatch.setattr(settings, "auto_pause_mode", mode)
     monkeypatch.setattr(auto_pause, "_GRACE_PERIOD_SECONDS", 0.05)
+    monkeypatch.setattr(auto_pause, "_CONFIRM_POLL_SECONDS", 0.05)
 
     async def scenario(session_factory):
         command_log._commands.clear()
@@ -93,7 +94,9 @@ def test_on_pauses_the_printer_as_before(mock_server, with_db, monkeypatch):
 
     assert result["pending"] is True  # the countdown started
     assert result["state"] == "paused" and result["pauses"] == 1
-    assert [e.event_type for e in result["events"]] == []  # the pause is logged by the listener, not here
+    # The pause order itself is logged by the Moonraker listener; the auto-pause now logs its countdown and the
+    # printer's own confirmation (see test_incidents.py for the incident that goes with them).
+    assert [e.event_type for e in result["events"]] == ["auto_pause.pending", "auto_pause.confirmed"]
 
 
 def test_warn_logs_what_it_would_have_done_and_sends_nothing(mock_server, with_db, monkeypatch):

@@ -24,7 +24,7 @@ from app.integrations.moonraker.interventions import (
     print_phase,
 )
 from app.schemas.print_job import PrintJobCreate
-from app.services import telemetry
+from app.services import incidents, telemetry
 from app.services.print_jobs import create_print_job, transition_job_status
 from app.services.printer_events import EventOrigin, record_event
 from app.ws.manager import manager
@@ -493,6 +493,10 @@ async def _record_state_change(
     if new_state == "error" and state.message:
         detail["error"] = _parse_klipper_message(state.message)
 
+    await _note_incidents(
+        db_session_factory, printer_id, job_id, previous_state, new_state, origin, detail.get("printwatch_order")
+    )
+
     if origin is None and tracker is not None:
         tracker.add(
             DetectedChange(
@@ -525,6 +529,22 @@ async def _record_state_change(
         detail={**detail, "phase": previous_phase},
         klipper_eventtime=state.eventtime,
     )
+
+
+async def _note_incidents(db_session_factory, printer_id, job_id, previous_state, new_state, origin, order) -> None:
+    """Opens, confirms or closes incidents for this state change. Never allowed to break the listener."""
+    try:
+        await incidents.on_state_change(
+            db_session_factory,
+            printer_id=printer_id,
+            job_id=job_id,
+            previous_state=previous_state,
+            new_state=new_state,
+            origin=origin.value if origin is not None else None,
+            order=order,
+        )
+    except Exception:
+        logger.exception("Incident bookkeeping failed for printer %s (%s -> %s)", printer_id, previous_state, new_state)
 
 
 async def _handle_field_changes(

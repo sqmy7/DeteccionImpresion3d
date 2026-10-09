@@ -7,6 +7,7 @@ from sqlalchemy import (
     REAL,
     BigInteger,
     Boolean,
+    CheckConstraint,
     DateTime,
     Double,
     ForeignKey,
@@ -322,6 +323,65 @@ class PrinterEvent(Base):
     detail: Mapped[dict | None] = mapped_column(JSONB)
     prev_hash: Mapped[str | None] = mapped_column(String(64))
     hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+
+
+class Incident(Base):
+    """One incident of a print: the model saw something that calls for a decision (or the print was paused),
+    with the evidence, what PrintWatch did, what the user decided and, afterwards, whether it was right.
+
+    Plain strings with CHECK constraints, not Postgres enums: a new status must not need an enum migration.
+    reason  : why it was opened - would_pause (warn mode streak), auto_pause (on mode countdown), pause (the print
+              was paused, by anyone) or detection (a detection of an eligible class over the threshold).
+    status  : open, paused (Klipper confirmed it), unconfirmed (the pause was sent and Klipper did not confirm
+              within 20 s, or could not be sent), closed.
+    outcome : how it ended - resumed, cancelled, ignored (countdown aborted, dismissed or the job ended with
+              nobody acting) or error (Klipper ended in error).
+    label   : the user's verdict, to measure the false positive rate: correct, false_positive, unlabeled.
+    Only one incident per job and class stays unclosed (partial unique index)."""
+
+    __tablename__ = "incidents"
+    __table_args__ = (
+        Index("ix_incidents_printer_opened", "printer_id", "opened_at"),
+        Index("ix_incidents_print_job_id", "print_job_id"),
+        Index(
+            "uq_incidents_open_job_class", "print_job_id", "defect_class", unique=True,
+            postgresql_where=text("status <> 'closed'"),
+        ),
+        CheckConstraint("reason in ('would_pause', 'auto_pause', 'pause', 'detection')", name="ck_incidents_reason"),
+        CheckConstraint("status in ('open', 'paused', 'unconfirmed', 'closed')", name="ck_incidents_status"),
+        CheckConstraint("outcome is null or outcome in ('resumed', 'cancelled', 'ignored', 'error')", name="ck_incidents_outcome"),
+        CheckConstraint("label in ('unlabeled', 'correct', 'false_positive')", name="ck_incidents_label"),
+        CheckConstraint("mode is null or mode in ('on', 'warn')", name="ck_incidents_mode"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    print_job_id: Mapped[int] = mapped_column(ForeignKey("print_jobs.id", ondelete="CASCADE"), nullable=False)
+    printer_id: Mapped[int] = mapped_column(ForeignKey("printers.id", ondelete="CASCADE"), nullable=False)
+    camera_id: Mapped[int | None] = mapped_column(ForeignKey("cameras.id", ondelete="SET NULL"))
+    opened_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    reason: Mapped[str] = mapped_column(String(20), nullable=False)
+    mode: Mapped[str | None] = mapped_column(String(8))  # AUTO_PAUSE_MODE when it opened (null for a plain pause)
+    defect_class: Mapped[str] = mapped_column(String(40), nullable=False)  # "pausa" for a pause with no detection
+    # The layers of the streak, oldest first: layer, detection_id, capture_id, confidence, captured_at.
+    streak: Mapped[list] = mapped_column(JSONB, nullable=False, server_default=text("'[]'::jsonb"))
+    detection_id: Mapped[int | None] = mapped_column(ForeignKey("detections.id", ondelete="SET NULL"))
+    first_defect_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))  # first photo with the defect
+    announced_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))  # the warning / the countdown start
+    pause_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    paused_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))  # Klipper reported "paused"
+    status: Mapped[str] = mapped_column(String(12), nullable=False, server_default=text("'open'"))
+    outcome: Mapped[str | None] = mapped_column(String(12))
+    decided_by: Mapped[str | None] = mapped_column(String(100))
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    label: Mapped[str] = mapped_column(String(14), nullable=False, server_default=text("'unlabeled'"))
+    labeled_by: Mapped[str | None] = mapped_column(String(100))
+    labeled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # The printer at the moment it opened: the job's latest telemetry sample and the layer's telemetry row.
+    telemetry_snapshot: Mapped[dict | None] = mapped_column(JSONB)
+    detail: Mapped[dict | None] = mapped_column(JSONB)  # triggers, pause origin, abort, send errors...
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )
 
 
 class AppSetting(Base):

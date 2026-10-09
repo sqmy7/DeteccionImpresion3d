@@ -30,6 +30,15 @@ class Settings(BaseSettings):
     #   off  - do nothing at all (no announcement, no event, no pause).
     # A value that is none of these stops the backend at startup instead of silently pausing (or not).
     auto_pause_mode: str = "on"
+    # Which detections open an incident by themselves (without waiting for the auto-pause streak): classes the
+    # project calls imminent (docs/META_FINAL.md a.1) seen at or above this confidence. stringing and
+    # blob_over_extrusion are cosmetic and never open one. One incident per job and class at most.
+    incident_classes: str = "spaghetti,layer_shift"
+    incident_min_confidence: float = 0.50
+
+    @property
+    def incident_class_list(self) -> list[str]:
+        return [name.strip() for name in self.incident_classes.split(",") if name.strip()]
 
     @field_validator("auto_pause_mode", mode="before")
     @classmethod
