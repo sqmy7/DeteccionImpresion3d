@@ -702,3 +702,12 @@ Además, la propia impresora enfrió la boquilla en pausa: el objetivo pasó de 
 (el reloj de la impresora va unas 8 h 22 min adelantado; se alinea con las otras marcas). Estado a las 12:44: `paused`, `is_paused` true,
 `resume_err` false, `idle_timeout` Ready con `printing_time` 0,0, boquilla 41,5 °C (objetivo 0), cama 79,8 °C (objetivo 80), posición
 X 0,0 / Y 260,0 / Z 49,94, capa 13.
+
+### Etapa C (2026-10-09): cierre
+
+La pieza `Cubo_PETG_18m27s.gcode` (trabajo 46, 86 capas) terminó en `complete` a las 13:11:10 después de **dos pausas y dos reanudaciones reales**,
+sin ningún error de Klipper ni «Move out of range». Tiempos y valores medidos, lo no medido y los hallazgos por revisar están en
+[ETAPA_C.md](ETAPA_C.md). Resumen medido: clic en la web → `paused` en 0,7 s; reanudación en 64,9 s (boquilla desde 140 °C) y en 44,5 s (boquilla ya
+caliente); estacionamiento en X 0 / Y 260 / Z 49,94; 2 incidentes, ambos cerrados `resumed` por «samuel (web)»; cadena de la bitácora íntegra (188
+eventos). El incidente del 25-09 **no** se repitió en estas dos reanudaciones; no se declara su causa. Pendiente: pausa automática inducida («autorizo la
+C»), cancelación real («autorizo cancelar»), decidir `AUTO_PAUSE_MODE`, y los hallazgos de `ReadTimeout` y de la guarda de repeticiones.
