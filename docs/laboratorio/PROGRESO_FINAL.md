@@ -536,6 +536,6 @@ y la base de pruebas), sin desplegar, sin `git push`, commits sin coautoría. Es
 | Tarea | Estado |
 |---|---|
 | 1. Registro del incidente (backend) | **hecha**: tabla `incidents` (migración `f1a6d3e82b57`, reversible, probada en la base de pruebas: subir, `alembic check`, bajar sin dejar tabla ni índices, subir), servicio `app/services/incidents.py`, eventos `auto_pause.pending/aborted/confirmed/not_confirmed`, confirmación de `paused` con lecturas del estado (20 s), API de incidentes. 168 pruebas del backend pasan (12 nuevas). |
-| 2. Cancelar (backend y web) | pendiente |
+| 2. Cancelar (backend y web) | **hecha**: `POST /printers/{id}/cancel` (solo administrador, con la palabra `CANCELAR` exigida también por el servidor), guarda `cancel_safely` (una orden a la vez compartida con reanudar, enfriamiento de 20 s, solo si la propia impresora dice `printing` o `paused` por una lectura GET), botón con doble confirmación en la web. 179 pruebas del backend y 14 de la web. |
 | 3. Pantalla de Incidente (web) | pendiente |
 | 4. Verificación con la demostración | pendiente |

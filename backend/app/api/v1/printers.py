@@ -1,7 +1,9 @@
 import logging
+from typing import Literal
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,7 +12,7 @@ from app.core.security import encrypt_secret
 from app.db.models import IntegrationType, Printer, User
 from app.db.session import get_db
 from app.integrations.moonraker.client import send_print_action
-from app.integrations.moonraker.print_guard import ResumeRefused, resume_safely
+from app.integrations.moonraker.print_guard import CancelRefused, ResumeRefused, cancel_safely, resume_safely
 from app.schemas.printer import PrinterCreate, PrinterRead, PrinterUpdate
 
 logger = logging.getLogger(__name__)
@@ -132,5 +134,34 @@ async def resume_printer(printer_id: int, db: AsyncSession = Depends(get_db), us
         logger.exception("Moonraker resume failed for printer %s (%s)", printer.id, printer.octoprint_url)
         detail = f"Could not resume via Moonraker ({type(exc).__name__}): {exc}" if str(exc) else (
             f"Could not resume via Moonraker: {type(exc).__name__} (no further detail - check backend logs)"
+        )
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=detail) from exc
+
+
+class CancelRequest(BaseModel):
+    # Cancelling cannot be undone: besides the two confirmations in the web, the server only accepts the order
+    # with this exact word, so a stray request cannot cancel a print.
+    confirmation: Literal["CANCELAR"]
+
+
+@router.post("/{printer_id}/cancel", status_code=status.HTTP_204_NO_CONTENT)
+async def cancel_printer(
+    printer_id: int, payload: CancelRequest, db: AsyncSession = Depends(get_db), user: User = Depends(require_admin)
+) -> None:
+    """Cancel the print in progress. Administrators only, with the typed confirmation, and only if the printer itself
+    (a read-only GET of print_stats.state) says it is printing or paused: see
+    integrations/moonraker/print_guard.py. One order at a time, 20 s between orders."""
+    printer = await _get_moonraker_printer_or_404(printer_id, db)
+    logger.warning("Cancel requested by %s for printer %s (%s)", user.username, printer.id, printer.octoprint_url)
+    try:
+        await cancel_safely(printer.octoprint_url, f"{user.username} (web)")
+    except CancelRefused as refusal:
+        logger.warning("Cancel refused for printer %s: %s", printer.id, refusal)
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(refusal)) from refusal
+    except httpx.HTTPError as exc:
+        # Either the state could not be read (nothing was sent) or the order itself failed.
+        logger.exception("Moonraker cancel failed for printer %s (%s)", printer.id, printer.octoprint_url)
+        detail = f"Could not cancel via Moonraker ({type(exc).__name__}): {exc}" if str(exc) else (
+            f"Could not cancel via Moonraker: {type(exc).__name__} (no further detail - check backend logs)"
         )
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=detail) from exc

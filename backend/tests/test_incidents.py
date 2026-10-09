@@ -490,3 +490,129 @@ def test_boxes_are_placed_on_the_whole_frame_even_when_the_model_saw_only_a_regi
         "frame": {"width": 1000, "height": 500, "roi": {"x": 500, "y": 250, "w": 500, "h": 250}},
     })
     assert region == [{"class_name": "spaghetti", "confidence": 0.7, "x1": 0.5, "y1": 0.5, "x2": 1.0, "y2": 1.0}]
+
+
+# ------------------------------------------------------------------ the real listener, end to end
+
+async def _listener_run(session_factory, mock_server: str, steps):
+    """Runs the Moonraker listener against the simulated printer while `steps(printer_id, wait)` drives it."""
+    import contextlib
+    import json
+    import time
+
+    from app.integrations.moonraker.listener import run_moonraker_listener
+
+    class FakeRedis:
+        async def publish(self, channel: str, message: str) -> int:
+            return 1
+
+    async with session_factory() as db:
+        printer = Printer(name="Simulada", octoprint_url=mock_server, octoprint_api_key_encrypted="",
+                          integration_type=IntegrationType.moonraker)
+        db.add(printer)
+        await db.commit()
+        printer_id = printer.id
+
+    async def wait(condition, timeout: float, what: str) -> None:
+        deadline = time.monotonic() + timeout
+        while not await condition():
+            assert time.monotonic() < deadline, f"timed out waiting for {what}"
+            await asyncio.sleep(0.2)
+
+    listener = asyncio.create_task(run_moonraker_listener(printer_id, session_factory, FakeRedis()))
+    try:
+        async def connected():
+            return any(e.event_type == "monitor_connected" for e in await events_of(session_factory, printer_id))
+
+        await wait(connected, 10, "the listener to connect")
+        return await steps(printer_id, wait)
+    finally:
+        listener.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await listener
+
+
+def test_a_pause_then_a_resume_from_the_web_opens_and_closes_an_incident_attributed_to_the_user(mock_server, with_db):
+    from app.integrations.moonraker.client import send_print_action
+
+    async def scenario(session_factory):
+        async def steps(printer_id, wait):
+            async with httpx.AsyncClient(base_url=mock_server) as mock:
+                (await mock.post("/printer/print/start", params={"filename": "mock_box.gcode"})).raise_for_status()
+
+            async def has_layers():
+                async with session_factory() as db:
+                    return (await db.scalar(select(Layer.id).limit(1))) is not None
+
+            await wait(has_layers, 20, "a layer")
+            await send_print_action(mock_server, "pause", requested_by="samuel (web)")
+
+            async def paused():
+                found = [i for i in await _all_incidents(session_factory) if i.status == "paused"]
+                return bool(found)
+
+            await wait(paused, 15, "the pause to open an incident")
+            during = await _all_incidents(session_factory)
+            await send_print_action(mock_server, "resume", requested_by="samuel (web)")
+
+            async def closed():
+                return all(i.status == "closed" for i in await _all_incidents(session_factory))
+
+            await wait(closed, 15, "the resume to close it")
+            return during, await _all_incidents(session_factory)
+
+        return await _listener_run(session_factory, mock_server, steps)
+
+    during, after = with_db(scenario)
+
+    (opened,) = during
+    assert (opened.reason, opened.defect_class, opened.status) == ("pause", "pausa", "paused")
+    assert opened.detail["pause_origin"] == "printwatch" and opened.detail["pause_order"]["requested_by"] == "samuel (web)"
+    (closed,) = after
+    assert (closed.outcome, closed.decided_by) == ("resumed", "samuel (web)")
+
+
+def test_a_cancel_through_the_guard_closes_the_incident_as_cancelled_by_the_user(mock_server, with_db):
+    from app.integrations.moonraker.print_guard import cancel_safely
+
+    async def scenario(session_factory):
+        command_log._commands.clear()
+
+        async def steps(printer_id, wait):
+            async with httpx.AsyncClient(base_url=mock_server) as mock:
+                (await mock.post("/printer/print/start", params={"filename": "mock_box.gcode"})).raise_for_status()
+
+            async def has_layers():
+                async with session_factory() as db:
+                    return (await db.scalar(select(Layer.id).limit(1))) is not None
+
+            await wait(has_layers, 20, "a layer")
+            async with httpx.AsyncClient(base_url=mock_server) as mock:
+                (await mock.post("/printer/print/pause")).raise_for_status()  # paused on the printer itself
+
+            async def paused():
+                return any(i.status == "paused" for i in await _all_incidents(session_factory))
+
+            await wait(paused, 15, "the pause to open an incident")
+            await cancel_safely(mock_server, "samuel (web)")
+
+            async def closed():
+                return all(i.status == "closed" for i in await _all_incidents(session_factory))
+
+            await wait(closed, 15, "the cancel to close it")
+            return await _all_incidents(session_factory), await events_of(session_factory, printer_id)
+
+        return await _listener_run(session_factory, mock_server, steps)
+
+    found, events = with_db(scenario)
+
+    (incident,) = found
+    assert (incident.status, incident.outcome, incident.decided_by) == ("closed", "cancelled", "samuel (web)")
+    cancel_event = next(e for e in events if e.event_type == "state_changed" and e.value_after == "cancelled")
+    assert cancel_event.origin == "printwatch" and cancel_event.detail["printwatch_order"]["requested_by"] == "samuel (web)"
+    assert any(e.event_type == "printwatch_command" and e.detail["action"] == "cancel" for e in events)
+
+
+async def _all_incidents(session_factory) -> list[Incident]:
+    async with session_factory() as db:
+        return list((await db.execute(select(Incident).order_by(Incident.id))).scalars())

@@ -4,9 +4,10 @@ import { useAuth } from "../hooks/useAuth";
 import { ApiError } from "../services/apiClient";
 import { pausePrinter, resumePrinter } from "../services/printers";
 import type { PrinterStatus } from "../types/api";
+import { CancelPrintButton } from "./CancelPrintButton";
 import { Button } from "./ui";
 
-/** Manual pause/resume, independent of the spaghetti auto-pause flow. No button in the "error"
+/** Manual pause/resume (and cancel, with its double confirmation), independent of the spaghetti auto-pause flow. No button in the "error"
  * state: Klipper can report "error" after a fault like a move out of range, and blindly resuming
  * in that state is how that got worse last time - check the printer in person and clear the fault
  * there first. Each click asks for confirmation, since it sends a real command to the printer. */
@@ -36,17 +37,20 @@ export function PrintControls({ printerId, status }: { printerId: number; status
   };
 
   return (
-    <div className="flex flex-col items-start gap-1.5">
-      <Button
-        size="sm"
-        variant={isPrinting ? "warn" : "ok"}
-        icon={isPrinting ? <Pause size={14} /> : <Play size={14} />}
-        onClick={handleClick}
-        disabled={busy}
-      >
-        {busy ? "Enviando…" : isPrinting ? "Pausar impresión" : "Reanudar impresión"}
-      </Button>
-      {error && <span className="max-w-xs text-xs text-danger-fg">{error}</span>}
+    <div className="flex flex-wrap items-start gap-2">
+      <div className="flex flex-col items-start gap-1.5">
+        <Button
+          size="sm"
+          variant={isPrinting ? "warn" : "ok"}
+          icon={isPrinting ? <Pause size={14} /> : <Play size={14} />}
+          onClick={handleClick}
+          disabled={busy}
+        >
+          {busy ? "Enviando…" : isPrinting ? "Pausar impresión" : "Reanudar impresión"}
+        </Button>
+        {error && <span className="max-w-xs text-xs text-danger-fg">{error}</span>}
+      </div>
+      <CancelPrintButton printerId={printerId} />
     </div>
   );
 }

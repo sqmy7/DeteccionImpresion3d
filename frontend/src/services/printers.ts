@@ -16,3 +16,8 @@ export function pausePrinter(token: string, printerId: number): Promise<void> {
 export function resumePrinter(token: string, printerId: number): Promise<void> {
   return api.post<void>(`/api/v1/printers/${printerId}/resume`, undefined, token);
 }
+
+/** Cancels the print in progress. The server also demands the typed word and checks the printer's own state. */
+export function cancelPrinter(token: string, printerId: number, confirmation: string): Promise<void> {
+  return api.post<void>(`/api/v1/printers/${printerId}/cancel`, { confirmation }, token);
+}
