@@ -95,14 +95,14 @@ def child_env() -> dict:
     }
 
 
-def start_processes(layers: int, layer_seconds: float) -> list[subprocess.Popen]:
+def start_processes(layers: int, layer_seconds: float, pause_seconds: float = 0.0, resume_seconds: float = 0.0) -> list[subprocess.Popen]:
     subprocess.run([sys.executable, "-m", "alembic", "upgrade", "head"], cwd=BACKEND, env=child_env(), check=True)
     STORAGE.mkdir(parents=True, exist_ok=True)
     # Heaters at the simulation's normal speed (seconds, not instant), so the printer-health page
     # can measure heat-ups.
     mock = subprocess.Popen(
         [sys.executable, "scripts/mock_moonraker.py", "--port", str(MOCK_PORT), "--layers", str(layers),
-         "--layer-seconds", str(layer_seconds)],
+         "--layer-seconds", str(layer_seconds), "--pause-seconds", str(pause_seconds), "--resume-seconds", str(resume_seconds)],
         cwd=BACKEND,
     )
     backend = subprocess.Popen(
@@ -413,6 +413,14 @@ async def main() -> None:
     parser.add_argument("--live", action="store_true", help="en vez del escenario completo, una sola impresión en curso")
     parser.add_argument("--incident", action="store_true", help="en vez del escenario completo, una impresión con spaghetti en tres capas seguidas (un incidente)")
     parser.add_argument(
+        "--pause-seconds", type=float, default=0.0,
+        help="segundos que tarda en responder la pausa de la simulada (la real: ~9 s)",
+    )
+    parser.add_argument(
+        "--resume-seconds", type=float, default=0.0,
+        help="segundos que tarda la reanudación de la simulada, con el estado en paused hasta el final (la real: 45 a 65 s)",
+    )
+    parser.add_argument(
         "--auto-pause-mode", choices=["on", "warn", "off"], default=None,
         help="AUTO_PAUSE_MODE del backend de la demostración (por defecto el del entorno)",
     )
@@ -425,7 +433,7 @@ async def main() -> None:
     if args.auto_pause_mode:
         os.environ["AUTO_PAUSE_MODE"] = args.auto_pause_mode  # the backend child inherits it (see child_env)
     await ensure_database(args.reset)
-    processes = start_processes(args.layers, args.layer_seconds)
+    processes = start_processes(args.layers, args.layer_seconds, args.pause_seconds, args.resume_seconds)
     engine = create_async_engine(demo_database_url())
     redis_client = redis.from_url(f"{settings.redis_url.rsplit('/', 1)[0]}/{REDIS_DB}", decode_responses=True)
     tasks: list[asyncio.Task] = []
