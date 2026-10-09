@@ -4,7 +4,7 @@ import { classColor, classLabel, isInformationalClass } from "../../config/defec
 import { useAuth } from "../../hooks/useAuth";
 import { detectionBoxes } from "../../lib/boxes";
 import { formatDateTime, formatNumber, formatPercent } from "../../lib/format";
-import { API_BASE_URL } from "../../services/apiClient";
+import { API_BASE_URL, freshToken } from "../../services/apiClient";
 import { getLayerCapture, listDetectionsForCapture } from "../../services/layers";
 import type { Detection, JobFusion, Layer, LayerCapture, LocatedDefect, TimelineEntry } from "../../types/api";
 import { AnnotatedImage } from "../camera/AnnotatedImage";
@@ -63,7 +63,7 @@ export function LayerDetail({
     return <EmptyState title="Ninguna capa seleccionada" description="Elige una capa en la tira de arriba." />;
   }
 
-  const src = entry.thumbnail_url && token ? `${API_BASE_URL}${entry.thumbnail_url}?token=${encodeURIComponent(token)}` : null;
+  const src = entry.thumbnail_url && token ? `${API_BASE_URL}${entry.thumbnail_url}?token=${encodeURIComponent(freshToken(token))}` : null;
   const snapshot = layer?.telemetry ?? null;
 
   const download = async () => {

@@ -1,7 +1,7 @@
 import { VideoOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { API_BASE_URL } from "../services/apiClient";
+import { API_BASE_URL, freshToken } from "../services/apiClient";
 
 const RETRY_AFTER_MS = 5000;
 
@@ -42,7 +42,7 @@ export function VideoFeed({ cameraId, fit = "cover" }: { cameraId: number; fit?:
     );
   }
 
-  const src = `${API_BASE_URL}/api/v1/cameras/${cameraId}/stream?token=${encodeURIComponent(token)}&r=${attempt}`;
+  const src = `${API_BASE_URL}/api/v1/cameras/${cameraId}/stream?token=${encodeURIComponent(freshToken(token))}&r=${attempt}`;
 
   return (
     <img

@@ -1,10 +1,13 @@
+from datetime import datetime, timedelta, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user
-from app.core.security import create_access_token, verify_password
+from app.api.deps import get_current_user, oauth2_scheme
+from app.core.config import settings
+from app.core.security import create_access_token, decode_access_token, verify_password
 from app.db.models import User
 from app.db.session import get_db
 from app.schemas.auth import Token
@@ -30,6 +33,23 @@ async def login(
 
     access_token = create_access_token(subject=str(user.id))
     return Token(access_token=access_token)
+
+
+@router.post("/refresh", response_model=Token)
+async def refresh(token: str = Depends(oauth2_scheme), current_user: User = Depends(get_current_user)) -> Token:
+    """A new token for a session that is still valid, so the web can keep it alive while it is open (a print lasts
+    hours and the token one hour). The session still ends jwt_max_session_hours after the login that began it. A token
+    from before this existed has no auth_time: its session counts from now."""
+    payload = decode_access_token(token)  # get_current_user already accepted it
+    now = datetime.now(timezone.utc)
+    started = datetime.fromtimestamp(payload.get("auth_time", now.timestamp()), tz=timezone.utc)
+    if now - started > timedelta(hours=settings.jwt_max_session_hours):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Session too old; log in again",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return Token(access_token=create_access_token(subject=str(current_user.id), auth_time=started))
 
 
 @router.get("/me", response_model=UserRead)

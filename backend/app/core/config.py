@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     jwt_secret_key: str
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 60
+    # A session renewed with POST /auth/refresh (the web does it while it is open) ends this many hours after the
+    # login that started it, however often it is renewed: a stolen token cannot be kept alive for ever.
+    jwt_max_session_hours: int = 24
     field_encryption_key: str
     cors_allow_origins: str = "*"
     storage_root: Path = Path("/app/storage/snapshots")

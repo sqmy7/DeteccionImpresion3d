@@ -3,13 +3,13 @@ import { useState, type FormEvent } from "react";
 import { Navigate } from "react-router-dom";
 import { Button, ErrorNote } from "../components/ui";
 import { useAuth } from "../hooks/useAuth";
-import { ApiError } from "../services/apiClient";
+import { ApiError, SESSION_EXPIRED_MESSAGE } from "../services/apiClient";
 
 const INPUT =
   "w-full rounded-md border border-line bg-surface-2 px-3 py-2 text-sm text-fg placeholder:text-faint focus:border-accent focus:outline-none";
 
 export function LoginPage() {
-  const { token, login } = useAuth();
+  const { token, login, sessionExpired } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -75,6 +75,11 @@ export function LoginPage() {
             />
           </div>
 
+          {sessionExpired && !error && (
+            <div role="status" className="rounded-lg border border-warn/50 bg-warn/10 px-3 py-2 text-sm text-warn-fg">
+              {SESSION_EXPIRED_MESSAGE}
+            </div>
+          )}
           {error && <ErrorNote>{error}</ErrorNote>}
 
           <Button type="submit" variant="primary" disabled={isSubmitting} className="w-full">

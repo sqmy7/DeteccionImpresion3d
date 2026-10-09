@@ -1,4 +1,4 @@
-import { api, API_BASE_URL } from "./apiClient";
+import { api, API_BASE_URL, freshToken } from "./apiClient";
 import type { Incident, IncidentDetail, IncidentLabel } from "../types/api";
 
 export type IncidentFilter = "all" | "unclosed" | "closed";
@@ -24,5 +24,5 @@ export function dismissIncident(token: string, incidentId: number): Promise<Inci
 
 /** The photo of a layer as an <img> source (the token goes in the query: an <img> cannot send headers). */
 export function incidentImageUrl(token: string, imagePath: string): string {
-  return `${API_BASE_URL}${imagePath}?token=${encodeURIComponent(token)}`;
+  return `${API_BASE_URL}${imagePath}?token=${encodeURIComponent(freshToken(token))}`;
 }
