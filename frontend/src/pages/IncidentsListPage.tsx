@@ -6,7 +6,7 @@ import { Badge, Card, EmptyState, ErrorNote, Segmented, Skeleton, Table, Td, Th 
 import { classLabel } from "../config/defectClasses";
 import { useWsEvent } from "../hooks/useWebSocket";
 import { formatDateTime, formatDuration, formatPercent } from "../lib/format";
-import { incidentClassLabel, LABEL_INFO, REASON_LABELS, STATUS_INFO } from "../lib/incidentView";
+import { incidentClassLabel, incidentKind, LABEL_INFO, REASON_LABELS, STATUS_INFO } from "../lib/incidentView";
 import { useApi } from "../lib/useApi";
 import { listIncidents, type IncidentFilter } from "../services/incidents";
 import type { Incident } from "../types/api";
@@ -95,7 +95,7 @@ export function IncidentsListPage() {
                       </p>
                       <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
                         <Badge tone={STATUS_INFO[incident.status].tone}>{STATUS_INFO[incident.status].label}</Badge>
-                        <span>{REASON_LABELS[incident.reason]}</span>
+                        <span>{REASON_LABELS[incidentKind(incident)]}</span>
                         <span className="tabular">{formatDateTime(incident.opened_at)}</span>
                         {confidence !== null && <span className="tabular">{formatPercent(confidence)}</span>}
                       </p>
@@ -135,7 +135,7 @@ export function IncidentsListPage() {
                     <Td>{incidentClassLabel(incident.defect_class, classLabel)}</Td>
                     <Td className="tabular">{layer ?? "—"}</Td>
                     <Td className="tabular">{confidence !== null ? formatPercent(confidence) : "—"}</Td>
-                    <Td>{REASON_LABELS[incident.reason]}</Td>
+                    <Td>{REASON_LABELS[incidentKind(incident)]}</Td>
                     <Td>
                       <Badge tone={STATUS_INFO[incident.status].tone}>{STATUS_INFO[incident.status].label}</Badge>
                     </Td>

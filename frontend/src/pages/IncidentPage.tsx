@@ -17,6 +17,7 @@ import {
   canCancel,
   canResume,
   incidentClassLabel,
+  incidentReasons,
   isAbortable,
   LABEL_INFO,
   milestones,
@@ -126,7 +127,11 @@ export function IncidentPage() {
           <Badge tone={status.tone} dot pulse={needsAttention(data)}>
             {status.label}
           </Badge>
-          <Badge tone="accent">{REASON_LABELS[data.reason]}</Badge>
+          {incidentReasons(data).map((reason) => (
+            <Badge key={reason} tone="accent">
+              {REASON_LABELS[reason]}
+            </Badge>
+          ))}
           {data.mode && <Badge tone="neutral">Modo {data.mode === "warn" ? "aviso" : "automático"}</Badge>}
           <Badge tone={labelInfo.tone}>{labelInfo.label}</Badge>
         </div>
@@ -142,7 +147,7 @@ export function IncidentPage() {
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
         {/* Evidence: the layer photo with the boxes. */}
         <Card
-          className="xl:row-span-2"
+          className="xl:row-span-2 xl:self-start"
           title="Evidencia"
           subtitle={selected ? `Capa ${selected.layer_number}${selected.z_height != null ? ` · z ${formatNumber(selected.z_height, 2)} mm` : ""}` : "Sin detección asociada"}
           actions={
@@ -182,6 +187,34 @@ export function IncidentPage() {
                 </div>
               </dl>
               {selected.boxes.length === 0 && <p className="text-xs text-muted">El modelo no dibujó cajas en esta foto.</p>}
+              {detections.length > 1 && (
+                <div className="flex flex-col gap-1.5 border-t border-line/70 pt-3">
+                  <p className="text-xs font-medium text-fg">La racha, capa por capa</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {detections.map((item) => (
+                      <button
+                        key={item.detection_id}
+                        onClick={() => setLayer(item.layer_number)}
+                        aria-label={`Ver la capa ${item.layer_number}`}
+                        aria-pressed={item.layer_number === selected.layer_number}
+                        className={`min-w-0 rounded-lg border p-1 text-left transition-colors ${
+                          item.layer_number === selected.layer_number ? "border-accent bg-accent/10" : "border-line hover:bg-surface-2"
+                        }`}
+                      >
+                        <AnnotatedImage
+                          src={incidentImageUrl(token, item.image_url)}
+                          alt={`Miniatura de la capa ${item.layer_number}`}
+                          boxes={item.boxes.map((box) => ({ className: box.class_name, confidence: box.confidence, x1: box.x1, y1: box.y1, x2: box.x2, y2: box.y2 }))}
+                        />
+                        <span className="mt-1 block truncate text-[11px] text-muted">
+                          Capa {item.layer_number}
+                          {item.confidence != null ? ` · ${formatPercent(item.confidence)}` : ""}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <EmptyState
@@ -242,7 +275,7 @@ export function IncidentPage() {
                   value={data.label}
                   onChange={(value) => void run("label", () => labelIncident(token!, data.id, value))}
                   options={[
-                    { value: "correct", label: "Acierto: el defecto era real" },
+                    { value: "correct", label: "Acierto" },
                     { value: "false_positive", label: "Falso positivo" },
                     { value: "unlabeled", label: "Sin etiquetar" },
                   ]}
@@ -252,7 +285,7 @@ export function IncidentPage() {
               )}
               <p className="text-xs text-faint">
                 {data.label !== "unlabeled" && data.labeled_by ? `Etiquetado por ${data.labeled_by} · ${formatDateTime(data.labeled_at)}. ` : ""}
-                Las etiquetas sirven para medir cuántas pausas habrían sido falsas.
+                «Acierto» = el defecto era real. Las etiquetas sirven para medir cuántas pausas habrían sido falsas.
               </p>
             </div>
 
@@ -281,7 +314,7 @@ export function IncidentPage() {
                 value={view}
                 onChange={setView}
                 options={[
-                  { value: "opened", label: "Al abrirse" },
+                  { value: "opened", label: data.announced_at ? "Al aviso" : "Al abrirse" },
                   { value: "paused", label: "Al pausarse" },
                 ]}
               />
@@ -296,8 +329,8 @@ export function IncidentPage() {
                 <Kpi
                   label="Tiempo restante"
                   icon={<Layers size={14} />}
-                  value={times.remaining !== null ? `~${formatDuration(times.remaining)}` : "—"}
-                  hint={estimatedTotal ? "Total del laminador menos lo impreso" : "El archivo no trae estimación"}
+                  value={times.remaining !== null ? formatDuration(times.remaining) : "—"}
+                  hint={estimatedTotal ? "Laminador menos lo impreso" : "El archivo no trae estimación"}
                 />
               </div>
               <LiveKpis values={shown} />
@@ -333,7 +366,7 @@ export function IncidentPage() {
                 <span className="text-muted">{step.label}</span>
                 <span className="tabular text-fg">
                   {formatDateTime(step.at)}
-                  {step.offsetS !== null && step.offsetS !== 0 && <span className="ml-1.5 text-xs text-faint">+{formatDuration(step.offsetS)}</span>}
+                  {step.offsetS !== null && Math.abs(step.offsetS) >= 1 && <span className="ml-1.5 text-xs text-faint">+{formatDuration(step.offsetS)}</span>}
                 </span>
               </li>
             ))}

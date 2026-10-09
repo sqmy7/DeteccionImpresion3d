@@ -28,6 +28,22 @@ export const LABEL_INFO: Record<IncidentLabel, { label: string; tone: Tone }> = 
   false_positive: { label: "Falso positivo", tone: "info" },
 };
 
+const STRENGTH: IncidentReason[] = ["auto_pause", "would_pause", "pause", "detection"];
+
+/** Every reason that has added to the incident, the one it opened with first. An incident that opened as a plain
+ * detection can later be joined by the automatic pause's streak (a countdown, or a "would have paused" in warn
+ * mode) or by a real pause, and what it asks of the user follows the strongest of them, not the first. */
+export function incidentReasons(incident: Pick<Incident, "reason" | "detail">): IncidentReason[] {
+  const triggers = (incident.detail?.triggers as { reason: IncidentReason }[] | undefined) ?? [];
+  return [...new Set<IncidentReason>([incident.reason, ...triggers.map((trigger) => trigger.reason)])];
+}
+
+/** The strongest reason of the incident (see incidentReasons). */
+export function incidentKind(incident: Pick<Incident, "reason" | "detail">): IncidentReason {
+  const reasons = incidentReasons(incident);
+  return STRENGTH.find((kind) => reasons.includes(kind)) ?? incident.reason;
+}
+
 /** The class shown for an incident: a pause with no detection behind it has the class "pausa". */
 export function incidentClassLabel(defectClass: string, label: (name: string) => string): string {
   return defectClass === "pausa" ? "Pausa" : label(defectClass);
@@ -39,8 +55,8 @@ export function needsAttention(incident: Pick<Incident, "status">): boolean {
 }
 
 /** The countdown of an automatic pause can still be aborted: it was announced and the pause was not sent. */
-export function isAbortable(incident: Pick<Incident, "status" | "reason" | "pause_sent_at">): boolean {
-  return incident.status === "open" && incident.reason === "auto_pause" && !incident.pause_sent_at;
+export function isAbortable(incident: Pick<Incident, "status" | "reason" | "detail" | "pause_sent_at">): boolean {
+  return incident.status === "open" && incidentKind(incident) === "auto_pause" && !incident.pause_sent_at;
 }
 
 /** What the printer is doing decides what can be ordered: resume only from a pause; cancel while printing or
@@ -63,8 +79,9 @@ export function statusExplanation(incident: Incident): string {
     return "Se envió la pausa y la impresora no confirmó que quedara en pausa dentro de 20 s, o no se pudo enviar. Revisa la impresora ya.";
   }
   if (incident.status === "paused") return "La impresora está en pausa. Decide: reanudar, cancelar o ignorar el incidente.";
-  if (incident.reason === "would_pause") return "Modo aviso: se habría pausado, pero no se envió ninguna orden a la impresora.";
-  if (incident.reason === "auto_pause") {
+  const kind = incidentKind(incident);
+  if (kind === "would_pause") return "Modo aviso: se habría pausado, pero no se envió ninguna orden a la impresora.";
+  if (kind === "auto_pause") {
     return incident.pause_sent_at
       ? "Pausa enviada; esperando que la impresora confirme."
       : "Cuenta regresiva en curso: la pausa se enviará salvo que se aborte.";
@@ -88,7 +105,7 @@ export function milestones(incident: Incident): Milestone[] {
   const steps: [string, string, string | null][] = [
     ["first_defect", "Primera foto con el defecto", incident.first_defect_at],
     ["opened", "Incidente abierto", incident.opened_at],
-    ["announced", incident.reason === "would_pause" ? "Aviso (modo aviso)" : "Aviso y cuenta regresiva", incident.announced_at],
+    ["announced", incidentKind(incident) === "would_pause" ? "Aviso (modo aviso)" : "Aviso y cuenta regresiva", incident.announced_at],
     ["pause_sent", "Pausa enviada a la impresora", incident.pause_sent_at],
     ["paused", "Klipper confirmó la pausa", incident.paused_at],
     ["decided", incident.outcome ? `Decisión: ${OUTCOME_LABELS[incident.outcome]}` : "Decisión", incident.decided_at],
@@ -103,5 +120,5 @@ export function milestones(incident: Incident): Milestone[] {
 export function noticeText(incident: Incident, printerName: string, className: string): string {
   const layer = incident.streak.length > 0 ? incident.streak[incident.streak.length - 1].layer : null;
   const where = layer !== null ? `${className}, capa ${layer}` : className;
-  return `${REASON_LABELS[incident.reason]} en ${printerName}: ${where}`;
+  return `${REASON_LABELS[incidentKind(incident)]} en ${printerName}: ${where}`;
 }

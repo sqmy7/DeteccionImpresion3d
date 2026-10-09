@@ -328,6 +328,8 @@ def test_one_unclosed_incident_per_job_and_class_and_a_closed_one_does_not_block
     joined = next(i for i in found if i.id == first_id)
     assert [t["reason"] for t in joined.detail["triggers"]] == ["detection", "would_pause"]
     assert joined.announced_at is not None and joined.status == "closed"
+    # announced later than it opened: the state saved is the one of the announcement, the opening one is kept
+    assert joined.telemetry_snapshot["taken_at"] > joined.detail["snapshot_at_open"]["taken_at"]
 
 
 def test_a_lone_detection_opens_an_incident_only_for_an_eligible_class_over_the_threshold_and_only_once(mock_server, with_db, monkeypatch):

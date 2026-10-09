@@ -538,4 +538,43 @@ y la base de pruebas), sin desplegar, sin `git push`, commits sin coautoría. Es
 | 1. Registro del incidente (backend) | **hecha**: tabla `incidents` (migración `f1a6d3e82b57`, reversible, probada en la base de pruebas: subir, `alembic check`, bajar sin dejar tabla ni índices, subir), servicio `app/services/incidents.py`, eventos `auto_pause.pending/aborted/confirmed/not_confirmed`, confirmación de `paused` con lecturas del estado (20 s), API de incidentes. 168 pruebas del backend pasan (12 nuevas). |
 | 2. Cancelar (backend y web) | **hecha**: `POST /printers/{id}/cancel` (solo administrador, con la palabra `CANCELAR` exigida también por el servidor), guarda `cancel_safely` (una orden a la vez compartida con reanudar, enfriamiento de 20 s, solo si la propia impresora dice `printing` o `paused` por una lectura GET), botón con doble confirmación en la web. 179 pruebas del backend y 14 de la web. |
 | 3. Pantalla de Incidente (web) | **hecha (falta la revisión en navegador, tarea 4)**: pestaña «Incidentes» por impresora (lista con aciertos / falsos positivos / sin etiquetar), pantalla de detalle (foto con cajas y selector de capa de la racha, clase, confianza, capa y hora, estado completo de la impresora al abrirse y al pausarse, tiempo impreso y restante, línea de tiempo con el estado de la cadena, reporte PDF, Reanudar con la guarda, Cancelar con doble confirmación, Abortar, Ignorar y etiquetar), aviso fijo en todas las pantallas con la marca `(!)` en el título de la pestaña, y los banners de la pausa automática ahora distinguen «enviada», «confirmada» y «NO confirmada». 22 pruebas de la web. |
-| 4. Verificación con la demostración | pendiente |
+| 4. Verificación con la demostración | **hecha**: un incidente en modo `warn` y otro en modo `on`, recorridos en el navegador (escritorio y celular), sin errores de consola, capturas y resultados en `docs/laboratorio/incidente/`. Salieron y se corrigieron: el motivo del incidente se juzga por todos sus disparadores (sin eso, en modo `on` faltaba el botón «Abortar»), una galería con las fotos de la racha, textos cortados, y el `favicon.ico` que daba un 404 en consola. |
+
+### Paso 2: resumen y qué hay que hacer al desplegar
+
+**Hecho (cuatro tareas, un commit cada una):** registro de incidentes (tabla, migración reversible, eventos, confirmación
+de `paused`, API), cancelar (endpoint, guarda y botón con doble confirmación), pantalla de Incidente (lista, detalle, aviso
+fijo, banners) y su verificación con la demostración. Pruebas al cerrar: backend 179 (168 tras la tarea 1, 179 tras la 2), `capture` 14,
+web `vitest` 24, `alembic check` sin diferencias en la base de pruebas, y la web compila. Se resolvieron las decisiones de Samuel tal como las dio; las interpretaciones propias
+están en `docs/META_FINAL.md` («Cómo se interpretó lo que no estaba definido»). **La regla de la sección c no se
+implementó.** Nada de esto está desplegado.
+
+**Contradicciones o dudas con `META_FINAL.md` que quedaron a la vista:** «detección sobre el umbral» (ver arriba: se
+limita a `spaghetti` y `layer_shift` con confianza ≥ 0,50, configurable); y que `META_FINAL.md` a.1 no pide un incidente por
+cada `stringing` ni `blob`, que con la lectura literal habrían abierto uno.
+
+**Qué hay que hacer al desplegar (en el laboratorio o desde casa, con `wsl -- sleep infinity` abierto), en este orden:**
+
+1. **Respaldo de la base real** (como siempre): `docker exec infra-postgres-1 sh -c 'pg_dump -U "$POSTGRES_USER" -d
+   "$POSTGRES_DB"' > storage/respaldo_antes_incidentes_AAAA-MM-DD.sql` (no se versiona).
+2. **Migración:** `alembic upgrade head` contra la base real (revisión `f1a6d3e82b57`, solo crea la tabla `incidents`; es
+   reversible con `alembic downgrade -1`, que la borra con sus datos). Con el contenedor nuevo se puede hacer así:
+   reconstruir el backend (paso 3) y ejecutar dentro `docker exec infra-backend-1 alembic upgrade head`; el backend
+   viejo sigue funcionando con la tabla nueva presente. La base de pruebas (`printwatch_test`) **ya está en esa
+   revisión**; quien tenga otra base de pruebas debe ejecutar `alembic upgrade head` allí antes de correr las pruebas.
+3. **Reconstruir solo el backend:** `docker compose --env-file .env -f infra/docker-compose.yml --profile full up -d
+   --build --no-deps backend` (desde la raíz, en WSL). No hace falta tocar `inference-worker`, `capture`, postgres ni redis.
+4. **Comprobar:** contenedor `healthy`, `alembic current` = `f1a6d3e82b57 (head)`, `/health` con base y Redis `ok`, y la lista
+   `GET /api/v1/incidents` responde (vacía al principio). Con la impresora conectada, el listener debe conectar.
+5. **Web:** reiniciar el servidor de la web (`npm run dev` en `frontend/`, o `npm run build` y servir `dist/`) y recargar
+   con Ctrl+F5: aparece la pestaña «Incidentes» y el botón «Cancelar impresión».
+6. **Variables del `.env` (opcionales):** `AUTO_PAUSE_MODE` sigue en `warn` en el `.env` real hasta que se decida volver a
+   `on`; `INCIDENT_CLASSES` e `INCIDENT_MIN_CONFIDENCE` (por defecto `spaghetti,layer_shift` y `0.50`) están documentadas
+   en `.env.example`.
+7. **Para volver atrás:** `git revert` de los commits de la rama (o volver al commit anterior), reconstruir el backend y,
+   si se quiere, `alembic downgrade -1` (borra los incidentes guardados). Dejar la tabla no estorba al backend anterior.
+
+**Lo primero que conviene probar con la impresora real, de menos a más riesgo:** (1) con `AUTO_PAUSE_MODE=warn`, una
+impresión normal y ver si aparecen incidentes por una sola foto (y etiquetarlos); (2) la pausa y la reanudación reales
+(Etapa C, solo con «autorizo la C»), mirando que el incidente quede `paused` con la confirmación y se cierre como
+«Se reanudó»; (3) la cancelación real, solo con una pieza desechable.

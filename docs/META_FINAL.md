@@ -268,10 +268,46 @@ sube el umbral de confianza o la persistencia por clase hasta cumplir a.3, y se 
   detección usa la clase `pausa`; si ya hay un incidente abierto del trabajo, la pausa se **añade a ese** en vez de
   abrir otro.
 
-## Lo que haría el Paso 2 (resumen)
+## Estado de las brechas tras el Paso 2 (2026-10-09, rama `incidente-web`)
 
-Una pantalla «Incidente» en la web, abierta por `auto_pause.would_pause`, una pausa real o una detección sobre el
-umbral, con: foto de la capa con las cajas, clase, confianza, capa y hora; el estado completo de la impresora en ese
-instante; la línea de tiempo de eventos con su origen; el enlace al reporte PDF; y los botones Reanudar (con la
-guarda existente) y Cancelar (nuevo, con su propia guarda). Con pruebas, la web compilando, revisión en escritorio y
-celular, y datos de prueba generados en la base (un incidente simulado) **sin tocar ninguna impresora**.
+Cerradas (probadas con la impresora simulada, la base de pruebas y la demostración; **no con la impresora real**):
+
+| # | Brecha | Cómo quedó |
+|---|---|---|
+| G1 | No había «incidente» como entidad | Tabla `incidents` (migración reversible `f1a6d3e82b57`), servicio `incidents.py`, API de lectura, y una pantalla (lista y detalle). Se abre con `would_pause`, la cuenta de la pausa automática, una pausa real (cualquier origen) o una detección de una clase elegible sobre el umbral; uno por trabajo y clase mientras no esté cerrado (índice único parcial). |
+| G2 | La cuenta regresiva y el «Abortar» no se registraban | `auto_pause.pending` y `auto_pause.aborted` van a la bitácora (con quién abortó) y el incidente se cierra como «ignorado». |
+| G3 | Cancelar no existía | `POST /printers/{id}/cancel`: solo administrador, palabra `CANCELAR` exigida por el servidor, guarda propia (una orden a la vez compartida con reanudar, 20 s de enfriamiento, solo si la impresora dice `printing` o `paused`), botón con doble confirmación. |
+| G4 | «Ejecutada» no era «pausada» | Tras enviar el `pause` se lee el estado de la impresora (GET) hasta 20 s: `auto_pause.confirmed`, o `auto_pause.not_confirmed` («pausa no confirmada»; también si no se pudo enviar), con el incidente en `unconfirmed`. Una confirmación tardía del listener lo pasa a `paused`. |
+| G10 | El usuario no podía etiquetar | Acierto / falso positivo / sin etiquetar, y la lista cuenta aciertos y falsos positivos (la base de la tasa de a.3). |
+| G9 (en parte) | El aviso dependía de tener la web abierta en una pantalla concreta | Aviso fijo en todas las pantallas, también al abrir la web con un incidente ya abierto, y marca `(!)` en el título de la pestaña. **No** hay sonido, correo ni mensaje fuera de la web. |
+
+Siguen abiertas, sin cambios: **G5** (solo `spaghetti` puede pausar; `layer_shift` y `warping` solo abren incidente),
+**G6** (persistencia en capas y no en tiempo), **G7** (el resultado modelo→backend viaja por pub/sub: si el backend
+está caído en ese momento, esa detección no abre incidente ni cuenta), **G8** (sin `roi`, sin filtro de cama, sin
+enfriamiento tras reanudar), **G11** (la telemetría no decide), **G12** (el tiempo restante del instante se guarda
+solo en el incidente, no en otros lugares), **G13** (la pausa de Creality mueve el cabezal; sin medir) y **G14** (la
+cámara final). La regla de la sección c **no se implementó** (decisión de Samuel).
+
+Límites nuevos que salieron de construirlo:
+
+- Las filas de `incidents` **no** van en la cadena de hashes (los eventos de la bitácora sí, y llevan el
+  `incident_id`): quien edite la base puede cambiar un incidente sin que la cadena lo note; sí quedaría la huella en
+  los eventos.
+- Si el backend se reinicia durante la cuenta regresiva o la confirmación de 20 s, la cuenta se pierde (ya era así) y
+  el incidente queda `open` sin cerrarse hasta que se pause, se reanude, se cancele o termine el trabajo.
+- El origen de una pausa hecha desde la pantalla o Fluidd se guarda como `external`: PrintWatch no distingue cuál.
+- El banner de la cuenta regresiva (`AutoPauseOverlay`) se alimenta de eventos en vivo: quien abre la web durante
+  los 15 s no lo ve, pero sí el aviso fijo del incidente (que se lee del servidor) con el botón «Abortar» en su
+  pantalla.
+- «Detección sobre el umbral» abre un incidente solo para `INCIDENT_CLASSES` (`spaghetti,layer_shift`) con confianza
+  ≥ `INCIDENT_MIN_CONFIDENCE` (0,50): interpretación mía, porque con el umbral del modelo (0,25) *toda* detección
+  cumpliría y `stringing` y `blob` no son inminentes según a.1.
+- Con una detección de capa 8 que abre el incidente y la racha de capa 10 que lo anuncia, el estado de la
+  impresora se guarda otra vez al anunciarlo (el de la apertura queda en `detail.snapshot_at_open`).
+
+## Lo que hizo el Paso 2 (resumen)
+
+Backend (registro de incidentes, confirmación de `paused`, cancelar con guarda), web (lista, detalle, aviso fijo,
+banners de la pausa automática con los tres momentos «enviada», «confirmada» y «NO confirmada», botón de
+cancelar) y un recorrido con navegador en la demostración, en modo aviso y en modo automático, con capturas en
+`docs/laboratorio/incidente/`. Ninguna orden salió hacia una impresora real.

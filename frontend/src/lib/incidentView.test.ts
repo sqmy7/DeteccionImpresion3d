@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { Incident } from "../types/api";
-import { canCancel, canResume, incidentClassLabel, isAbortable, milestones, needsAttention, noticeText, statusExplanation } from "./incidentView";
+import {
+  canCancel, canResume, incidentClassLabel, incidentKind, incidentReasons, isAbortable, milestones, needsAttention, noticeText, statusExplanation,
+} from "./incidentView";
 
 const BASE = "2026-10-09T12:00:00Z";
 const at = (seconds: number) => new Date(new Date(BASE).getTime() + seconds * 1000).toISOString();
@@ -37,6 +39,30 @@ describe("what can be ordered", () => {
     expect(isAbortable(incident({ reason: "auto_pause", mode: "on", pause_sent_at: at(45) }))).toBe(false);
     expect(isAbortable(incident({ reason: "would_pause" }))).toBe(false);
     expect(isAbortable(incident({ reason: "auto_pause", status: "closed" }))).toBe(false);
+  });
+});
+
+describe("an incident that opened as a detection and was joined by the automatic pause", () => {
+  const joined = (extra: Partial<Incident>) =>
+    incident({
+      reason: "detection", mode: "on",
+      detail: { triggers: [{ reason: "detection", at: at(10) }, { reason: "auto_pause", at: at(30) }] },
+      ...extra,
+    });
+
+  it("is judged by its strongest reason, not by the one it opened with", () => {
+    expect(incidentReasons(joined({}))).toEqual(["detection", "auto_pause"]);
+    expect(incidentKind(joined({}))).toBe("auto_pause");
+    expect(incidentKind(incident({ reason: "detection", detail: { triggers: [{ reason: "detection" }, { reason: "would_pause" }] } }))).toBe("would_pause");
+    expect(incidentKind(incident({ reason: "detection", detail: null }))).toBe("detection");
+  });
+
+  it("can be aborted while the countdown runs (this is what the on-mode demo showed missing)", () => {
+    expect(isAbortable(joined({}))).toBe(true);
+    expect(isAbortable(joined({ pause_sent_at: at(45) }))).toBe(false);
+    expect(isAbortable(incident({ reason: "detection", mode: null, detail: { triggers: [{ reason: "detection" }] } }))).toBe(false);
+    expect(statusExplanation(joined({}))).toContain("Cuenta regresiva");
+    expect(noticeText(joined({}), "Creality Hi", "Spaghetti")).toContain("Pausa automática en Creality Hi");
   });
 });
 

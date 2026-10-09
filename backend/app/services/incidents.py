@@ -136,8 +136,14 @@ def _add_trigger(incident: Incident, reason: str, at: datetime, **extra) -> None
     incident.detail = detail
 
 
-def _attach(incident: Incident, *, reason: str, streak: list | None, detection_id: int | None, announced: bool, mode: str | None, now: datetime) -> None:
-    """Adds a new trigger to an incident that is already open."""
+def _attach(
+    incident: Incident, *, reason: str, streak: list | None, detection_id: int | None, announced: bool, mode: str | None,
+    now: datetime, snapshot: dict | None = None,
+) -> None:
+    """Adds a new trigger to an incident that is already open. The first time it is announced (the warning, or the
+    countdown) the printer's state is saved again: that is the moment the user is asked to decide, and an incident
+    that opened earlier as a plain detection would otherwise show a state several layers old. The one from when it
+    opened is kept in detail["snapshot_at_open"]."""
     if streak:
         incident.streak = _merge_streak(list(incident.streak or []), streak)
         firsts = [moment for moment in (_parse(item.get("captured_at")) for item in incident.streak) if moment]
@@ -147,6 +153,11 @@ def _attach(incident: Incident, *, reason: str, streak: list | None, detection_i
         incident.detection_id = detection_id
     if announced and incident.announced_at is None:
         incident.announced_at = now
+        if snapshot is not None:
+            detail = dict(incident.detail or {})
+            detail["snapshot_at_open"] = incident.telemetry_snapshot
+            incident.detail = detail
+            incident.telemetry_snapshot = snapshot
     if mode and incident.mode is None:
         incident.mode = mode
     _add_trigger(incident, reason, now)
@@ -208,7 +219,10 @@ async def open_incident(
                     )
                 )
             ).scalar_one()
-            _attach(incident, reason=reason, streak=streak, detection_id=detection_id, announced=announced, mode=mode, now=now)
+            _attach(
+                incident, reason=reason, streak=streak, detection_id=detection_id, announced=announced, mode=mode, now=now,
+                snapshot=values["telemetry_snapshot"],
+            )
         await db.commit()
         await db.refresh(incident)
         payload = summary(incident)
