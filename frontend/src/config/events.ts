@@ -133,6 +133,7 @@ export function describeEvent(event: PrinterEvent): string {
       const action = (detail?.action as string) ?? "";
       const verb = { pause: "pausar", resume: "reanudar", cancel: "cancelar" }[action] ?? action;
       const who = detail?.source === "auto_pause" ? "pausa automática por spaghetti" : (detail?.requested_by as string) ?? "web";
+      if (detail?.followup) return `La orden de ${verb} (${who}) no se completó: ${detail?.error ?? "sin detalle"}`;
       const failed = detail?.ok === false ? ` — falló: ${detail?.error ?? "sin detalle"}` : "";
       return `Pidió ${verb} (${who})${failed}`;
     }

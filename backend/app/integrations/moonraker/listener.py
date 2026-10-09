@@ -38,7 +38,9 @@ _SAMPLE_INTERVAL_SECONDS = 1.0
 # One insert every ~10 s instead of one per sample.
 _SAMPLES_PER_INSERT = 10
 # A state change within this window after a PrintWatch order of the same kind is attributed to it.
-_COMMAND_ATTRIBUTION_SECONDS = 60
+# The order is noted when it is sent and a resume takes up to ~65 s to change the state (45 to 65 s measured on the
+# Creality Hi, 2026-10-09), so the window has to outlast it.
+_COMMAND_ATTRIBUTION_SECONDS = 120
 # After any of these Moonraker has dropped this connection's subscription (Klippy restarted or
 # stopped), so the listener reconnects to subscribe again.
 _KLIPPY_RESET_NOTIFICATIONS = {"notify_klippy_disconnected", "notify_klippy_shutdown", "notify_klippy_ready"}
@@ -602,6 +604,16 @@ async def _log_sent_commands(db_session_factory, printer_id: int, base_url: str,
             field=f"printer/print/{command.action}",
             detail=_describe_command(command),
             ts=command.sent_at,
+        )
+    for command in command_log.take_failed_unreported(base_url):
+        await _record_event_safely(
+            db_session_factory,
+            printer_id,
+            "printwatch_command",
+            EventOrigin.PRINTWATCH,
+            job_id=state.job_id,
+            field=f"printer/print/{command.action}",
+            detail={**_describe_command(command), "followup": True},
         )
 
 

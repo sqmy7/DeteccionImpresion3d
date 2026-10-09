@@ -2,6 +2,7 @@
 really changes state when it receives a pause: "on" pauses it, "warn" and "off" never send anything."""
 
 import asyncio
+import time
 import uuid
 from decimal import Decimal
 
@@ -75,6 +76,17 @@ def _run_streak(mock_server, with_db, monkeypatch, mode: str) -> dict:
             await manager.check_spaghetti_streak(session_factory, job_id=ids[2], camera_id=ids[1], printer_id=ids[0])
             pending_right_after = bool(manager._pending)
             await asyncio.sleep(0.6)  # well past the (shortened) grace period
+            if mode == "on":  # slow machine: wait for the printer's confirmation instead of a fixed time
+                deadline = time.monotonic() + 10
+                while time.monotonic() < deadline:
+                    async with session_factory() as db:
+                        confirmed = await db.scalar(
+                            select(PrinterEvent.id).where(PrinterEvent.printer_id == ids[0],
+                                                          PrinterEvent.event_type == "auto_pause.confirmed")
+                        )
+                    if confirmed is not None:
+                        break
+                    await asyncio.sleep(0.1)
             state = await _state(mock)
 
         async with session_factory() as db:
