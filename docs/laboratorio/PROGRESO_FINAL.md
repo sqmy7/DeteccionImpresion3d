@@ -650,14 +650,15 @@ impresora; solo lecturas (`GET` cada segundo, archivo fuera del repositorio) y c
 | Hora | Hecho | Origen en la bitácora |
 |---|---|---|
 | 12:19:09 | Capa 10; boquilla 248,6/250 °C, cama 80,0/80 °C | lectura |
+| 12:19:13,28 | Samuel pulsa «Pausar impresión» en la web (registro del backend «Manual pause requested»); el listener ve `paused` a las 12:19:13,97, **0,7 s después** |
 | 12:19:14 | `print_stats.state`: `printing` → `paused` en la capa 10 (cabeza en X 128,0 / Y 122,0 / Z 2,1) | `external` (no hay orden de PrintWatch antes) |
 | 12:19:15 a 12:19:22 | La cabeza sube en Z a 49,94; luego va al rincón X 0,0 / Y 260,0 | lectura |
 | 12:19:22 | Orden `printer/print/pause` de PrintWatch, pedida por «samuel (web)», `ok: true`, con la impresora ya pausada | `printwatch` |
 | 12:19:44 a 12:20:20 | El objetivo de la boquilla baja de 250 a 140 °C (boquilla 228 → 182 °C); cama ~80 °C sin cambio; ventilador de pieza 0,39 igual; ventilador del hotend 1,0 | lectura |
 | 12:21:20 | Comprobación previa a reanudar: `paused`, sin `resume_err`, X 0,0 / Y 260,0 dentro de los límites (margen 19 mm en X y 13 mm en Y) | lectura |
-| ~12:21:27 | Samuel pulsa «Reanudar impresión» en la web: el objetivo de la boquilla sube a 250 °C; la boquilla tarda ~45 s en llegar; la cabeza baja a la pieza | lectura |
+| 12:21:26,4 | Samuel pulsa «Reanudar impresión» en la web (registro del backend «Manual resume requested»): a las 12:21:27 el objetivo de la boquilla sube a 250 °C; la boquilla tarda ~45 s en llegar; la cabeza baja a la pieza | lectura |
 | 12:21:36 | Orden `printer/print/resume` registrada como `ok: false, error: ReadTimeout`, aunque la reanudación sí ocurrió | `printwatch` |
-| 12:22:31 | `paused` → `printing` (~64 s después del clic); sin error de Klipper; el incidente 1 se cierra como `resumed` por «samuel (web)» | `printwatch` |
+| 12:22:31 | `paused` → `printing` (64,9 s después del clic); sin error de Klipper; el incidente 1 se cierra como `resumed` por «samuel (web)» | `printwatch` |
 | 12:22:39 a 12:23:04 | Capas 11, 12 y 13 (8, 12 y 13 s por capa) | lectura |
 | 12:23:05 | `printing` → `paused` en la capa 13 (cabeza en X 131,1 / Y 137,7 / Z 2,5); cabeza al rincón X 0 / Y 260 / Z 49,9; objetivo de boquilla a 140 °C | `external` (sin orden de PrintWatch) |
 
@@ -675,3 +676,18 @@ printer 35: íntegra (179 eventos revisados, ninguno roto). Sensor de filamento:
 **No medido:** los segundos entre el clic en la web y `paused` (la pausa llegó desde fuera de PrintWatch); si el atasco tiene relación con la
 pausa o la reanudación previas (no se afirma ninguna causa). **Hallazgo pendiente:** la orden de reanudar tarda más que el tiempo de espera de
 PrintWatch (el `ReadTimeout` aparece con la reanudación realizada); la causa en el código no se ha revisado todavía.
+
+**Aclaración de Samuel y lecturas previas a reanudar (12:31, solo lectura).** Samuel cuenta que pulsó Pausar en la web, vio que la cabeza siguió
+moviéndose unos segundos y pausó otra vez desde la pantalla de la impresora; después se atascó filamento y lo retira a mano. No dio las horas
+(«HH:MM» sin rellenar). Lo que consta: orden web a las 12:19:13,28 (0,7 s hasta `paused`; la orden HTTP no devolvió hasta las 12:19:22,1, mientras la
+cabeza subía en Z a 49,94 y se iba al rincón: ese es el movimiento posterior a `paused`). Una segunda pausa pulsada en pantalla entre las 12:19:14
+y las 12:19:22 no dejaría rastro (la impresora ya estaba en `paused`); la única pausa externa registrada es la de las 12:23:05, después de la
+reanudación. Qué pasó en realidad entre las dos no se puede distinguir con estos registros.
+
+Lecturas a las 12:31: `paused`, `is_paused` true, `resume_err` false, sin mensaje; capa 13/86; `live_position` X 0,0 / Y 260,0 / Z 49,94 (dentro
+de los límites; márgenes 19 y 13 mm); boquilla 140,5/140 °C, cama 80,4/80 °C; ventilador de pieza 0,39; sensor de filamento `filament_detected`
+true. El estado guardado por Klipper al pausar (`SAVE_GCODE_STATE`) no se puede consultar; `gcode_move` solo da la posición actual. Durante la
+reanudación anterior la cabeza pasó por X −18,5 (0,5 mm del límite −19) y por X 279,6 (5,4 mm del límite 285) sin error.
+**Riesgo observado en el código y en las lecturas (no probado):** la reanudación tarda ~65 s con el estado aún en `paused`, y la guarda solo
+bloquea repeticiones durante 20 s; un segundo clic entre los 20 y los 65 s se enviaría. Mientras tanto la web ya habrá mostrado el `ReadTimeout`
+(10,3 s).
