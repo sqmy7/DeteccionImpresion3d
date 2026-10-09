@@ -14,7 +14,7 @@ import { TelemetryPanel, type TimedValues } from "../components/telemetry/Teleme
 import { Badge, Card, EmptyState, Skeleton } from "../components/ui";
 import { JOB_STATUS } from "../config/status";
 import { useWsEvent } from "../hooks/useWebSocket";
-import { formatDateTime, formatDuration, formatPercent, secondsBetween } from "../lib/format";
+import { formatDateTime, formatDuration, formatPercent } from "../lib/format";
 import { defectMarkers, eventMarkers } from "../lib/markers";
 import { readingAge, useLiveTelemetry } from "../lib/telemetryStore";
 import { useApi } from "../lib/useApi";
@@ -27,6 +27,7 @@ import type { JobSummary, PrintJob, PrinterEvent, TelemetryReading } from "../ty
 import type { DetectionBox, DetectionResultEvent, LayerCapturedEvent, PrinterEventEvent } from "../types/ws";
 import { detectionBoxes } from "../lib/boxes";
 import { remaining as remainingTime } from "../lib/eta";
+import { jobLayer, jobTime } from "../lib/jobFacts";
 import { listDetectionsForCapture } from "../services/layers";
 
 const TRAIL_SECONDS = 120;
@@ -49,10 +50,10 @@ function ProgressCard({
   estimatedTotalS: number | null;
 }) {
   const progress = reading?.progress ?? null;
-  const elapsed = secondsBetween(job.started_at, job.ended_at);
   // The slicer's total minus the print time when the file has an estimate (measured: 1 min of error on
   // a 6 h print); otherwise the pace of the file's progress. See lib/eta.ts.
   const runningRaw = reading?.extra?.["print_stats.print_duration"];
+  const time = jobTime(job, { liveRunningS: typeof runningRaw === "number" ? runningRaw : null });
   const estimate = remainingTime({
     estimatedTotalS,
     runningS: typeof runningRaw === "number" ? runningRaw : null,
@@ -61,7 +62,7 @@ function ProgressCard({
     progress,
   });
   const remaining = estimate.seconds;
-  const layer = reading?.layer_number ?? summary?.current_layer ?? null;
+  const layer = jobLayer({ running: job.status === "running", liveLayer: reading?.layer_number, summaryLayer: summary?.current_layer });
 
   return (
     <Card
@@ -88,9 +89,10 @@ function ProgressCard({
           <div className="h-full rounded-full bg-accent transition-[width] duration-700" style={{ width: `${Math.min(100, (progress ?? 0) * 100)}%` }} />
         </div>
         <div className="grid grid-cols-2 gap-2 text-xs text-muted sm:grid-cols-3">
-          <span className="flex items-center gap-1.5" title="Tiempo desde que PrintWatch abrió este trabajo (puede ser a mitad de la impresión)">
+          <span className="flex items-center gap-1.5" title={time.source === "printer" ? "Tiempo de impresión según el reloj de la impresora" : "Tiempo desde que PrintWatch abrió este trabajo"}>
             <Clock size={13} className="text-faint" />
-            {formatDuration(elapsed)}
+            {formatDuration(time.seconds)}
+            {time.note && <span className="ml-1 text-faint">· {time.note}</span>}
           </span>
           <span
             title={

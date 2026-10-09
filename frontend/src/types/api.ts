@@ -52,6 +52,8 @@ export interface PrintJob {
   estimated_layers: number | null;
   started_at: string;
   ended_at: string | null;
+  /** Seconds the job printed by the printer's own clock; null for jobs recorded before it was kept. */
+  printed_s: number | null;
 }
 
 export interface TimelineEntry {

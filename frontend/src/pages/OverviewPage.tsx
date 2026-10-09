@@ -10,7 +10,8 @@ import { usePrinters } from "../context/PrintersContext";
 import { useActiveAlertsCount } from "../hooks/useActiveAlertsCount";
 import { useAuth } from "../hooks/useAuth";
 import { useWsEvent } from "../hooks/useWebSocket";
-import { formatDateTime, formatDuration, formatNumber, formatPercent, secondsBetween } from "../lib/format";
+import { formatDateTime, formatDuration, formatNumber, formatPercent } from "../lib/format";
+import { jobLayer, jobTime } from "../lib/jobFacts";
 import { readingAge, useLiveTelemetry } from "../lib/telemetryStore";
 import { useApi } from "../lib/useApi";
 import { listCamerasForPrinter } from "../services/cameras";
@@ -39,7 +40,10 @@ function PrinterCard({ printer }: { printer: Printer }) {
   const status = PRINTER_STATUS[printer.last_known_status];
   const running = latestJob?.status === "running";
   const progress = live?.progress ?? null;
-  const layer = live?.layer_number ?? summary.data?.current_layer ?? null;
+  // The live layer belongs to whatever the printer is doing now; a finished job shows its own last layer.
+  const layer = jobLayer({ running, liveLayer: live?.layer_number, summaryLayer: summary.data?.current_layer });
+  const runningRaw = live?.extra?.["print_stats.print_duration"];
+  const time = latestJob ? jobTime(latestJob, { liveRunningS: typeof runningRaw === "number" ? runningRaw : null }) : null;
 
   return (
     <Link
@@ -80,7 +84,10 @@ function PrinterCard({ printer }: { printer: Printer }) {
                 {latestJob.estimated_layers ? ` / ${latestJob.estimated_layers}` : ""}
               </span>
               {running && progress !== null && <span>{formatPercent(progress)}</span>}
-              <span>{formatDuration(secondsBetween(latestJob.started_at, latestJob.ended_at))}</span>
+              <span title={time?.source === "printer" ? "Tiempo de impresión según el reloj de la impresora" : "Tiempo que PrintWatch siguió el trabajo"}>
+                {formatDuration(time?.seconds)}
+              </span>
+              {time?.note && <span>{time.note}</span>}
               {summary.data && summary.data.layers_with_defect > 0 && (
                 <span className="text-danger-fg">{summary.data.layers_with_defect} capas con defecto</span>
               )}

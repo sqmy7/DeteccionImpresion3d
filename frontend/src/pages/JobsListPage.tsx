@@ -3,7 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { usePrinterContext } from "../components/layout/PrinterLayout";
 import { Badge, Card, EmptyState, ErrorNote, Skeleton, Table, Td, Th } from "../components/ui";
 import { JOB_STATUS } from "../config/status";
-import { formatDateTime, formatDuration, secondsBetween } from "../lib/format";
+import { formatDateTime, formatDuration } from "../lib/format";
+import { jobTime } from "../lib/jobFacts";
 import { useApi } from "../lib/useApi";
 import { listPrintJobsForPrinter } from "../services/printJobs";
 
@@ -38,7 +39,8 @@ export function JobsListPage() {
                   <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
                     <Badge tone={JOB_STATUS[job.status].tone}>{JOB_STATUS[job.status].label}</Badge>
                     <span className="tabular">{formatDateTime(job.started_at)}</span>
-                    <span className="tabular">{formatDuration(secondsBetween(job.started_at, job.ended_at))}</span>
+                    <span className="tabular">{formatDuration(jobTime(job).seconds)}</span>
+                    {jobTime(job).note && <span className="text-faint">{jobTime(job).note}</span>}
                   </p>
                 </div>
                 <ChevronRight size={16} className="shrink-0 text-faint" />
@@ -73,7 +75,10 @@ export function JobsListPage() {
                   <Badge tone={JOB_STATUS[job.status].tone}>{JOB_STATUS[job.status].label}</Badge>
                 </Td>
                 <Td className="whitespace-nowrap tabular text-muted">{formatDateTime(job.started_at)}</Td>
-                <Td className="whitespace-nowrap tabular">{formatDuration(secondsBetween(job.started_at, job.ended_at))}</Td>
+                <Td className="whitespace-nowrap tabular">
+                  {formatDuration(jobTime(job).seconds)}
+                  {jobTime(job).note && <span className="block text-xs text-faint">{jobTime(job).note}</span>}
+                </Td>
                 <Td className="tabular">{job.estimated_layers ?? "—"}</Td>
                 <Td>
                   <ChevronRight size={16} className="text-faint" />

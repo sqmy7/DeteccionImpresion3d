@@ -1,11 +1,11 @@
 from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import Float, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import JobStatus, Printer, PrintJob
-from app.schemas.print_job import PrintJobCreate
+from app.db.models import JobStatus, Printer, PrintJob, TelemetrySample
+from app.schemas.print_job import PrintJobCreate, PrintJobRead
 from app.ws.manager import manager
 
 # Only forward transitions out of 'running' are valid; completed/failed/cancelled are terminal.
@@ -18,6 +18,27 @@ _STATUS_TO_EVENT_TYPE: dict[JobStatus, str] = {
     JobStatus.failed: "job.failed",
     JobStatus.cancelled: "job.cancelled",
 }
+
+
+async def printed_seconds(db: AsyncSession, job_ids: list[int]) -> dict[int, float]:
+    """The printer's print clock per job: the largest print_duration seen in the job's samples (the
+    clock only counts time spent printing and never goes back). Jobs with no such reading are left
+    out, so callers can tell "unknown" from zero. One grouped query for all the ids."""
+    if not job_ids:
+        return {}
+    key = "print_stats.print_duration"
+    result = await db.execute(
+        select(TelemetrySample.print_job_id, func.max(TelemetrySample.extra[key].astext.cast(Float)))
+        .where(TelemetrySample.print_job_id.in_(job_ids), TelemetrySample.extra.has_key(key))
+        .group_by(TelemetrySample.print_job_id)
+    )
+    return {job_id: float(value) for job_id, value in result.all() if value is not None}
+
+
+async def read_jobs(db: AsyncSession, jobs: list[PrintJob]) -> list[PrintJobRead]:
+    """The jobs as the API returns them, each with the time the printer says it printed."""
+    printed = await printed_seconds(db, [job.id for job in jobs])
+    return [PrintJobRead.model_validate(job).model_copy(update={"printed_s": printed.get(job.id)}) for job in jobs]
 
 
 async def create_print_job(db: AsyncSession, printer_id: int, payload: PrintJobCreate) -> PrintJob:
