@@ -37,6 +37,7 @@ def _describe(row: CameraCalibration, extra_warnings: tuple[str, ...] = ()) -> C
     camera = calibration.camera
     typical = bed_map.typical_focal_px(row.image_width, row.image_height)
     at_typical = None
+    check = None
     if camera is not None and abs(camera.focal_px - typical) > 1.0:
         try:
             check = bed_map.build_calibration(
@@ -52,13 +53,14 @@ def _describe(row: CameraCalibration, extra_warnings: tuple[str, ...] = ()) -> C
         except ValueError:
             at_typical = None
     warnings = [*extra_warnings, *bed_map.calibration_warnings(calibration)]
-    # With a focal other than the C922's, say which marks the known focal would not accept.
-    far_mm = bed_map.FAR_MARK_FRACTION * calibration.bed_size
-    if at_typical and any(mark.error_mm > far_mm for mark in at_typical) and "mark_far_from_corner" not in warnings:
-        warnings.append("mark_far_at_typical_focal")
+    # Information only: the focal that was fixed, and how the estimated one compares with the C922's (with
+    # the marks the C922's focal would not accept, when the focal in use is another one).
+    at_typical_marks = check.marks if at_typical else None
+    notes = bed_map.calibration_notes(calibration, at_typical_marks)
     return read.model_copy(
         update={
             "warnings": warnings,
+            "notes": notes,
             "focal_source": camera.focal_source if camera else None,
             "typical_focal_px": round(typical, 1),
             "marks": _mark_errors(calibration.marks),

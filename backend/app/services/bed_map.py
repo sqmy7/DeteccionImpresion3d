@@ -384,23 +384,39 @@ def build_calibration(
 
 
 def calibration_warnings(calibration: Calibration) -> list[str]:
-    """Codes the web explains (see CalibrationPage). The marks' reprojection error is judged on the
-    bed plane: more than FAR_MARK_FRACTION of the bed means the model cannot place that mark."""
+    """What needs a look (codes the web explains, see CalibrationPage). The marks' reprojection error is
+    judged on the bed plane: more than FAR_MARK_FRACTION of the bed means that, with the focal in use, the
+    camera model cannot place that mark. How the focal compares with the C922's is NOT a warning: another
+    camera has another field of view (see calibration_notes)."""
     camera = calibration.camera
     if camera is None:
         return ["camera_not_estimated"]
     warnings = []
     if camera.focal_source == "assumed":
         warnings.append("focal_assumed")
-    elif camera.focal_source == "fixed":
-        warnings.append("focal_fixed")
-    else:
-        typical = typical_focal_px(calibration.width, calibration.height)
-        if abs(camera.focal_px - typical) > UNUSUAL_FOCAL_FRACTION * typical:
-            warnings.append("focal_unusual")
     if calibration.marks and any(mark.error_mm > FAR_MARK_FRACTION * calibration.bed_size for mark in calibration.marks):
         warnings.append("mark_far_from_corner")
     return warnings
+
+
+def calibration_notes(calibration: Calibration, marks_at_typical_focal: tuple[MarkError, ...] | None = None) -> list[str]:
+    """Information, not alarms: the focal that was fixed, and how the estimated one compares with the
+    C922's. A generic webcam has its own field of view, so a different focal is expected there; with a
+    C922 it can mean a mark is off its corner, which is what the per-mark errors are for."""
+    camera = calibration.camera
+    if camera is None:
+        return []
+    notes = []
+    if camera.focal_source == "fixed":
+        notes.append("focal_fixed")
+    elif camera.focal_source == "estimated":
+        typical = typical_focal_px(calibration.width, calibration.height)
+        if abs(camera.focal_px - typical) > UNUSUAL_FOCAL_FRACTION * typical:
+            notes.append("focal_unusual")
+    far_mm = FAR_MARK_FRACTION * calibration.bed_size
+    if marks_at_typical_focal and any(mark.error_mm > far_mm for mark in marks_at_typical_focal):
+        notes.append("mark_far_at_typical_focal")
+    return notes
 
 
 def locate(

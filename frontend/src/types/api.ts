@@ -263,6 +263,8 @@ export interface CameraCalibration {
   focal_px: number | null;
   camera_position: [number, number, number] | null;
   warnings: string[];
+  /** Information that is not a problem (a fixed focal, or one far from the C922's: another camera has another field of view). */
+  notes: string[];
   /** "estimated" from the marks, "assumed" (C922 field of view) or "fixed" (given by the user). */
   focal_source: "estimated" | "assumed" | "fixed" | null;
   typical_focal_px: number | null;

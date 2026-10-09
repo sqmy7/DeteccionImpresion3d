@@ -222,7 +222,7 @@ def test_calibrating_with_a_known_focal_keeps_it_and_reports_the_marks(mock_moon
     assert fixed.status_code == 201, fixed.text
     body = fixed.json()
     assert body["focal_source"] == "fixed" and body["focal_px"] == known
-    assert "focal_fixed" in body["warnings"] and "mark_far_from_corner" not in body["warnings"]
+    assert "focal_fixed" in body["notes"] and body["warnings"] == []
     assert len(body["marks"]) == 4 and all(mark["error_mm"] < 5.0 for mark in body["marks"])
     assert body["typical_focal_px"] == 494.0  # the C922's focal at 640x480
 

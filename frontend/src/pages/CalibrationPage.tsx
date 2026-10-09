@@ -34,13 +34,18 @@ const WARNINGS: Record<string, string> = {
     "No se pudo estimar la posición de la cámara: los defectos se ubicarán sin corregir el paralaje (más error en piezas altas).",
   focal_assumed:
     "La vista es casi perpendicular a la cama: la focal se tomó del campo de visión típico de la C922 (78°) en vez de calcularse.",
-  focal_fixed: "La focal se fijó con el valor conocido de la cámara (no se estimó de las marcas).",
-  focal_unusual:
-    "La focal que salió de las marcas está muy lejos de la típica de la C922. Puede que una marca no esté en su esquina, que la cámara use otro campo de visión, o que la placa no mida lo que se supone. Fija la focal conocida y mira qué marca no encaja.",
   mark_far_from_corner:
     "Con esa focal, una marca queda muy lejos de su esquina: el modelo de cámara no puede explicar las cuatro marcas a la vez. La marca con más error es la que conviene revisar.",
+};
+
+// Information, not alarms: another camera has another field of view, so a focal different from the C922's is
+// expected unless the camera is a C922.
+const NOTES: Record<string, string> = {
+  focal_fixed: "La focal se fijó con el valor conocido de la cámara (no se estimó de las marcas).",
+  focal_unusual:
+    "La focal estimada de las marcas difiere de la típica de una C922. Es lo esperado si la cámara es otra o usa otro campo de visión; si es una C922, puede que una marca no esté en su esquina (mira la tabla de errores).",
   mark_far_at_typical_focal:
-    "Con la focal conocida de la C922 una marca no encajaría (ver la tabla de abajo). La que más se aleja es la primera sospechosa de estar mal puesta; si todas están bien puestas, la cámara no trabaja con ese campo de visión.",
+    "Con la focal típica de una C922 alguna marca no encajaría (ver la tabla). Si la cámara es una C922, la que más se aleja es la primera sospechosa de estar mal puesta; si es otra, es lo esperado.",
 };
 
 const CORNER_ERROR_LABELS = ["Frente izquierda", "Frente derecha", "Fondo derecha", "Fondo izquierda"];
@@ -111,16 +116,19 @@ function CalibrationResult({ calibration }: { calibration: CameraCalibration }) 
         {calibration.focal_px
           ? ` · focal ${formatNumber(calibration.focal_px, 0)} px${calibration.focal_source ? ` (${FOCAL_SOURCE_LABELS[calibration.focal_source]})` : ""}`
           : ""}
-        {calibration.typical_focal_px ? ` · la de la C922 a esta resolución: ${formatNumber(calibration.typical_focal_px, 0)} px` : ""}
+        {calibration.typical_focal_px ? ` · referencia, una C922 a esta resolución: ${formatNumber(calibration.typical_focal_px, 0)} px` : ""}
       </p>
       {position && <p className="text-muted">{position}</p>}
-      {calibration.warnings
-        .filter((code) => code !== "focal_fixed")
-        .map((code) => (
-          <p key={code} className="rounded-lg border border-warn/40 bg-warn/10 px-3 py-2 text-warn-fg">
-            {WARNINGS[code] ?? code}
-          </p>
-        ))}
+      {calibration.warnings.map((code) => (
+        <p key={code} className="rounded-lg border border-warn/40 bg-warn/10 px-3 py-2 text-warn-fg">
+          {WARNINGS[code] ?? code}
+        </p>
+      ))}
+      {(calibration.notes ?? []).map((code) => (
+        <p key={code} className="text-xs text-muted">
+          {NOTES[code] ?? code}
+        </p>
+      ))}
       {calibration.marks && (
         <MarkErrorsTable
           title={`Error de cada marca con la focal en uso (${formatNumber(calibration.focal_px, 0)} px)`}
@@ -414,7 +422,7 @@ function CalibrationWizard({
           )}
           <p className="text-xs text-faint">
             {focalMode === "estimate"
-              ? "Con una sola vista de la cama, la focal sale mal si las esquinas del fondo son difíciles de ubicar. Si sale muy distinta de la de la C922, fija la conocida."
+              ? "Con una sola vista de la cama, la focal sale mal si las esquinas del fondo son difíciles de ubicar. Es el valor por defecto. Con una C922 se espera cerca de su focal (907 px a 1280×720): si sale muy distinta, fíjala y mira qué marca no encaja."
               : "La focal no se calcula: se usa tal cual y al guardar verás cuánto se aleja cada marca de su esquina. Si una queda muy lejos, esa marca está mal puesta (o la cámara no tiene ese campo de visión)."}
           </p>
         </div>

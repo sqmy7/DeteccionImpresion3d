@@ -52,6 +52,9 @@ class CalibrationRead(BaseModel):
     camera_position: list[float] | None
     # Codes the web explains: "bed_was_moving", "camera_not_estimated", "focal_assumed".
     warnings: list[str] = Field(default_factory=list)
+    # Information that is not a problem: a fixed focal, or an estimated one far from the C922's (another
+    # camera has another field of view).
+    notes: list[str] = Field(default_factory=list)
     # "estimated" from the marks, "assumed" (field of view of the C922) or "fixed" (given by the user).
     focal_source: str | None = None
     typical_focal_px: float | None = None
