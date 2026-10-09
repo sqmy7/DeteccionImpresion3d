@@ -795,3 +795,56 @@ pruebas del 502 fallan (comprobado quitándola).
 
 **No comprobado en el despliegue:** una pausa real (no se manda nada a la .22). El comportamiento nuevo de pausar con la impresora inalcanzable
 queda cubierto por las pruebas con la simulada; con la impresora real se verá en la prueba de pausa y reanudación con autorización aparte.
+
+### Etapa C2, C0 (2026-10-09, 17:20 a 17:50): red, entorno y la pieza de 45 min que PrintWatch no registró
+
+Solo lecturas hacia la impresora (`GET`, pruebas TCP y ping); nada se mandó a la .22 (ni pausa, ni reanudación, ni cancelación). Sin `git push`.
+
+**Configuración de red (correcta, no se cambia).** Cable a `SalaSteam_UIS` para la impresora y Wi-Fi a `ComunidadUIS` para internet. La métrica del
+cable la puso Samuel en 100 (a mano, `AutomaticMetric` desactivada); la VPN (`HotspotShield`) está desconectada.
+
+| | Cable (`Ethernet 4`, Realtek USB GbE, 100 Mbps) | Wi-Fi (`ComunidadUIS`, Intel AC 9560) |
+|---|---|---|
+| IP | 192.168.10.105/24 | 10.13.182.119/22 |
+| Puerta de enlace | 192.168.10.1 | 10.13.180.1 |
+| Métrica de interfaz / ruta predeterminada total | **100** / 100 | 35 / 35 |
+| DNS (en el orden en que Windows los consulta) | 192.168.10.1 (segundo) | **10.0.48.18 (`DC1.uis.local`), 10.0.48.19, 8.8.8.8 (primero)** |
+| Sale por aquí | la .22 (origen 192.168.10.105) | internet (origen 10.13.182.119) |
+
+Con las métricas en 35 y 35 (antes del cambio) las dos rutas predeterminadas empataban y aparecieron fallos intermitentes: `www.google.com` y
+`www.wikipedia.org` fallaron una vez cada uno; se midió que el DNS del cable (192.168.10.1) **no resolvió** `www.google.com` (7,4 s hasta el
+tiempo de espera) mientras 10.0.48.18 y 8.8.8.8 sí (51 y 14 ms). Con la métrica del cable en 100: `google.com` 5 de 5 bien y `wikipedia.org` 5 de 5
+bien (0 fallos de 10). No se demostró que el DNS fuera la causa de los fallos anteriores; solo se midió lo anterior.
+
+**`frontend/.env`:** ahora `VITE_API_BASE_URL=http://localhost:8000` (antes `http://192.168.10.102:8000`, una IP del Wi-Fi anterior que ya no existe).
+Ese archivo **no va en git** (`frontend/.gitignore`). Se reinició el servidor de desarrollo de la web. El backend admite cualquier origen
+(`CORS_ALLOW_ORIGINS=*`), así que no falta ninguno. Comprobado en Edge contra el backend real desde `http://localhost:5173`: el formulario con una clave
+incorrecta hace `POST http://localhost:8000/api/v1/auth/login` y recibe 401 con la cabecera CORS `*` (el formulario dice «Usuario o contraseña
+incorrectos.», sin error de red ni de CORS); una sesión con un token de `samuel` firmado por el backend (sin usar su contraseña) carga el panel, la vista
+en vivo, los incidentes y la bitácora con 65 llamadas a la API, todas 2xx, el WebSocket abierto en `ws://localhost:8000` y sin errores de consola ni
+peticiones fallidas. **No** se probó el inicio de sesión con la contraseña real.
+
+**Muestreo de 10 minutos (17:36:59 a 17:46:44, una muestra cada 15 s, solo lecturas):** 40 muestras; **0 fallos TCP** a la .22:7125; **0 lentas** (más
+de 200 ms); tiempo de conexión mínimo 0 ms, mediana 1 ms, máximo 48 ms; origen siempre 192.168.10.105. **Listener:** 0 reconexiones en la ventana (el último
+`monitor_connected` es de las 17:24:44; la única línea del listener en el log es el cambio de estado de la impresora `complete → standby` a las 17:44:17,
+que no es una caída). Al cierre: `GET` a la .22 → `standby`, sin archivo, sin pausa; `/health` ok; `alembic` en `f1a6d3e82b57`; cadena de la bitácora
+**íntegra, 266 eventos**. Entre las 17:28 y las 17:46 la bitácora recogió 16 cambios de objetivos de temperatura, 30 cambios del sensor de filamento y el
+`complete → standby`, todos de origen `external` y **sin ninguna orden de PrintWatch** (coherente con manejo en la propia impresora; no confirmado).
+Antes del muestreo, del reanudarse el equipo (17:11:47) a las 17:24:44, el listener se cayó y reconectó 14 veces y hubo pings y conexiones TCP fallidos a la .22;
+la causa no está demostrada (coincide con la reconfiguración de la red tras reanudar el equipo).
+
+**Hallazgo: la pieza de 45 min que PrintWatch no registró (entre las 14:44 y las 17:12).**
+- Historial de Moonraker: `obj_1_highblending-A1-mini.stl_PETG_45m8s.gcode`, `completed`, 45,4 min de impresión.
+- En PrintWatch no hay ningún trabajo después del 46, ni ningún cambio de estado, entre `monitor_connected` a las 14:44:28 (`standby`) y el siguiente a las
+  17:12:14 (ya `complete`). El log del backend no tiene ninguna línea del listener entre `connected` (14:44:28) y un `ConnectionClosedError` a las 17:12:03.
+- **Demostrado con el registro de Windows:** el equipo estuvo **suspendido de las 14:50:54 a las 17:11:47** (Kernel-Power id 42 a las 14:51:03, motivo «Button or
+  Lid»; Power-Troubleshooter: suspensión 19:50:54 UTC, reactivación 22:11:47 UTC, origen «botón de inicio/apagado»; el reloj del sistema saltó de 19:51:04 UTC a
+  22:11:45 UTC; red desconectada a las 14:50:29 y reconectada a las 17:11:46). Con el equipo suspendido el backend, el listener y WSL no se ejecutaban, así que
+  PrintWatch no pudo ver nada de lo que ocurrió en la impresora en ese lapso. El plan de energía activo («Máximo rendimiento») tiene la suspensión por inactividad en
+  0 (nunca) en corriente alterna y continua: la suspensión no fue por inactividad.
+- **Qué se deduce y qué no:** PrintWatch estuvo despierto solo de las 14:44:28 a las 14:50:54 sin ver ningún cambio de estado, y el estado era `standby` a las
+  14:44; una pieza de 45 min no cabe ahí, así que se imprimió mientras el equipo estaba suspendido o antes de las 17:12. **No se sabe a qué hora exacta**: el reloj
+  de la impresora no es fiable; aplicando el desfase medido a las 12:16 (+8 h 22 min 41 s) saldría de las 16:08 a las 17:04, **solo una estimación sin verificar**.
+  Tampoco se sabe qué provocó la suspensión (tapa o botón de encendido; el registro no lo distingue).
+- Consecuencia: esa pieza no tiene trabajo, capas ni telemetría en PrintWatch. Para la C2: que el equipo no se suspenda durante la prueba (no cerrar la tapa ni pulsar
+  el botón de encendido).
