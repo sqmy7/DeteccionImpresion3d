@@ -734,3 +734,30 @@ Creality Hi real, no.
    dure lo que tarda la impresora y que ninguna orden salga como `ReadTimeout`) quedan para otra prueba en una pieza desechable.
 6. Las sesiones abiertas antes del cambio siguen valiendo hasta que caduquen y se renuevan sin volver a entrar; como su token no lleva
    `auth_time`, el tope de 24 h les cuenta desde la primera renovación.
+
+### Despliegue de los arreglos de los hallazgos 1 a 4 y fusión en `main` (2026-10-09, 14:07 a 14:20 hora local)
+
+Nada se mandó a la impresora (ni pausa, ni reanudación, ni cancelación); solo `GET` a Moonraker y consultas `SELECT`. Sin `git push`.
+
+| Paso | Resultado |
+|---|---|
+| Comprobación previa | Equipo en `SalaSteam_UIS` (192.168.10.102), ping a la .22 sin pérdidas (1 a 3 ms). `klippy` ready, `print_stats.state = standby`, sin archivo, `is_paused` falso, `idle_timeout = Ready`, boquilla 33 °C y cama 30 °C con objetivos en 0. Cero trabajos `running` en la base |
+| 1. Respaldo | `storage/respaldo_antes_hallazgos_2026-10-09.sql` (11 MB, 15 tablas; `storage/*.sql` está en `.gitignore`) |
+| 2. Backend | Reconstruido **solo** `infra-backend-1` (`docker compose --env-file .env … up -d --build --no-deps backend`). Postgres, Redis y el worker conservan su arranque de las 11:30 UTC (8 h de actividad). Sano; `/health`: base y Redis `ok`; `alembic current` = `heads` = `f1a6d3e82b57 (head)` (sin migración); en el contenedor `AUTO_PAUSE_MODE = warn`, `JWT_EXPIRE_MINUTES = 60`, `JWT_MAX_SESSION_HOURS = 24` (por defecto), incidentes `spaghetti,layer_shift` |
+| 3. Sesión y listener | Con un token de `samuel` firmado por el propio backend (sin contraseña de por medio; los tokens no se imprimieron ni se guardaron): `POST /auth/refresh` → **200**, mismo `sub` y mismo `auth_time`, 60 min de vida; `GET /auth/me` con el token renovado → 200; un token anterior al cambio (sin `auth_time`) también se renueva y recibe `auth_time`; sin token → 401. El listener se reconectó a la .22 a las 19:09:02 UTC (línea base `standby`, capa 0/0). Cadena de la bitácora de la impresora 35: **íntegra, 190 eventos**, sin ruptura |
+| 4. Web | El servidor de desarrollo de la web (`npm run dev`, puertos 5173) ya sirve el código nuevo (Vite lo recarga solo; el log muestra los `page reload`). Para tener lo nuevo en una pestaña abierta: **recargarla con Ctrl+F5** (recarga forzada). Se entra por `http://192.168.10.102:5173`; el `.env` de la web apunta al backend en `192.168.10.102:8000`. Una sesión abierta antes del cambio sigue valiendo y se renueva sola |
+| 5. Fusión | `incidente-web` → `main` con merge normal (`--no-ff`, commit `c47f8c1`; `main` no tenía nada propio, 19 commits). Árbol idéntico al de la rama. Sin push |
+
+Pruebas sobre `main`: **web** 44 pasan, tipos, lint y compilación sin errores; **capture** 14 pasan; **backend 194 pasan y 1 falla**:
+`tests/test_action_accepted.py::test_an_unreachable_printer_is_a_quick_error_not_a_two_minute_wait`. Esa misma prueba pasó en la rama
+(195 de 195) y pasa 3 de 3 veces sola; falló en la corrida de `main`, que coincidió con la compilación de la web. **Causa medida:** en esta
+máquina una conexión rechazada (`127.0.0.1:9`) tarda **2,4 s** en fallar y el endpoint espera solo **3 s** por un rechazo rápido
+(`ACCEPT_WAIT_SECONDS`); con carga el rechazo llegó más tarde, el endpoint contestó **202** en vez de 502 y la prueba lo detectó.
+**Consecuencia real, no solo de la prueba:** pausar con la impresora inalcanzable (red caída, donde conectar tarda hasta 10 s) puede
+contestar «aceptada» y la web diría «Pausando…» dos minutos en vez de mostrar el error. Reanudar y cancelar no lo sufren: antes de enviar
+leen el estado de la impresora y fallan con 502 (5 s). **Propuesta (sin hacer):** que «aceptada» signifique «la petición ya salió hacia la
+impresora» (se puede saber con el seguimiento de httpx) en vez de «pasaron 3 s», con un tope de ~12 s; así un fallo al conectar sigue
+llegando como 502 y una pausa que la impresora tarda en responder se acepta al momento. Hay que decidir si se corrige y se vuelve a
+reconstruir el backend; lo desplegado hoy tiene la espera de 3 s.
+
+Pendiente: la prueba real de pausa y reanudación con estos arreglos, en una pieza desechable, con autorización aparte.
