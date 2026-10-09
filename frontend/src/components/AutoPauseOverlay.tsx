@@ -1,5 +1,6 @@
 import { AlertTriangle, PauseCircle, XCircle } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "./ui";
 import { useAuth } from "../hooks/useAuth";
 import { useWsEvent } from "../hooks/useWebSocket";
@@ -8,17 +9,29 @@ import { abortAutoPause } from "../services/printJobs";
 import { listPrinters, resumePrinter } from "../services/printers";
 import type {
   AutoPauseAbortedEvent,
+  AutoPauseConfirmedEvent,
   AutoPauseExecutedEvent,
   AutoPauseFailedEvent,
+  AutoPauseNotConfirmedEvent,
   AutoPausePendingEvent,
   AutoPauseWouldPauseEvent,
 } from "../types/ws";
 
-type PendingState = { phase: "pending"; printerId: number; consecutiveLayers: number; executesAt: string };
-type ExecutedState = { phase: "executed"; printerId: number };
-type FailedState = { phase: "failed"; printerId: number; reason: string };
-type WouldPauseState = { phase: "would_pause"; printerId: number; consecutiveLayers: number; layer: number | null; confidence: number | null };
-type AutoPauseState = PendingState | ExecutedState | FailedState | WouldPauseState;
+type PendingState = { phase: "pending"; printerId: number; consecutiveLayers: number; executesAt: string; incidentId: number | null };
+// "sent": the order went out and Klipper has not said yet whether it paused; "executed": Klipper confirmed it.
+type SentState = { phase: "sent"; printerId: number; incidentId: number | null };
+type ExecutedState = { phase: "executed"; printerId: number; incidentId: number | null };
+type NotConfirmedState = { phase: "not_confirmed"; printerId: number; incidentId: number | null; reason: string };
+type FailedState = { phase: "failed"; printerId: number; reason: string; incidentId: number | null };
+type WouldPauseState = {
+  phase: "would_pause";
+  printerId: number;
+  consecutiveLayers: number;
+  layer: number | null;
+  confidence: number | null;
+  incidentId: number | null;
+};
+type AutoPauseState = PendingState | SentState | ExecutedState | NotConfirmedState | FailedState | WouldPauseState;
 
 /** Mounted once at the app root (see App.tsx), not inside a job page - an auto-pause is
  * severe enough that it must interrupt whatever screen the user is on, not just the one for
@@ -46,19 +59,19 @@ export function AutoPauseOverlay() {
   }, []);
 
   useWsEvent<AutoPausePendingEvent>("auto_pause.pending", (envelope) => {
-    const { job_id, printer_id, consecutive_layers, executes_at } = envelope.data;
+    const { job_id, printer_id, consecutive_layers, executes_at, incident_id } = envelope.data;
     setByJob((prev) => ({
       ...prev,
-      [job_id]: { phase: "pending", printerId: printer_id, consecutiveLayers: consecutive_layers, executesAt: executes_at },
+      [job_id]: { phase: "pending", printerId: printer_id, consecutiveLayers: consecutive_layers, executesAt: executes_at, incidentId: incident_id ?? null },
     }));
   });
 
   // Warn mode (AUTO_PAUSE_MODE=warn): the pause would have fired, and nothing was sent to the printer.
   useWsEvent<AutoPauseWouldPauseEvent>("auto_pause.would_pause", (envelope) => {
-    const { job_id, printer_id, consecutive_layers, layer, confidence } = envelope.data;
+    const { job_id, printer_id, consecutive_layers, layer, confidence, incident_id } = envelope.data;
     setByJob((prev) => ({
       ...prev,
-      [job_id]: { phase: "would_pause", printerId: printer_id, consecutiveLayers: consecutive_layers, layer, confidence },
+      [job_id]: { phase: "would_pause", printerId: printer_id, consecutiveLayers: consecutive_layers, layer, confidence, incidentId: incident_id ?? null },
     }));
   });
 
@@ -71,13 +84,23 @@ export function AutoPauseOverlay() {
   });
 
   useWsEvent<AutoPauseExecutedEvent>("auto_pause.executed", (envelope) => {
-    const { job_id, printer_id } = envelope.data;
-    setByJob((prev) => ({ ...prev, [job_id]: { phase: "executed", printerId: printer_id } }));
+    const { job_id, printer_id, incident_id } = envelope.data;
+    setByJob((prev) => ({ ...prev, [job_id]: { phase: "sent", printerId: printer_id, incidentId: incident_id ?? null } }));
+  });
+
+  useWsEvent<AutoPauseConfirmedEvent>("auto_pause.confirmed", (envelope) => {
+    const { job_id, printer_id, incident_id } = envelope.data;
+    setByJob((prev) => ({ ...prev, [job_id]: { phase: "executed", printerId: printer_id, incidentId: incident_id ?? null } }));
+  });
+
+  useWsEvent<AutoPauseNotConfirmedEvent>("auto_pause.not_confirmed", (envelope) => {
+    const { job_id, printer_id, incident_id, reason } = envelope.data;
+    setByJob((prev) => ({ ...prev, [job_id]: { phase: "not_confirmed", printerId: printer_id, incidentId: incident_id ?? null, reason } }));
   });
 
   useWsEvent<AutoPauseFailedEvent>("auto_pause.failed", (envelope) => {
-    const { job_id, printer_id, reason } = envelope.data;
-    setByJob((prev) => ({ ...prev, [job_id]: { phase: "failed", printerId: printer_id, reason } }));
+    const { job_id, printer_id, reason, incident_id } = envelope.data;
+    setByJob((prev) => ({ ...prev, [job_id]: { phase: "failed", printerId: printer_id, reason, incidentId: incident_id ?? null } }));
   });
 
   const entries = Object.entries(byJob);
@@ -113,6 +136,15 @@ function AutoPauseBanner({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const incidentLink = state.incidentId ? (
+    <Link
+      to={`/printers/${state.printerId}/incidents/${state.incidentId}`}
+      className="shrink-0 rounded-md border border-line px-3 py-1.5 text-xs font-semibold text-fg hover:bg-surface-3"
+    >
+      Ver incidente
+    </Link>
+  ) : null;
+
   if (state.phase === "pending") {
     const remainingMs = new Date(state.executesAt).getTime() - Date.now();
     const remainingSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
@@ -145,6 +177,7 @@ function AutoPauseBanner({
             si no se aborta.
           </p>
         </div>
+        {incidentLink}
         <Button variant="danger" onClick={handleAbort} disabled={busy}>
           Abortar pausa
         </Button>
@@ -164,6 +197,39 @@ function AutoPauseBanner({
           </p>
           <p className="text-sm text-muted">Modo aviso: habría pausado la impresión, pero no se envió nada a la impresora.</p>
         </div>
+        {incidentLink}
+        <Button variant="ghost" onClick={onDismiss}>
+          Cerrar
+        </Button>
+      </Banner>
+    );
+  }
+
+  if (state.phase === "sent") {
+    return (
+      <Banner tone="warn" icon={<PauseCircle size={20} />}>
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold text-fg">Pausa enviada a {printerName}</p>
+          <p className="text-sm text-muted">Esperando que la impresora confirme que quedó en pausa (hasta 20 s)…</p>
+        </div>
+        {incidentLink}
+      </Banner>
+    );
+  }
+
+  if (state.phase === "not_confirmed") {
+    return (
+      <Banner tone="danger" icon={<XCircle size={20} />}>
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold text-fg">Pausa NO confirmada en {printerName}</p>
+          <p className="text-sm text-muted">
+            {state.reason === "send_failed"
+              ? "No se pudo enviar la pausa a la impresora."
+              : "Se envió la pausa y la impresora no confirmó que quedara en pausa."}{" "}
+            Revisa la impresora ahora.
+          </p>
+        </div>
+        {incidentLink}
         <Button variant="ghost" onClick={onDismiss}>
           Cerrar
         </Button>
@@ -192,10 +258,11 @@ function AutoPauseBanner({
       <Banner tone="warn" icon={<PauseCircle size={20} />}>
         <div className="min-w-0 flex-1">
           <p className="font-semibold text-fg">{printerName} pausada automáticamente</p>
-          <p className="text-sm text-muted">Motivo: spaghetti detectado en varias capas seguidas.</p>
+          <p className="text-sm text-muted">Motivo: spaghetti detectado en varias capas seguidas. La impresora confirmó la pausa.</p>
           {error && <p className="mt-1 text-sm text-danger-fg">{error}</p>}
         </div>
-        <div className="flex shrink-0 gap-2">
+        <div className="flex shrink-0 flex-wrap gap-2">
+          {incidentLink}
           <Button variant="warn" onClick={handleResume} disabled={busy}>
             Reanudar impresión
           </Button>
@@ -213,6 +280,7 @@ function AutoPauseBanner({
         <p className="font-semibold text-fg">No se pudo pausar {printerName} automáticamente</p>
         <p className="text-sm text-muted">{state.reason}</p>
       </div>
+      {incidentLink}
       <Button variant="ghost" onClick={onDismiss}>
         Cerrar
       </Button>

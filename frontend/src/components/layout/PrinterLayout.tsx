@@ -1,4 +1,4 @@
-import { Camera, HeartPulse, History, Radio, ScrollText, Thermometer } from "lucide-react";
+import { Camera, HeartPulse, History, Radio, ScrollText, ShieldAlert, Thermometer } from "lucide-react";
 import { Navigate, Outlet, useOutletContext, useParams } from "react-router-dom";
 import { PRINTER_STATUS } from "../../config/status";
 import { usePrinters } from "../../context/PrintersContext";
@@ -65,6 +65,7 @@ export function PrinterLayout() {
             { to: "live", label: "En vivo", icon: <Radio size={15} /> },
             { to: "jobs", label: "Trabajos", icon: <History size={15} /> },
             { to: "logbook", label: "Bitácora", icon: <ScrollText size={15} /> },
+            { to: "incidents", label: "Incidentes", icon: <ShieldAlert size={15} /> },
             { to: "camera", label: "Cámara y cama", icon: <Camera size={15} /> },
             { to: "health", label: "Salud", icon: <HeartPulse size={15} /> },
           ]}
