@@ -507,3 +507,23 @@ se corrieron la demostración y un segundo servidor de la web para reproducir la
 12. **Mejoras de código opcionales** (no pedidas): ver el error de reproyección de las marcas antes de guardar la
     calibración (hoy se ve al guardar); guardar el tiempo de inferencia del modelo en cada detección (la latencia pura
     del ONNX no está medida); pruebas automáticas de los componentes de la web.
+
+## Meta final, rama `incidente-web`: Paso 1 (2026-10-09)
+
+**Meta:** que PrintWatch detecte un fallo inminente e intervenga con éxito, mostrando en la web el reporte completo y
+los parámetros de la impresora. Reglas: solo lecturas y `SELECT`, sin `git push`, commits sin coautoría.
+
+- **Paso 1 hecho** (solo lectura, **sin cambiar código**): `docs/META_FINAL.md` con (a) la definición de éxito medible,
+  (b) la auditoría de brechas leyendo el código real y (c) la propuesta de la regla de «inminente», sin implementarla.
+  **Esperando el ok de Samuel** antes del Paso 2 (pantalla de «Incidente»).
+- **Lo más importante que salió de la auditoría:**
+  - La auto-pausa nunca se ha ejecutado de punta a punta contra la impresora real; la reanudación real ya falló una
+    vez (25-09) y su guarda nunca se probó con la Hi; el modelo no se ha evaluado con la cámara final.
+  - **Cancelar no existe** (ni endpoint ni guarda ni botón): el Paso 2 lo necesita si el botón «Cancelar» va a estar.
+  - **No hay «incidente» como registro:** la cuenta regresiva y el «Abortar» no quedan en la bitácora, y «ejecutada» se
+    emite al responder el HTTP, no cuando Klipper queda en `paused`.
+  - Solo `spaghetti` puede pausar; la persistencia se cuenta en capas y una capa lenta (24 min medidos) la dispara tarde;
+    la cámara no tiene `roi`; el aviso depende de que haya una web abierta.
+- **Decisiones que necesita de Samuel** (al final de `META_FINAL.md`): los objetivos de a.2 a a.4, si el Paso 2 incluye
+  Cancelar (crear endpoint y guarda), qué abre un incidente, y registrar la cuenta y el aborto en la bitácora y
+  confirmar `paused`.
