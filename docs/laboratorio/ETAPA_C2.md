@@ -222,3 +222,53 @@ guardadas conservan la región con la que se hicieron (`raw_output.frame.roi`). 
 
 **Recomendación:** de momento no aplicarla: con el encuadre actual el modelo no detecta nada ni con 0,10, y la región añade una deformación que no se ha medido. Si se aplica, hacerlo con `AUTO_PAUSE_MODE=warn` y comparar con una impresión real; antes, encuadrar también la esquina
 delantera derecha de la cama.
+
+## Prueba con un enredo de filamento sobre la cama (2026-10-09, 20:34)
+
+Solo lectura: nada se aplicó, no se escribió en la base de datos ni en Redis y no se tocó la impresora (seguía en `complete`). Foto en vivo de la cámara 36 a las 20:34 (`/snapshot`, 158 836 bytes, edad 0,3 s):
+[etapa_c2/revision_detecciones/en_vivo_3_enredo.jpg](etapa_c2/revision_detecciones/en_vivo_3_enredo.jpg); con las cajas dibujadas,
+[en_vivo_3_enredo_cajas.jpg](etapa_c2/revision_detecciones/en_vivo_3_enredo_cajas.jpg). La cámara cambió otra vez de encuadre: ahora ve **la cama entera, de frente**, con el cubo blanco en la parte trasera y, a su izquierda, un pequeño enredo
+de filamento blanco (más un hilo fino que sube por encima de la esquina izquierda del cubo).
+
+### 1. El modelo de producción (mismo código y pesos del worker, ejecutado en su contenedor)
+
+| Caso | Resultado |
+|---|---|
+| Foto completa, umbral **0,25** (producción) | **ninguna detección** |
+| Foto completa, umbral 0,10 (solo contexto) | **ninguna detección** |
+
+**El modelo no ve el enredo en las condiciones de producción**: no hay `spaghetti`, ni ninguna otra clase, ni siquiera con 0,10.
+
+**Contexto adicional (no es lo que hace producción; solo para saber a partir de qué tamaño se ve):** pasando al modelo recortes de la misma foto,
+
+| Recorte que se le da al modelo | Umbral 0,25 y 0,10 | Dónde cae el recuadro |
+|---|---|---|
+| 240×240 alrededor del enredo (x 440, y 250) | **`spaghetti` 0,422** | x 523 a 572, y 346 a 389 (px del fotograma completo) = el enredo |
+| 400×225 alrededor del cubo (x 380, y 240) | **`spaghetti` 0,354** | x 522 a 574, y 353 a 393: el enredo |
+| Región de la cama completa (x 60, y 290, 1200×350) | ninguna | |
+
+El recuadro del modelo coincide con el enredo medido a mano (ver abajo): cuando el modelo lo ve, lo encierra bien.
+
+### 2. Tamaño del enredo (fotograma de 1280×720)
+
+Medido sobre una ampliación de 6× con cuadrícula de 10 px (incertidumbre de unos ±3 px) y confirmado por el recuadro del modelo:
+
+| Medida | Valor |
+|---|---|
+| Enredo (masa de filamento a la izquierda del cubo) | x 523 a 572, y 346 a 389: **48 × 43 px**, 2 076 px² |
+| Fracción de la imagen | ancho **3,8 %**, alto **6,0 %**, **área 0,225 %** |
+| Fracción del rectángulo de la cama (x 75 a 1240, y 297 a 640) | **0,52 %** del área |
+| Respecto al cubo (73 × 80 px, 5 840 px², 0,63 % de la imagen) | el enredo mide dos tercios de su ancho y algo más de la mitad de su alto: **el 36 % de su área** |
+| Hilo fino que sube sobre el cubo | unos 4 × 24 px |
+| Lo que ve el modelo con la foto completa (entrada de 640×640) | 24 × 38 px |
+| Lo que ve el modelo con el recorte de 240×240 | 129 × 114 px (el enredo ocupa el 3,6 % de lo que ve) |
+| Con el recorte de 400×225 | 77 × 122 px (2,3 % de lo que ve) |
+
+### 3. Qué dice de lo pequeño que puede ser un fallo y aún verse
+
+- **Con la cámara a esta distancia y el fotograma completo, un enredo de 48 × 43 px (0,23 % de la imagen) no se detecta.** Se detecta cuando ocupa más imagen en lo que ve el modelo: con el 2,3 % (recorte 400×225) da 0,354 y con el 3,6 %
+  (recorte 240×240) da 0,422; con el 0,49 % (región de la cama de 1200×350) sigue sin verse. Para este enredo el límite de visibilidad cae **entre el 0,5 % y el 2,3 % de la imagen que recibe el modelo**.
+- Es **un solo ejemplo**: filamento blanco sobre la placa oscura (mucho contraste) y de un tamaño concreto. No dice cuál es el mínimo general ni cómo responde el modelo a un spaghetti real, que suele ser mucho mayor.
+- **Consecuencia para el sistema:** con la cámara a esta distancia y el modelo recibiendo el fotograma entero, un fallo pequeño como este pasaría desapercibido (y el aviso de racha pide además 3 capas seguidas). Acercar la cámara, recortar la región de interés a la cama
+  o analizar la cama por mosaicos haría que ocupe más imagen; la región de la cama completa (la propuesta anterior) **no basta** para este tamaño, y un recorte mucho más cerrado no es posible porque un fallo puede estar en cualquier punto de la cama. No se cambió nada.
+- **La propuesta de región de interés de la sección anterior queda desfasada para este encuadre** (la cama ahora ocupa aprox. x 75 a 1240, y 297 a 640): habría que volver a medirla cuando se fije la posición de la cámara.
