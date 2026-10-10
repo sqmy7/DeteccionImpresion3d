@@ -159,3 +159,66 @@ El mayor umbral que aún deja una racha es **0,438** (capas 16, 17 y 18: 0,493, 
 
 **Conclusión (sin cambiar nada):** con esta cámara y este encuadre, `AUTO_PAUSE_MODE=on` habría pausado una pieza que iba bien (3 veces en 86 capas). Antes de pasar a `on`: reposicionar la cámara, definir la región de
 interés de la cama y volver a medir con una pieza real (y, a ser posible, con un spaghetti real); subir el umbral queda como último recurso.
+
+## Propuesta de región de interés para la cámara 36 (2026-10-09, 20:20 a 20:40)
+
+Solo lectura y propuesta: **no se aplicó nada**, no se escribió en la base de datos y no se tocó la impresora. La foto de este apartado se tomó en vivo a las 20:24 (`/snapshot`, 150 302 bytes, edad 0,7 s) y está en
+[etapa_c2/revision_detecciones/en_vivo_2.jpg](etapa_c2/revision_detecciones/en_vivo_2.jpg); con los rectángulos dibujados, en [en_vivo_2_roi.jpg](etapa_c2/revision_detecciones/en_vivo_2_roi.jpg).
+
+### 1. Qué se ve ahora (la cámara cambió de sitio respecto a las fotos del trabajo 47)
+
+- **La cama casi completa, pero no entera.** Se ve el borde trasero, el lado izquierdo y el borde delantero. **La esquina delantera derecha queda fuera del encuadre** (el borde derecho de la imagen la corta) y
+  la delantera izquierda toca el borde inferior.
+- **Sobre la cama hay un solo objeto: un cubo blanco** (aprox. x 658 a 750, y 360 a 440), en la parte trasera central, con su reflejo en la placa brillante. Es la pieza.
+- **Fijo alrededor, lo que podría confundirse:** un cable de red azul que baja por detrás y recorre el lado derecho de la cama sobre el escritorio (x 920 a 1280, y 290 a 420); un cable negro grueso a la izquierda (x 50 a 230, y 300 a 360); un cable
+  blanco fino detrás del cabezal (x 830 a 870, y 140 a 200); una caja de cartón verde abajo a la izquierda (x 0 a 100, y 505 a 700); un trapo rojo en el borde derecho (x 1240 a 1280, y 425 a 460); la superficie beige
+  del escritorio a la derecha; y partes de la propia impresora (el bloque trasero, x 250 a 650, y 295 a 350, el poste y el cabezal). **La pieza blanca articulada del escritorio que dio las 21 falsas detecciones ya no sale en la imagen.**
+
+### 2. El modelo de producción sobre esa foto (umbral 0,25, solo lectura)
+
+Se pasó la foto por el mismo modelo y el mismo código del worker (`best_fp32.onnx`, `inference/model.py`) ejecutándolo dentro de su contenedor, sin guardar nada en la base de datos ni en Redis:
+
+| Caso | Detecciones |
+|---|---|
+| Foto completa, umbral 0,25 (el de producción) | **ninguna** |
+| Foto recortada a la región propuesta, umbral 0,25 | **ninguna** |
+| Solo contexto: foto completa y recortada con umbral 0,10 | **ninguna** |
+
+El cubo blanco sobre la cama tampoco se marca. **Con este encuadre las falsas detecciones ya no aparecen ni siquiera sin región de interés**; la región sería una protección adicional, no el arreglo. Limitación: es una sola foto fija con la impresora
+en reposo; con una impresión en marcha (cabezal en movimiento, cables que se mueven) puede haber otras cosas.
+
+### 3. La cama medida en la foto (fotograma de 1280×720)
+
+| | x | y | ancho | alto | Relación ancho/alto |
+|---|---|---|---|---|---|
+| Rectángulo que cubre solo la cama, en píxeles | 110 | 318 | 1170 | 402 | 2,91 |
+| Ídem, en proporciones de 0 a 1 | 0,086 | 0,442 | 0,914 | 0,558 | |
+| **Región propuesta (margen de ~10 px a la izquierda y ~20 px arriba), en píxeles** | **100** | **300** | **1180** | **420** | 2,81 |
+| **Región propuesta, en proporciones de 0 a 1** | **0,078** | **0,417** | **0,922** | **0,583** | |
+
+La cama se midió sobre una cuadrícula de 100 px: esquina trasera izquierda hacia (115, 372), trasera derecha hacia (800, 322), delantera izquierda hacia (430, 705); la delantera derecha cae fuera de la imagen, por eso el rectángulo
+llega hasta el borde derecho (1279). La placa es un trapecio, así que el rectángulo incluye algo de lo que la rodea: el bloque trasero de la impresora, un trozo de cable negro a la izquierda, el cable azul, el trapo rojo y el escritorio a la derecha.
+Deja fuera la caja verde, el cabezal, el poste y el cable blanco.
+
+**Dos reservas de la propuesta:**
+1. **Deformación.** El worker redimensiona el recorte a 640×640 estirándolo (sin conservar proporciones). El fotograma completo se deforma ya 1,78 veces (1280×720); el recorte propuesto, 2,81 veces. No se sabe cómo afecta eso al modelo, y no hay un
+   defecto real en esta foto para medir si deja de detectarlo.
+2. **Vale solo para esta posición de la cámara.** Si se mueve (por ejemplo para encuadrar la esquina delantera derecha), hay que volver a medir. Es independiente de la calibración de la cama.
+
+### 4. Cómo se aplicaría y cómo se deshace (no se ejecutó)
+
+La región vive en `cameras.roi` (JSON con `x`, `y`, `w`, `h` en píxeles del fotograma completo); hoy la cámara 36 la tiene **vacía** (`select id, name, roi from cameras where id = 36;` → vacío). El worker la lee en cada mensaje, así que **surte efecto en la
+siguiente capa analizada, sin reiniciar nada**. Los recuadros se vuelven a convertir al fotograma completo (`inference/main.py`, `backend/app/api/v1/incidents.py`, `backend/app/services/defect_map.py` ya lo hacen), y las detecciones ya
+guardadas conservan la región con la que se hicieron (`raw_output.frame.roi`). **No requiere reconstruir ni reiniciar nada, ni el backend ni el worker.**
+
+- **Aplicar:** [etapa_c2/roi_camara_36_aplicar.sql](etapa_c2/roi_camara_36_aplicar.sql) (solo actúa si `roi` está vacío):
+  `update cameras set roi = '{"x": 100, "y": 300, "w": 1180, "h": 420}'::jsonb where id = 36 and roi is null;`
+  Comando (PowerShell, desde la raíz del repo):
+  `Get-Content docs\laboratorio\etapa_c2\roi_camara_36_aplicar.sql | wsl docker exec -i infra-postgres-1 sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f -'`
+- **Deshacer:** [etapa_c2/roi_camara_36_deshacer.sql](etapa_c2/roi_camara_36_deshacer.sql): `update cameras set roi = null where id = 36;` con el mismo comando cambiando el archivo.
+- **Alternativa por la API** (solo administradores): `PATCH /api/v1/cameras/36` con el cuerpo `{"roi": {"x": 100, "y": 300, "w": 1180, "h": 420}}`; para deshacer, `{"roi": null}`. La API no valida las claves del JSON: una clave que falte haría fallar el análisis de cada capa, por eso es
+  preferible la consulta con los valores ya escritos.
+- **Comprobar después:** esperar una capa y mirar `select raw_output->'frame'->'roi' from detections order by id desc limit 1;` (debe mostrar la región) y que la edad del video en la web siga bien (la región no afecta al video).
+
+**Recomendación:** de momento no aplicarla: con el encuadre actual el modelo no detecta nada ni con 0,10, y la región añade una deformación que no se ha medido. Si se aplica, hacerlo con `AUTO_PAUSE_MODE=warn` y comparar con una impresión real; antes, encuadrar también la esquina
+delantera derecha de la cama.
