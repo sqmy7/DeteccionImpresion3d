@@ -878,3 +878,12 @@ vale con esta cámara y esta posición. La fila de la cámara en la base se llam
 **Para la C2 (con `capture` corriendo).** Se mide además, con solo lecturas, qué capas se capturaron (por capa y hora), si hubo huecos en la pausa y la reanudación, y cuál fue la primera
 captura tras reanudar y cuánto tardó: consultas en [c2_capturas.sql](c2_capturas.sql) (probadas contra los trabajos 44 y 46). En modo `warn` nada actúa. Las capturas se disparan por capa
 (`layer_ready`), así que durante la pausa no se espera ninguna; el video en vivo de Redis sí debería seguir renovándose (edad menor de 2 s).
+
+### Etapa C2 (2026-10-09, 19:09 a 19:37): pausa y reanudación reales con los arreglos desplegados
+
+Resultados completos en [ETAPA_C2.md](ETAPA_C2.md). Pieza `Cubo_PLA_12m58s.gcode` (86 capas, trabajo 47). Nada se mandó a la impresora por PrintWatch; Samuel pulsó dos pausas y dos
+reanudaciones en la web. Medido: clic → `paused` en 1,0 s y 0,84 s; clic → `printing` en 65,4 s y 64,1 s; respuesta de la web siempre 202 a los ~3 s (sin 502 ni `ReadTimeout`);
+pausas y reanudaciones atribuidas a `printwatch` en la bitácora, con la orden antes del cambio de estado; estacionamiento X 0 / Y 260 / Z 50 a los ~20 s; sin errores de Klipper; 86 capas y 86
+capturas (0 en las pausas; primera tras reanudar a los 2,3 s y 6,6 s); video sin cortes (edad máxima 0,76 s); cadena íntegra (340 eventos); renovaciones del token con 200 a las 18:36:24 y 19:07:20
+y ningún 401. **Sin comprobar:** la guarda contra un segundo clic durante la reanudación y lo que mostró la web en pantalla. **Hallazgo nuevo:** con esta cámara (que no ve la pieza) el modelo dio 20
+detecciones de `spaghetti` en una pieza que iba bien (en `warn` no actuaron; con `on` habrían pausado), confirmado en la foto de la capa 24; la decisión sobre `AUTO_PAUSE_MODE` sigue pendiente.
