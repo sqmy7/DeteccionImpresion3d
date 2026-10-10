@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -17,3 +18,4 @@ class LayerRead(BaseModel):
     layer_number: int
     z_height: Decimal
     detected_at: datetime
+    telemetry: dict[str, Any] | None = None

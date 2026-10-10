@@ -27,6 +27,11 @@ class PrintJobRead(BaseModel):
     estimated_layers: int | None
     started_at: datetime
     ended_at: datetime | None
+    # How long the job really printed, by the printer's own clock (Klipper's print_duration, kept with
+    # each telemetry sample since 2026-10-08). None for older jobs, which have no such reading:
+    # started_at..ended_at only says how long PrintWatch followed the job, which is less than the
+    # print when it joined late (job 43: followed 2 h 45 min of a 6 h print).
+    printed_s: float | None = None
 
 
 class TimelineEntryRead(BaseModel):

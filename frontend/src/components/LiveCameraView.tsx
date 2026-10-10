@@ -14,19 +14,30 @@ const LABEL_HEIGHT = 18;
  * event arrives for this camera and stay as-is - not re-drawn or cleared - until the next one,
  * empty or not. The canvas is resized to the container's actual rendered pixels (not a fixed
  * constant) so normalized 0..1 box coordinates land in the right place at any layout width. */
-export function LiveCameraView({ cameraId }: { cameraId: number }) {
+export function LiveCameraView({ cameraId, initialBoxes = [] }: { cameraId: number; initialBoxes?: DetectionBox[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [boxes, setBoxes] = useState<DetectionBox[]>([]);
+  // Once a live event has arrived, it is newer than whatever the page loaded with.
+  const liveEventSeen = useRef(false);
 
   // A different camera (e.g. navigating to another printer) starts with no boxes rather than
   // showing the previous camera's last detection for an instant.
   useEffect(() => {
+    liveEventSeen.current = false;
     setBoxes([]);
   }, [cameraId]);
 
+  // The last analyzed layer's boxes, loaded with the page: otherwise the view stays empty until the
+  // next layer is analyzed, which can be a minute away.
+  useEffect(() => {
+    if (!liveEventSeen.current) setBoxes(initialBoxes);
+  }, [initialBoxes]);
+
   useWsEvent<DetectionBoxesEvent>("detection.boxes", (envelope) => {
-    if (envelope.data.camera_id === cameraId) setBoxes(envelope.data.boxes);
+    if (envelope.data.camera_id !== cameraId) return;
+    liveEventSeen.current = true;
+    setBoxes(envelope.data.boxes);
   });
 
   useEffect(() => {
@@ -76,7 +87,7 @@ export function LiveCameraView({ cameraId }: { cameraId: number }) {
   }, [boxes]);
 
   return (
-    <div ref={containerRef} className="relative aspect-video w-full overflow-hidden rounded-lg bg-slate-900">
+    <div ref={containerRef} className="relative aspect-video w-full overflow-hidden rounded-lg bg-surface-2">
       <VideoFeed cameraId={cameraId} />
       <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 h-full w-full" />
     </div>

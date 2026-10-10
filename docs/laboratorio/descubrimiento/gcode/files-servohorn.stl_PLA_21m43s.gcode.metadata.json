@@ -1,0 +1,13 @@
+{
+  "size": 3116025,
+  "modified": 1577837086.2800002,
+  "uuid": "39906fbc-654f-4ac0-bff8-6e7fe9eb1845",
+  "slicer": "Unknown",
+  "gcode_start_byte": 29204,
+  "gcode_end_byte": 3096137,
+  "object_height": 4.8,
+  "first_layer_height": 0.2,
+  "print_start_time": 1577837514.30892,
+  "job_id": "000085",
+  "filename": "files-servohorn.stl_PLA_21m43s.gcode"
+}

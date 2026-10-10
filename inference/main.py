@@ -157,6 +157,14 @@ async def _process_message(redis_client, detector: DefectDetector, model_version
         roi_x, roi_y, roi_w, roi_h = 0, 0, full_width, full_height
 
     result = detector.predict(frame)
+    # The boxes above are normalized to the region the model saw. Keeping that region (and the
+    # full frame's size) with them lets the bed map place them on the full frame later, even if
+    # the camera's ROI is changed afterwards.
+    result["raw_output"]["frame"] = {
+        "width": full_width,
+        "height": full_height,
+        "roi": {"x": roi_x, "y": roi_y, "w": roi_w, "h": roi_h},
+    }
 
     async with async_session_factory() as db:
         detection = Detection(

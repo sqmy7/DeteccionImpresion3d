@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { AlertRow } from "./AlertRow";
+import { Card, EmptyState } from "./ui";
 import { useAuth } from "../hooks/useAuth";
 import { useWsEvent } from "../hooks/useWebSocket";
 import { listAlerts, transitionAlert } from "../services/alerts";
 import type { AlertListItem, AlertStatus } from "../types/api";
 import type { DetectionAlertEvent } from "../types/ws";
 
-/** Same list/transition logic as AlertCenterPage, scoped to one job instead of every printer -
- * reuses listAlerts' job_id filter and the shared AlertRow rather than a second implementation. */
+/** Same list/transition logic as the alert center, scoped to one job. */
 export function JobAlertsPanel({ jobId }: { jobId: number }) {
   const { token } = useAuth();
   const [alerts, setAlerts] = useState<AlertListItem[]>([]);
@@ -35,17 +35,16 @@ export function JobAlertsPanel({ jobId }: { jobId: number }) {
   };
 
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-900 p-4">
-      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-slate-400">Alertas de este trabajo</h2>
+    <Card title="Alertas de este trabajo">
       {alerts.length === 0 ? (
-        <p className="text-sm text-slate-500">Sin alertas en este trabajo.</p>
+        <EmptyState title="Sin alertas" description="Se generan cuando el modelo ve un atasco (sub-extrusión) varias capas seguidas." />
       ) : (
         <div className="flex flex-col gap-2">
           {alerts.map((alert) => (
-            <AlertRow key={alert.id} alert={alert} onTransition={handleTransition} dark />
+            <AlertRow key={alert.id} alert={alert} onTransition={handleTransition} stacked />
           ))}
         </div>
       )}
-    </div>
+    </Card>
   );
 }

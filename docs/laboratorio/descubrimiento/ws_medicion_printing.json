@@ -1,0 +1,913 @@
+{
+  "estado_impresora": "printing",
+  "segundos": 300.0,
+  "mensajes": 1491,
+  "bytes": 1249552,
+  "bytes_por_segundo": 4165.2,
+  "extrapolacion_2h_mb": 30.0,
+  "por_metodo": {
+    "notify_status_update": 1191,
+    "notify_proc_stat_update": 300
+  },
+  "intervalo_mediano_entre_actualizaciones_s": 0.251,
+  "campos": {
+    "display_status.progress": {
+      "actualizaciones": 2,
+      "min": 0.54,
+      "max": 0.55,
+      "ultimo": "0.55",
+      "hz": 0.007
+    },
+    "extruder.power": {
+      "actualizaciones": 294,
+      "min": 0.16111346576972882,
+      "max": 0.6628762111434371,
+      "ultimo": "0.5711",
+      "hz": 0.98
+    },
+    "extruder.temperature": {
+      "actualizaciones": 938,
+      "min": 249.2,
+      "max": 250.91,
+      "ultimo": "249.5",
+      "hz": 3.127
+    },
+    "fan_feedback.fan0_speed": {
+      "actualizaciones": 2,
+      "min": 12000,
+      "max": 16000,
+      "ultimo": "16000",
+      "hz": 0.007
+    },
+    "fan_feedback.fan1_speed": {
+      "actualizaciones": 36,
+      "min": 5333,
+      "max": 6857,
+      "ultimo": "6857",
+      "hz": 0.12
+    },
+    "fan_feedback.fan2_speed": {
+      "actualizaciones": 27,
+      "min": 5333,
+      "max": 6857,
+      "ultimo": "6000",
+      "hz": 0.09
+    },
+    "gcode_move.gcode_position[0]": {
+      "actualizaciones": 386,
+      "min": 26.016,
+      "max": 193.928,
+      "ultimo": "176.8",
+      "hz": 1.287
+    },
+    "gcode_move.gcode_position[1]": {
+      "actualizaciones": 386,
+      "min": 81.61,
+      "max": 178.39,
+      "ultimo": "84.67",
+      "hz": 1.287
+    },
+    "gcode_move.gcode_position[2]": {
+      "actualizaciones": 386,
+      "min": 57.4,
+      "max": 60.2,
+      "ultimo": "59.8",
+      "hz": 1.287
+    },
+    "gcode_move.gcode_position[3]": {
+      "actualizaciones": 386,
+      "min": -0.8000000000029104,
+      "max": 80.08298000031937,
+      "ultimo": "60.6",
+      "hz": 1.287
+    },
+    "gcode_move.position[0]": {
+      "actualizaciones": 386,
+      "min": 26.016,
+      "max": 193.928,
+      "ultimo": "176.8",
+      "hz": 1.287
+    },
+    "gcode_move.position[1]": {
+      "actualizaciones": 386,
+      "min": 81.61,
+      "max": 178.39,
+      "ultimo": "84.67",
+      "hz": 1.287
+    },
+    "gcode_move.position[2]": {
+      "actualizaciones": 386,
+      "min": 57.4,
+      "max": 60.2,
+      "ultimo": "59.8",
+      "hz": 1.287
+    },
+    "gcode_move.position[3]": {
+      "actualizaciones": 386,
+      "min": 42421.70828001308,
+      "max": 43408.23126001753,
+      "ultimo": "4.341e+04",
+      "hz": 1.287
+    },
+    "gcode_move.speed": {
+      "actualizaciones": 173,
+      "min": 840.0,
+      "max": 30000.0,
+      "ultimo": "1.241e+04",
+      "hz": 0.577
+    },
+    "heater_bed.power": {
+      "actualizaciones": 71,
+      "min": 0.4222805877147189,
+      "max": 0.4628591705710381,
+      "ultimo": "0.4327",
+      "hz": 0.237
+    },
+    "heater_bed.temperature": {
+      "actualizaciones": 798,
+      "min": 79.93,
+      "max": 80.33,
+      "ultimo": "80.12",
+      "hz": 2.66
+    },
+    "idle_timeout.printing_time": {
+      "actualizaciones": 1191,
+      "min": 12128.040393616,
+      "max": 12427.689327508999,
+      "ultimo": "1.243e+04",
+      "hz": 3.97
+    },
+    "mcu bed_mcu.last_stats.adj": {
+      "actualizaciones": 100,
+      "min": 71832761,
+      "max": 71836259,
+      "ultimo": "71833905",
+      "hz": 0.333
+    },
+    "mcu bed_mcu.last_stats.bytes_invalid": {
+      "actualizaciones": 100,
+      "min": 0,
+      "max": 0,
+      "ultimo": "0",
+      "hz": 0.333
+    },
+    "mcu bed_mcu.last_stats.bytes_read": {
+      "actualizaciones": 100,
+      "min": 258103,
+      "max": 263656,
+      "ultimo": "263656",
+      "hz": 0.333
+    },
+    "mcu bed_mcu.last_stats.bytes_retransmit": {
+      "actualizaciones": 100,
+      "min": 9,
+      "max": 9,
+      "ultimo": "9",
+      "hz": 0.333
+    },
+    "mcu bed_mcu.last_stats.bytes_write": {
+      "actualizaciones": 100,
+      "min": 83315,
+      "max": 85121,
+      "ultimo": "85121",
+      "hz": 0.333
+    },
+    "mcu bed_mcu.last_stats.freq": {
+      "actualizaciones": 100,
+      "min": 71833782,
+      "max": 71834123,
+      "ultimo": "71833841",
+      "hz": 0.333
+    },
+    "mcu bed_mcu.last_stats.mcu_awake": {
+      "actualizaciones": 100,
+      "min": 0.0,
+      "max": 0.001,
+      "ultimo": "0",
+      "hz": 0.333
+    },
+    "mcu bed_mcu.last_stats.mcu_task_avg": {
+      "actualizaciones": 100,
+      "min": 4e-06,
+      "max": 1.2e-05,
+      "ultimo": "4e-06",
+      "hz": 0.333
+    },
+    "mcu bed_mcu.last_stats.mcu_task_stddev": {
+      "actualizaciones": 100,
+      "min": 3e-06,
+      "max": 0.001946,
+      "ultimo": "3e-06",
+      "hz": 0.333
+    },
+    "mcu bed_mcu.last_stats.ready_bytes": {
+      "actualizaciones": 100,
+      "min": 0,
+      "max": 0,
+      "ultimo": "0",
+      "hz": 0.333
+    },
+    "mcu bed_mcu.last_stats.receive_seq": {
+      "actualizaciones": 100,
+      "min": 13866,
+      "max": 14167,
+      "ultimo": "14167",
+      "hz": 0.333
+    },
+    "mcu bed_mcu.last_stats.retransmit_seq": {
+      "actualizaciones": 100,
+      "min": 17,
+      "max": 17,
+      "ultimo": "17",
+      "hz": 0.333
+    },
+    "mcu bed_mcu.last_stats.rto": {
+      "actualizaciones": 100,
+      "min": 0.025,
+      "max": 0.025,
+      "ultimo": "0.025",
+      "hz": 0.333
+    },
+    "mcu bed_mcu.last_stats.rttvar": {
+      "actualizaciones": 100,
+      "min": 0.0,
+      "max": 0.001,
+      "ultimo": "0",
+      "hz": 0.333
+    },
+    "mcu bed_mcu.last_stats.send_seq": {
+      "actualizaciones": 100,
+      "min": 13866,
+      "max": 14167,
+      "ultimo": "14167",
+      "hz": 0.333
+    },
+    "mcu bed_mcu.last_stats.srtt": {
+      "actualizaciones": 100,
+      "min": 0.001,
+      "max": 0.001,
+      "ultimo": "0.001",
+      "hz": 0.333
+    },
+    "mcu bed_mcu.last_stats.stalled_bytes": {
+      "actualizaciones": 100,
+      "min": 0,
+      "max": 0,
+      "ultimo": "0",
+      "hz": 0.333
+    },
+    "mcu nozzle_mcu.last_stats.adj": {
+      "actualizaciones": 100,
+      "min": 120000940,
+      "max": 120002416,
+      "ultimo": "120001507",
+      "hz": 0.333
+    },
+    "mcu nozzle_mcu.last_stats.bytes_invalid": {
+      "actualizaciones": 100,
+      "min": 0,
+      "max": 0,
+      "ultimo": "0",
+      "hz": 0.333
+    },
+    "mcu nozzle_mcu.last_stats.bytes_read": {
+      "actualizaciones": 100,
+      "min": 2593433,
+      "max": 2660945,
+      "ultimo": "2660945",
+      "hz": 0.333
+    },
+    "mcu nozzle_mcu.last_stats.bytes_retransmit": {
+      "actualizaciones": 100,
+      "min": 9,
+      "max": 9,
+      "ultimo": "9",
+      "hz": 0.333
+    },
+    "mcu nozzle_mcu.last_stats.bytes_write": {
+      "actualizaciones": 100,
+      "min": 13096082,
+      "max": 13516774,
+      "ultimo": "13516774",
+      "hz": 0.333
+    },
+    "mcu nozzle_mcu.last_stats.freq": {
+      "actualizaciones": 100,
+      "min": 120000342,
+      "max": 120000520,
+      "ultimo": "120000398",
+      "hz": 0.333
+    },
+    "mcu nozzle_mcu.last_stats.mcu_awake": {
+      "actualizaciones": 100,
+      "min": 0.002,
+      "max": 0.009,
+      "ultimo": "0.003",
+      "hz": 0.333
+    },
+    "mcu nozzle_mcu.last_stats.mcu_task_avg": {
+      "actualizaciones": 100,
+      "min": 1e-05,
+      "max": 2e-05,
+      "ultimo": "1.2e-05",
+      "hz": 0.333
+    },
+    "mcu nozzle_mcu.last_stats.mcu_task_stddev": {
+      "actualizaciones": 100,
+      "min": 1e-05,
+      "max": 1.4e-05,
+      "ultimo": "1.2e-05",
+      "hz": 0.333
+    },
+    "mcu nozzle_mcu.last_stats.ready_bytes": {
+      "actualizaciones": 100,
+      "min": 0,
+      "max": 1526,
+      "ultimo": "8",
+      "hz": 0.333
+    },
+    "mcu nozzle_mcu.last_stats.receive_seq": {
+      "actualizaciones": 100,
+      "min": 245838,
+      "max": 253415,
+      "ultimo": "253415",
+      "hz": 0.333
+    },
+    "mcu nozzle_mcu.last_stats.retransmit_seq": {
+      "actualizaciones": 100,
+      "min": 2,
+      "max": 2,
+      "ultimo": "2",
+      "hz": 0.333
+    },
+    "mcu nozzle_mcu.last_stats.rto": {
+      "actualizaciones": 100,
+      "min": 0.025,
+      "max": 0.025,
+      "ultimo": "0.025",
+      "hz": 0.333
+    },
+    "mcu nozzle_mcu.last_stats.rttvar": {
+      "actualizaciones": 100,
+      "min": 0.0,
+      "max": 0.002,
+      "ultimo": "0",
+      "hz": 0.333
+    },
+    "mcu nozzle_mcu.last_stats.send_seq": {
+      "actualizaciones": 100,
+      "min": 245838,
+      "max": 253415,
+      "ultimo": "253415",
+      "hz": 0.333
+    },
+    "mcu nozzle_mcu.last_stats.srtt": {
+      "actualizaciones": 100,
+      "min": 0.001,
+      "max": 0.003,
+      "ultimo": "0.001",
+      "hz": 0.333
+    },
+    "mcu nozzle_mcu.last_stats.stalled_bytes": {
+      "actualizaciones": 100,
+      "min": 0,
+      "max": 27,
+      "ultimo": "0",
+      "hz": 0.333
+    },
+    "mcu rpi.last_stats.adj": {
+      "actualizaciones": 100,
+      "min": 50000009,
+      "max": 50000919,
+      "ultimo": "50000427",
+      "hz": 0.333
+    },
+    "mcu rpi.last_stats.bytes_invalid": {
+      "actualizaciones": 100,
+      "min": 0,
+      "max": 0,
+      "ultimo": "0",
+      "hz": 0.333
+    },
+    "mcu rpi.last_stats.bytes_read": {
+      "actualizaciones": 100,
+      "min": 267768,
+      "max": 273700,
+      "ultimo": "273700",
+      "hz": 0.333
+    },
+    "mcu rpi.last_stats.bytes_retransmit": {
+      "actualizaciones": 100,
+      "min": 0,
+      "max": 0,
+      "ultimo": "0",
+      "hz": 0.333
+    },
+    "mcu rpi.last_stats.bytes_write": {
+      "actualizaciones": 100,
+      "min": 98131,
+      "max": 100544,
+      "ultimo": "100544",
+      "hz": 0.333
+    },
+    "mcu rpi.last_stats.freq": {
+      "actualizaciones": 100,
+      "min": 49999978,
+      "max": 50000045,
+      "ultimo": "50000004",
+      "hz": 0.333
+    },
+    "mcu rpi.last_stats.mcu_awake": {
+      "actualizaciones": 100,
+      "min": 0.001,
+      "max": 0.043,
+      "ultimo": "0.001",
+      "hz": 0.333
+    },
+    "mcu rpi.last_stats.mcu_task_avg": {
+      "actualizaciones": 100,
+      "min": 9e-06,
+      "max": 0.000709,
+      "ultimo": "1e-05",
+      "hz": 0.333
+    },
+    "mcu rpi.last_stats.mcu_task_stddev": {
+      "actualizaciones": 100,
+      "min": 1.1e-05,
+      "max": 0.002613,
+      "ultimo": "1.3e-05",
+      "hz": 0.333
+    },
+    "mcu rpi.last_stats.ready_bytes": {
+      "actualizaciones": 100,
+      "min": 0,
+      "max": 0,
+      "ultimo": "0",
+      "hz": 0.333
+    },
+    "mcu rpi.last_stats.receive_seq": {
+      "actualizaciones": 100,
+      "min": 15044,
+      "max": 15392,
+      "ultimo": "15392",
+      "hz": 0.333
+    },
+    "mcu rpi.last_stats.retransmit_seq": {
+      "actualizaciones": 100,
+      "min": 0,
+      "max": 0,
+      "ultimo": "0",
+      "hz": 0.333
+    },
+    "mcu rpi.last_stats.rto": {
+      "actualizaciones": 100,
+      "min": 0.025,
+      "max": 0.033,
+      "ultimo": "0.025",
+      "hz": 0.333
+    },
+    "mcu rpi.last_stats.rttvar": {
+      "actualizaciones": 100,
+      "min": 0.0,
+      "max": 0.007,
+      "ultimo": "0.002",
+      "hz": 0.333
+    },
+    "mcu rpi.last_stats.send_seq": {
+      "actualizaciones": 100,
+      "min": 15044,
+      "max": 15392,
+      "ultimo": "15392",
+      "hz": 0.333
+    },
+    "mcu rpi.last_stats.srtt": {
+      "actualizaciones": 100,
+      "min": 0.0,
+      "max": 0.005,
+      "ultimo": "0.001",
+      "hz": 0.333
+    },
+    "mcu rpi.last_stats.stalled_bytes": {
+      "actualizaciones": 100,
+      "min": 0,
+      "max": 0,
+      "ultimo": "0",
+      "hz": 0.333
+    },
+    "mcu.last_stats.bytes_invalid": {
+      "actualizaciones": 100,
+      "min": 0,
+      "max": 0,
+      "ultimo": "0",
+      "hz": 0.333
+    },
+    "mcu.last_stats.bytes_read": {
+      "actualizaciones": 100,
+      "min": 4915131,
+      "max": 5022321,
+      "ultimo": "5022321",
+      "hz": 0.333
+    },
+    "mcu.last_stats.bytes_retransmit": {
+      "actualizaciones": 100,
+      "min": 9,
+      "max": 9,
+      "ultimo": "9",
+      "hz": 0.333
+    },
+    "mcu.last_stats.bytes_write": {
+      "actualizaciones": 100,
+      "min": 25593411,
+      "max": 26172658,
+      "ultimo": "26172658",
+      "hz": 0.333
+    },
+    "mcu.last_stats.freq": {
+      "actualizaciones": 100,
+      "min": 119998919,
+      "max": 119999040,
+      "ultimo": "119998972",
+      "hz": 0.333
+    },
+    "mcu.last_stats.mcu_awake": {
+      "actualizaciones": 100,
+      "min": 0.002,
+      "max": 0.011,
+      "ultimo": "0.002",
+      "hz": 0.333
+    },
+    "mcu.last_stats.mcu_task_avg": {
+      "actualizaciones": 100,
+      "min": 1.3e-05,
+      "max": 2.4e-05,
+      "ultimo": "1.3e-05",
+      "hz": 0.333
+    },
+    "mcu.last_stats.mcu_task_stddev": {
+      "actualizaciones": 100,
+      "min": 1e-05,
+      "max": 1.3e-05,
+      "ultimo": "1e-05",
+      "hz": 0.333
+    },
+    "mcu.last_stats.ready_bytes": {
+      "actualizaciones": 100,
+      "min": 0,
+      "max": 2153,
+      "ultimo": "23",
+      "hz": 0.333
+    },
+    "mcu.last_stats.receive_seq": {
+      "actualizaciones": 100,
+      "min": 466046,
+      "max": 476464,
+      "ultimo": "476464",
+      "hz": 0.333
+    },
+    "mcu.last_stats.retransmit_seq": {
+      "actualizaciones": 100,
+      "min": 2,
+      "max": 2,
+      "ultimo": "2",
+      "hz": 0.333
+    },
+    "mcu.last_stats.rto": {
+      "actualizaciones": 100,
+      "min": 0.025,
+      "max": 0.025,
+      "ultimo": "0.025",
+      "hz": 0.333
+    },
+    "mcu.last_stats.rttvar": {
+      "actualizaciones": 100,
+      "min": 0.0,
+      "max": 0.002,
+      "ultimo": "0.001",
+      "hz": 0.333
+    },
+    "mcu.last_stats.send_seq": {
+      "actualizaciones": 100,
+      "min": 466046,
+      "max": 476464,
+      "ultimo": "476464",
+      "hz": 0.333
+    },
+    "mcu.last_stats.srtt": {
+      "actualizaciones": 100,
+      "min": 0.001,
+      "max": 0.004,
+      "ultimo": "0.001",
+      "hz": 0.333
+    },
+    "mcu.last_stats.stalled_bytes": {
+      "actualizaciones": 100,
+      "min": 0,
+      "max": 0,
+      "ultimo": "0",
+      "hz": 0.333
+    },
+    "motion_report.live_extruder_velocity": {
+      "actualizaciones": 874,
+      "min": -40.0,
+      "max": 40.0,
+      "ultimo": "4.468",
+      "hz": 2.913
+    },
+    "motion_report.live_position[0]": {
+      "actualizaciones": 1191,
+      "min": 26.016,
+      "max": 193.928,
+      "ultimo": "117",
+      "hz": 3.97
+    },
+    "motion_report.live_position[1]": {
+      "actualizaciones": 1191,
+      "min": 81.61,
+      "max": 178.39,
+      "ultimo": "81.61",
+      "hz": 3.97
+    },
+    "motion_report.live_position[2]": {
+      "actualizaciones": 1191,
+      "min": 57.43,
+      "max": 60.2110368925151,
+      "ultimo": "59.83",
+      "hz": 3.97
+    },
+    "motion_report.live_position[3]": {
+      "actualizaciones": 1191,
+      "min": 42406.51457031597,
+      "max": 43403.540592727106,
+      "ultimo": "4.34e+04",
+      "hz": 3.97
+    },
+    "motion_report.live_velocity": {
+      "actualizaciones": 767,
+      "min": -2.842170943040401e-14,
+      "max": 300.0,
+      "ultimo": "150",
+      "hz": 2.557
+    },
+    "output_pin fan0.value": {
+      "actualizaciones": 9,
+      "min": 0.3588235294117647,
+      "max": 0.44901960784313727,
+      "ultimo": "0.3588",
+      "hz": 0.03
+    },
+    "print_stats.filament_used": {
+      "actualizaciones": 386,
+      "min": 42018.688280013084,
+      "max": 43005.21126001753,
+      "ultimo": "4.301e+04",
+      "hz": 1.287
+    },
+    "print_stats.print_duration": {
+      "actualizaciones": 1191,
+      "min": 12071.686645713999,
+      "max": 12371.335579606999,
+      "ultimo": "1.237e+04",
+      "hz": 3.97
+    },
+    "print_stats.total_duration": {
+      "actualizaciones": 1191,
+      "min": 12128.261511866,
+      "max": 12427.910445759,
+      "ultimo": "1.243e+04",
+      "hz": 3.97
+    },
+    "system_stats.cputime": {
+      "actualizaciones": 100,
+      "min": 2883.734523773,
+      "max": 2943.674883417,
+      "ultimo": "2944",
+      "hz": 0.333
+    },
+    "system_stats.memavail": {
+      "actualizaciones": 98,
+      "min": 371616,
+      "max": 372696,
+      "ultimo": "371616",
+      "hz": 0.327
+    },
+    "system_stats.sysload": {
+      "actualizaciones": 60,
+      "min": 0.25,
+      "max": 0.94,
+      "ultimo": "0.55",
+      "hz": 0.2
+    },
+    "temperature_sensor mcu_temp.temperature": {
+      "actualizaciones": 972,
+      "min": 54.89,
+      "max": 56.73,
+      "ultimo": "55.28",
+      "hz": 3.24
+    },
+    "tmc2208 extruder.drv_status.cs_actual": {
+      "actualizaciones": 30,
+      "min": 29,
+      "max": 29,
+      "ultimo": "29",
+      "hz": 0.1
+    },
+    "tmc2208 extruder.drv_status.ola": {
+      "actualizaciones": 4,
+      "min": 1,
+      "max": 1,
+      "ultimo": "1",
+      "hz": 0.013
+    },
+    "tmc2208 extruder.drv_status.stst": {
+      "actualizaciones": 11,
+      "min": 1,
+      "max": 1,
+      "ultimo": "1",
+      "hz": 0.037
+    },
+    "tmc2208 stepper_z.drv_status.cs_actual": {
+      "actualizaciones": 32,
+      "min": 14,
+      "max": 14,
+      "ultimo": "14",
+      "hz": 0.107
+    },
+    "tmc2208 stepper_z.drv_status.stealth": {
+      "actualizaciones": 32,
+      "min": 1,
+      "max": 1,
+      "ultimo": "1",
+      "hz": 0.107
+    },
+    "tmc2208 stepper_z.drv_status.stst": {
+      "actualizaciones": 16,
+      "min": 1,
+      "max": 1,
+      "ultimo": "1",
+      "hz": 0.053
+    },
+    "tmc2208 stepper_z1.drv_status.cs_actual": {
+      "actualizaciones": 26,
+      "min": 14,
+      "max": 14,
+      "ultimo": "14",
+      "hz": 0.087
+    },
+    "tmc2208 stepper_z1.drv_status.stealth": {
+      "actualizaciones": 26,
+      "min": 1,
+      "max": 1,
+      "ultimo": "1",
+      "hz": 0.087
+    },
+    "tmc2208 stepper_z1.drv_status.stst": {
+      "actualizaciones": 13,
+      "min": 1,
+      "max": 1,
+      "ultimo": "1",
+      "hz": 0.043
+    },
+    "toolhead.estimated_print_time": {
+      "actualizaciones": 1191,
+      "min": 13604.852529908334,
+      "max": 13904.498886333333,
+      "ultimo": "1.39e+04",
+      "hz": 3.97
+    },
+    "toolhead.max_accel": {
+      "actualizaciones": 34,
+      "min": 4800.0,
+      "max": 6000.0,
+      "ultimo": "6000",
+      "hz": 0.113
+    },
+    "toolhead.max_accel_to_decel": {
+      "actualizaciones": 34,
+      "min": 2400.0,
+      "max": 3000.0,
+      "ultimo": "3000",
+      "hz": 0.113
+    },
+    "toolhead.position[0]": {
+      "actualizaciones": 386,
+      "min": 26.016,
+      "max": 193.928,
+      "ultimo": "176.8",
+      "hz": 1.287
+    },
+    "toolhead.position[1]": {
+      "actualizaciones": 386,
+      "min": 81.61,
+      "max": 178.39,
+      "ultimo": "84.67",
+      "hz": 1.287
+    },
+    "toolhead.position[2]": {
+      "actualizaciones": 386,
+      "min": 57.43,
+      "max": 60.230000000000004,
+      "ultimo": "59.83",
+      "hz": 1.287
+    },
+    "toolhead.position[3]": {
+      "actualizaciones": 386,
+      "min": 42421.70828001308,
+      "max": 43408.23126001753,
+      "ultimo": "4.341e+04",
+      "hz": 1.287
+    },
+    "toolhead.print_time": {
+      "actualizaciones": 385,
+      "min": 13607.805526030863,
+      "max": 13906.755353830978,
+      "ultimo": "1.391e+04",
+      "hz": 1.283
+    },
+    "toolhead.square_corner_velocity": {
+      "actualizaciones": 25,
+      "min": 8.0,
+      "max": 12.0,
+      "ultimo": "12",
+      "hz": 0.083
+    },
+    "virtual_sdcard.cur_print_data.end_time": {
+      "actualizaciones": 1,
+      "min": 1577850690.1909556,
+      "max": 1577850690.1909556,
+      "ultimo": "1.578e+09",
+      "hz": 0.003
+    },
+    "virtual_sdcard.cur_print_data.filament_used": {
+      "actualizaciones": 1,
+      "min": 42844.44256001683,
+      "max": 42844.44256001683,
+      "ultimo": "4.284e+04",
+      "hz": 0.003
+    },
+    "virtual_sdcard.cur_print_data.filename": {
+      "actualizaciones": 1,
+      "min": null,
+      "max": null,
+      "ultimo": "\"CAJA LISTA CARA ADALOVE LISTA PARA IMPRIMIR (1).stl_PETG...",
+      "hz": 0.003
+    },
+    "virtual_sdcard.cur_print_data.metadata": {
+      "actualizaciones": 1,
+      "min": null,
+      "max": null,
+      "ultimo": "{\"size\": 10321936, \"modified\": 1577837446.6100004, \"uuid\"...",
+      "hz": 0.003
+    },
+    "virtual_sdcard.cur_print_data.print_duration": {
+      "actualizaciones": 1,
+      "min": 12323.627009084,
+      "max": 12323.627009084,
+      "ultimo": "1.232e+04",
+      "hz": 0.003
+    },
+    "virtual_sdcard.cur_print_data.start_time": {
+      "actualizaciones": 1,
+      "min": 1577838309.8842597,
+      "max": 1577838309.8842597,
+      "ultimo": "1.578e+09",
+      "hz": 0.003
+    },
+    "virtual_sdcard.cur_print_data.status": {
+      "actualizaciones": 1,
+      "min": null,
+      "max": null,
+      "ultimo": "\"in_progress\"",
+      "hz": 0.003
+    },
+    "virtual_sdcard.cur_print_data.total_duration": {
+      "actualizaciones": 1,
+      "min": 12380.201875236002,
+      "max": 12380.201875236002,
+      "ultimo": "1.238e+04",
+      "hz": 0.003
+    },
+    "virtual_sdcard.file_position": {
+      "actualizaciones": 386,
+      "min": 4751699,
+      "max": 4904237,
+      "ultimo": "4904237",
+      "hz": 1.287
+    },
+    "virtual_sdcard.layer": {
+      "actualizaciones": 12,
+      "min": 288,
+      "max": 299,
+      "ultimo": "299",
+      "hz": 0.04
+    },
+    "virtual_sdcard.progress": {
+      "actualizaciones": 386,
+      "min": 0.4603495894568616,
+      "max": 0.47512763109556194,
+      "ultimo": "0.4751",
+      "hz": 1.287
+    }
+  },
+  "medido_utc": "2026-10-08T19:23:29+00:00",
+  "objetos_suscritos": 45
+}

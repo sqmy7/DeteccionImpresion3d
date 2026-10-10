@@ -10,6 +10,7 @@ venv/
 # Datos generados
 storage/snapshots/*
 !storage/snapshots/.gitkeep
+storage/demo_snapshots/
 inference/models/*
 !inference/models/.gitkeep
 # Modelos entrenados y sus metricas (resultados del proyecto). El dummy sigue ignorado.
@@ -21,8 +22,21 @@ inference/models/*
 .vscode/
 .idea/
 
-# Config local de Claude Code (herramienta de desarrollo, no parte del proyecto)
+# Configuración local de herramientas de desarrollo (no es parte del proyecto)
 .claude/
 
 # Backups manuales de la base (generados ad-hoc, no versionar)
 storage/*.sql
+
+# Descubrimiento de la impresora: los logs completos pesan y traen datos del equipo; se versionan
+# los extractos. La muestra cruda del WebSocket queda solo en local.
+docs/moonraker_discovery/logs/*
+!docs/moonraker_discovery/logs/extracto_*.txt
+!docs/moonraker_discovery/logs/logs_list.json
+docs/moonraker_discovery/ws_muestra_*.jsonl
+
+# Pruebas
+.pytest_cache/
+
+# Material de trabajo de la herramienta de desarrollo (prompts y salidas), no es parte del proyecto
+Claude outputs/

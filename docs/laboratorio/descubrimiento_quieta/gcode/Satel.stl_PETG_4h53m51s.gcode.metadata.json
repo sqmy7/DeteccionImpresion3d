@@ -1,0 +1,13 @@
+{
+  "size": 23607972,
+  "modified": 1577837374.6600003,
+  "uuid": "7d6bf9a8-2df1-4231-b0f2-b4d20e80f6da",
+  "slicer": "Unknown",
+  "gcode_start_byte": 35905,
+  "gcode_end_byte": 23588076,
+  "object_height": 132.2,
+  "first_layer_height": 0.2,
+  "print_start_time": 1577838183.7109826,
+  "job_id": "000084",
+  "filename": "Satel.stl_PETG_4h53m51s.gcode"
+}

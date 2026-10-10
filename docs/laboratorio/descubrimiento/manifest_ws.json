@@ -1,0 +1,38 @@
+{
+  "inicio_utc": "2026-10-08T19:18:29+00:00",
+  "url": "http://192.168.10.22:7125",
+  "solo_lectura": true,
+  "pasos": {
+    "medicion_websocket": {
+      "ok": true,
+      "estado_impresora": "printing",
+      "mensajes": 1491,
+      "bytes_por_segundo": 4165.2,
+      "archivos": [
+        "ws_medicion_printing.json",
+        "ws_estado_inicial_printing.json",
+        "ws_muestra_printing.jsonl"
+      ]
+    }
+  },
+  "reloj_impresora_menos_local_s": -213636672.1,
+  "fin_utc": "2026-10-08T19:23:29+00:00",
+  "peticiones": [
+    {
+      "url": "http://192.168.10.22:7125/printer/info",
+      "params": null,
+      "utc": "2026-10-08T19:18:29+00:00",
+      "status": 200,
+      "bytes": 394,
+      "ms": 78
+    },
+    {
+      "url": "http://192.168.10.22:7125/server/info",
+      "params": null,
+      "utc": "2026-10-08T19:18:29+00:00",
+      "status": 200,
+      "bytes": 683,
+      "ms": 0
+    }
+  ]
+}

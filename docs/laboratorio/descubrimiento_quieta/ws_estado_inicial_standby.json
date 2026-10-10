@@ -1,0 +1,1058 @@
+{
+  "eventtime": 25409.380776532,
+  "status": {
+    "webhooks": {
+      "state": "ready",
+      "state_message": "Printer is ready"
+    },
+    "print_stats": {
+      "filename": "",
+      "total_duration": 0.0,
+      "print_duration": 0.0,
+      "filament_used": 0.0,
+      "state": "standby",
+      "message": "",
+      "info": {
+        "total_layer": null,
+        "current_layer": null
+      },
+      "power_loss": 0,
+      "z_pos": 10.1
+    },
+    "temperature_sensor mcu_temp": {
+      "temperature": 45.68,
+      "measured_min_temp": 33.88,
+      "measured_max_temp": 58.21
+    },
+    "heater_bed": {
+      "temperature": 33.26,
+      "target": 0.0,
+      "power": 0.0
+    },
+    "extruder": {
+      "temperature": 34.29,
+      "target": 0.0,
+      "power": 0.0,
+      "can_extrude": false,
+      "nozzle_diameter": 0.4,
+      "extrude_below_min_temp_err_is_report": false,
+      "pressure_advance": 0.072,
+      "smooth_time": 0.04
+    },
+    "virtual_sdcard": {
+      "file_path": null,
+      "progress": 0.0,
+      "is_active": false,
+      "file_position": 0.0,
+      "file_size": 0.0,
+      "first_layer_stop": false,
+      "layer": 0,
+      "layer_count": 0,
+      "run_dis": 0.0,
+      "klipper_capture": false,
+      "cur_print_data": {
+        "end_time": 1577860051.2504227,
+        "filament_used": 68204.26886007049,
+        "filename": "CAJA LISTA CARA ADALOVE LISTA PARA IMPRIMIR (1).stl_PETG_6h0m27s.gcode",
+        "metadata": {
+          "size": 10321936,
+          "modified": 1577837446.6100004,
+          "uuid": "420278da-8f1f-4fcd-89d0-e331d6868c3b",
+          "slicer": "Creality",
+          "slicer_version": "7.3.0.6149",
+          "gcode_start_byte": 17989,
+          "gcode_end_byte": 10300123,
+          "layer_count": 486,
+          "object_height": 97.2,
+          "layer_height": 0.2,
+          "filament_type": "PETG",
+          "flush_para": {
+            "flush_multiplier": 1.3,
+            "flush_volumes_matrix": [
+              0
+            ],
+            "nozzle_volume": 183.0
+          },
+          "model_info": {
+            "MaterialType": "PETG"
+          },
+          "wipe_tower_posy": 0.0,
+          "default_filament_colour": [
+            "#56DF3D"
+          ],
+          "filament_used_g": [
+            "201.83"
+          ]
+        },
+        "print_duration": 21660.013299453,
+        "start_time": 1577838309.8842597,
+        "status": "completed",
+        "total_duration": 21716.588165605
+      }
+    },
+    "toolhead": {
+      "homed_axes": "xyz",
+      "axis_minimum": [
+        -19.0,
+        -7.0,
+        -5.0,
+        0.0
+      ],
+      "axis_maximum": [
+        285.0,
+        273.0,
+        310.0,
+        0.0
+      ],
+      "print_time": 23797.691594999997,
+      "stalls": 0,
+      "estimated_print_time": 25377.51673465,
+      "extruder": "extruder",
+      "position": [
+        -5.0,
+        130.0,
+        10.1,
+        68596.44852007048
+      ],
+      "max_velocity": 300.0,
+      "max_accel": 5000.0,
+      "max_accel_to_decel": 30000.0,
+      "square_corner_velocity": 12.0,
+      "G29_flag": false
+    },
+    "motion_report": {
+      "live_position": [
+        -5.0,
+        130.0,
+        10.1,
+        68596.44852007048
+      ],
+      "live_velocity": 0.0,
+      "live_extruder_velocity": 0.0,
+      "steppers": [
+        "extruder",
+        "stepper_x",
+        "stepper_y",
+        "stepper_z",
+        "stepper_z1"
+      ],
+      "trapq": [
+        "extruder",
+        "toolhead"
+      ]
+    },
+    "gcode_move": {
+      "speed_factor": 1.0,
+      "speed": 3000.0,
+      "extrude_factor": 1.0,
+      "absolute_coordinates": true,
+      "absolute_extrude": false,
+      "homing_origin": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "position": [
+        -5.0,
+        130.0,
+        10.1,
+        68596.44852007048
+      ],
+      "gcode_position": [
+        -5.0,
+        130.0,
+        10.1,
+        179.34530000004452
+      ]
+    },
+    "idle_timeout": {
+      "state": "Ready",
+      "printing_time": 0.0
+    },
+    "pause_resume": {
+      "is_paused": false,
+      "resume_err": false
+    },
+    "exclude_object": {
+      "objects": [],
+      "excluded_objects": [],
+      "current_object": null
+    },
+    "bed_mesh": {
+      "profile_name": "",
+      "mesh_min": [
+        0.0,
+        0.0
+      ],
+      "mesh_max": [
+        0.0,
+        0.0
+      ],
+      "probed_matrix": [
+        []
+      ],
+      "mesh_matrix": [
+        []
+      ],
+      "profiles": {
+        "default": {
+          "points": [
+            [
+              0.101,
+              0.085,
+              0.092,
+              0.108,
+              0.055,
+              0.052,
+              0.052,
+              0.085,
+              0.017
+            ],
+            [
+              0.193,
+              0.209,
+              0.12,
+              0.082,
+              0.022,
+              0.034,
+              0.08,
+              0.149,
+              0.048
+            ],
+            [
+              0.267,
+              0.195,
+              0.14,
+              0.093,
+              0.059,
+              0.056,
+              0.126,
+              0.209,
+              0.299
+            ],
+            [
+              0.249,
+              0.158,
+              0.112,
+              0.089,
+              0.048,
+              0.038,
+              0.106,
+              0.193,
+              0.272
+            ],
+            [
+              0.19,
+              0.102,
+              0.054,
+              0.009,
+              -0.005,
+              -0.016,
+              0.098,
+              0.142,
+              0.222
+            ],
+            [
+              0.103,
+              0.044,
+              0.005,
+              -0.031,
+              -0.043,
+              -0.014,
+              0.068,
+              0.127,
+              0.222
+            ],
+            [
+              0.024,
+              -0.012,
+              -0.046,
+              -0.091,
+              -0.12,
+              -0.086,
+              -0.028,
+              0.049,
+              0.144
+            ],
+            [
+              -0.007,
+              -0.051,
+              -0.119,
+              -0.18,
+              -0.23,
+              -0.195,
+              -0.144,
+              -0.061,
+              0.072
+            ],
+            [
+              -0.158,
+              -0.201,
+              -0.213,
+              -0.279,
+              -0.324,
+              -0.286,
+              -0.262,
+              -0.202,
+              -0.031
+            ]
+          ],
+          "mesh_params": {
+            "min_x": 10.0,
+            "max_x": 250.0,
+            "min_y": 10.0,
+            "max_y": 250.0,
+            "x_count": 9,
+            "y_count": 9,
+            "mesh_x_pps": 2,
+            "mesh_y_pps": 2,
+            "algo": "bicubic",
+            "tension": 0.2
+          }
+        }
+      }
+    },
+    "output_pin fanp0": {
+      "value": 0.0
+    },
+    "output_pin fan0": {
+      "value": 0.0
+    },
+    "heater_fan hotend_fan": {
+      "speed": 0.0,
+      "rpm": null
+    },
+    "filament_switch_sensor filament_sensor": {
+      "filament_detected": false,
+      "enabled": true
+    },
+    "filament_switch_sensor filament_sensor_2": {
+      "filament_detected": true,
+      "enabled": true
+    },
+    "filament_switch_sensor filament_sensor_3": {
+      "filament_detected": false,
+      "enabled": true
+    },
+    "filament_switch_sensor filament_sensor_4": {
+      "filament_detected": false,
+      "enabled": true
+    },
+    "filament_switch_sensor filament_sensor_5": {
+      "filament_detected": false,
+      "enabled": true
+    },
+    "mcu": {
+      "mcu_version": "cf1eac2d-dirty-20250210_192534-ubuntu",
+      "mcu_build_versions": "gcc: (15:9-2019-q4-0ubuntu1) 9.2.1 20191025 (release) [ARM/arm-9-branch revision 277599] binutils: (2.34-4ubuntu1+13ubuntu1) 2.34",
+      "mcu_constants": {
+        "ADC_MAX": 4095,
+        "CLOCK_FREQ": 120000000,
+        "MCU": "gd32f303xe",
+        "RECEIVE_WINDOW": 192,
+        "RESERVE_PINS_serial": "PA2,PA3",
+        "SERIAL_BAUD": 230400,
+        "STATS_SUMSQ_BASE": 256,
+        "STEPPER_BOTH_EDGE": 1,
+        "build_machine_uid": "Feb 10 202519:25:28"
+      },
+      "last_stats": {
+        "mcu_awake": 0.001,
+        "mcu_task_avg": 8e-06,
+        "mcu_task_stddev": 4e-06,
+        "bytes_write": 43677400,
+        "bytes_read": 8765355,
+        "bytes_retransmit": 9,
+        "bytes_invalid": 0,
+        "send_seq": 801325,
+        "receive_seq": 801324,
+        "retransmit_seq": 2,
+        "srtt": 0.001,
+        "rttvar": 0.0,
+        "rto": 0.025,
+        "ready_bytes": 0,
+        "stalled_bytes": 0,
+        "freq": 119999076
+      }
+    },
+    "mcu nozzle_mcu": {
+      "mcu_version": "23f337b2",
+      "mcu_build_versions": "gcc: (15:9-2019-q4-0ubuntu1) 9.2.1 20191025 (release) [ARM/arm-9-branch revision 277599] binutils: (2.34-4ubuntu1+13ubuntu1) 2.34",
+      "mcu_constants": {
+        "ADC_MAX": 4095,
+        "CLOCK_FREQ": 120000000,
+        "MCU": "gd32f303xb",
+        "RECEIVE_WINDOW": 192,
+        "RESERVE_PINS_serial": "PA2,PA3",
+        "SERIAL_BAUD": 230400,
+        "STATS_SUMSQ_BASE": 256,
+        "STEPPER_BOTH_EDGE": 1,
+        "build_machine_uid": "Sep  5 202416:56:45"
+      },
+      "last_stats": {
+        "mcu_awake": 0.002,
+        "mcu_task_avg": 6e-06,
+        "mcu_task_stddev": 4e-06,
+        "bytes_write": 24504155,
+        "bytes_read": 4767815,
+        "bytes_retransmit": 9,
+        "bytes_invalid": 0,
+        "send_seq": 459016,
+        "receive_seq": 459016,
+        "retransmit_seq": 2,
+        "srtt": 0.001,
+        "rttvar": 0.0,
+        "rto": 0.025,
+        "ready_bytes": 0,
+        "stalled_bytes": 0,
+        "freq": 120000509,
+        "adj": 120001511
+      }
+    },
+    "mcu bed_mcu": {
+      "mcu_version": "54872883-dirty-20240605_163644-longer-virtual-machine",
+      "mcu_build_versions": "gcc: (15:9-2019-q4-0ubuntu1) 9.2.1 20191025 (release) [ARM/arm-9-branch revision 277599] binutils: (2.34-4ubuntu1+13ubuntu1) 2.34",
+      "mcu_constants": {
+        "ADC_MAX": 4095,
+        "CLOCK_FREQ": 72000000,
+        "MCU": "gd32e230x8",
+        "RECEIVE_WINDOW": 192,
+        "RESERVE_PINS_serial": "PA9,PA10",
+        "SERIAL_BAUD": 230400,
+        "STATS_SUMSQ_BASE": 256,
+        "STEPPER_BOTH_EDGE": 1,
+        "build_machine_uid": "Jun  5 202416:36:39"
+      },
+      "last_stats": {
+        "mcu_awake": 0.0,
+        "mcu_task_avg": 4e-06,
+        "mcu_task_stddev": 3e-06,
+        "bytes_write": 154931,
+        "bytes_read": 478633,
+        "bytes_retransmit": 9,
+        "bytes_invalid": 0,
+        "send_seq": 25802,
+        "receive_seq": 25802,
+        "retransmit_seq": 17,
+        "srtt": 0.001,
+        "rttvar": 0.0,
+        "rto": 0.025,
+        "ready_bytes": 0,
+        "stalled_bytes": 0,
+        "freq": 71833913,
+        "adj": 71833325
+      }
+    },
+    "mcu rpi": {
+      "mcu_version": "43221f50-dirty-20240224_174812-ubuntu1804",
+      "mcu_build_versions": "gcc: (OpenWrt/CodeSourcery GCC 8.3.0 2021.08) 8.3.0 binutils: (GNU Binutils) 2.28",
+      "mcu_constants": {
+        "ADC_MAX": 4095,
+        "CLOCK_FREQ": 50000000,
+        "MCU": "linux",
+        "PCA9685_MAX": 4096,
+        "PWM_MAX": 32768,
+        "STATS_SUMSQ_BASE": 256,
+        "build_machine_uid": "Feb 24 202417:48:08"
+      },
+      "last_stats": {
+        "mcu_awake": 0.001,
+        "mcu_task_avg": 1.1e-05,
+        "mcu_task_stddev": 1.4e-05,
+        "bytes_write": 180061,
+        "bytes_read": 494611,
+        "bytes_retransmit": 0,
+        "bytes_invalid": 0,
+        "send_seq": 27807,
+        "receive_seq": 27807,
+        "retransmit_seq": 0,
+        "srtt": 0.0,
+        "rttvar": 0.0,
+        "rto": 0.025,
+        "ready_bytes": 0,
+        "stalled_bytes": 0,
+        "freq": 50000010,
+        "adj": 50000358
+      }
+    },
+    "gcode_macro xyz_ready": {
+      "x_ready": 1,
+      "y_ready": 1,
+      "z_ready": 0,
+      "xy_moved": 1,
+      "z_moved": 1,
+      "zdown_enable": 0,
+      "safe_z": 3
+    },
+    "gcode_macro ENABLE_ZDOWN": {},
+    "gcode_macro _IF_HOME_Z": {},
+    "gcode_macro _IF_MOVE_XY": {},
+    "gcode_macro _HOME_X": {},
+    "gcode_macro _HOME_Y": {},
+    "gcode_macro _HOME_Z": {},
+    "display_status": {
+      "progress": 0.0,
+      "message": null
+    },
+    "gcode_macro PRINTER_PARAM": {
+      "z_safe_pause": 0.0,
+      "max_x_position": 260.0,
+      "max_y_position": 260.0,
+      "max_z_position": 300.0,
+      "fans": 3,
+      "auto_g29": 0,
+      "default_bed_temp": 50,
+      "default_extruder_temp": 240,
+      "g28_extruder_temp": 140,
+      "print_calibration": 0,
+      "fan0_min": 51,
+      "fan0_speed": 0,
+      "hotend_temp": 200,
+      "default_acc": 12000
+    },
+    "gcode_macro STRUCTURE_PARAM": {
+      "bed_length": 260,
+      "bed_width": 260,
+      "bed_hight": 300,
+      "laser_x_offset": 45.0,
+      "laser_y_offset": -8.0,
+      "laser_z_offset": 3.0,
+      "cali_x_offset": 200.9,
+      "cali_y_offset": 8.9,
+      "cali_z_offset": 5.0
+    },
+    "gcode_macro CANCEL_PRINT": {
+      "inside_cancel": 0
+    },
+    "gcode_macro MOTOR_CANCEL_PRINT": {},
+    "gcode_macro IF_NEED_HOME": {},
+    "gcode_macro PRINT_CALIBRATION": {},
+    "gcode_macro FIRST_FLOOR_PAUSE_POSITION": {},
+    "gcode_macro FIRST_FLOOR_RESUME": {},
+    "gcode_macro FIRST_FLOOR_PAUSE": {
+      "extrude": 2.0
+    },
+    "gcode_macro RESPONSE_INFO": {},
+    "gcode_macro DO_COOLING": {},
+    "gcode_macro DO_CUT": {},
+    "gcode_macro IF_CUT_AND_COOLING": {
+      "inside_cut": 0,
+      "resumed": 1
+    },
+    "gcode_macro PAUSE": {
+      "extrude": 2.0
+    },
+    "gcode_macro PAUSE_EXTERNAL": {},
+    "gcode_macro RESUME": {},
+    "gcode_macro RESUME_EXTERNAL_PROCESS": {},
+    "gcode_macro RESUME_EXTERNAL": {},
+    "gcode_macro M900": {},
+    "gcode_macro WAIT_TEMP_START": {},
+    "gcode_macro WAIT_TEMP_END": {},
+    "gcode_macro M204": {},
+    "gcode_macro M205": {},
+    "gcode_macro G29": {},
+    "gcode_macro CALIBRATE_CUT_POS": {},
+    "gcode_macro INPUTSHAPER": {},
+    "gcode_macro AUTOTUNE_SHAPERS": {
+      "autotune_shapers": "mzv,zv,ei"
+    },
+    "gcode_macro SET_PIN": {},
+    "gcode_macro M106": {},
+    "gcode_macro M107": {},
+    "gcode_macro COOLING_AFTER_LOAD_OR_QUIT_MATERIAL": {},
+    "gcode_macro LOAD_MATERIAL_END": {},
+    "gcode_macro LOAD_MATERIAL": {},
+    "gcode_macro QUIT_MATERIAL_END": {},
+    "gcode_macro QUIT_MATERIAL": {},
+    "gcode_macro EXTRUDE_BEFORE_CLEAR": {},
+    "gcode_macro TPU_EXTRUDE_BEFORE_CLEAR": {},
+    "gcode_macro M600": {},
+    "gcode_macro FINISH_INIT": {},
+    "gcode_macro PRINT_TEMP_SET": {},
+    "gcode_macro NOZCLEAR_START_PRINT": {},
+    "gcode_macro END_PRINT": {},
+    "gcode_macro START_PRINT": {
+      "prepare": 0
+    },
+    "gcode_macro PRINT_PREPARED": {},
+    "gcode_macro PRINT_PREPARE_CLEAR": {},
+    "gcode_macro Qmode": {
+      "flag": 0,
+      "accel": 0,
+      "accel_to_decel": 0,
+      "velocity": 0,
+      "square_corner_velocity": 0,
+      "pressure_advance": 0.0,
+      "fan0_value": 0.0,
+      "fan1_value": 0.0,
+      "board_fan_value": 0.0,
+      "speed_factor": 0,
+      "max_accel": 2500,
+      "max_accel_to_decel": 2500
+    },
+    "gcode_macro Qmode_exit": {},
+    "gcode_macro Rmode": {
+      "flag": 0
+    },
+    "gcode_macro Rmode_exit": {},
+    "gcode_macro A_TriPress_STEP1": {},
+    "gcode_macro A_TriPress_STEP2": {},
+    "gcode_macro zLimit_state": {},
+    "gcode_macro MAINTENANCE_ITEM_PARAM": {
+      "cut_calibration": 10000,
+      "shaper_calibrate": 1800000,
+      "belt_tensioning": 3600000,
+      "motion_mechanism_lubrication": 1800000,
+      "camera_maintenance": 1800000,
+      "fan_inspection": 1800000,
+      "nozzle": 20000,
+      "cut": 100000,
+      "machine_teflon_tube": 3600000,
+      "wipe_mouth_strip": 1800000,
+      "air_filter": 1800000,
+      "cfs_teflon_tube": 3600000,
+      "cfs_desiccant": 1800000
+    },
+    "gcode_macro MAINTENANCE_ITEM": {
+      "calibrate": {
+        "cut_calibration": {
+          "cur_value": 41,
+          "threshold": 10000,
+          "timeout": false
+        },
+        "shaper_calibrate": {
+          "cur_value": 307380,
+          "threshold": 1800000,
+          "timeout": false
+        },
+        "belt_tensioning": {
+          "cur_value": 307380,
+          "threshold": 3600000,
+          "timeout": false
+        }
+      },
+      "routine_maintenance": {
+        "motion_mechanism_lubrication": {
+          "cur_value": 307380,
+          "threshold": 1800000,
+          "timeout": false
+        },
+        "camera_maintenance": {
+          "cur_value": 307380,
+          "threshold": 1800000,
+          "timeout": false
+        },
+        "fan_inspection": {
+          "cur_value": 307380,
+          "threshold": 1800000,
+          "timeout": false
+        }
+      },
+      "machine_wear_parts_replacement": {
+        "nozzle": {
+          "cur_value": 0,
+          "threshold": 20000,
+          "timeout": false
+        },
+        "cut": {
+          "cur_value": 41,
+          "threshold": 100000,
+          "timeout": false
+        },
+        "machine_teflon_tube": {
+          "cur_value": 307380,
+          "threshold": 3600000,
+          "timeout": false
+        },
+        "wipe_mouth_strip": {
+          "cur_value": 307380,
+          "threshold": 1800000,
+          "timeout": false
+        },
+        "air_filter": {
+          "cur_value": 307380,
+          "threshold": 1800000,
+          "timeout": false
+        }
+      },
+      "cfs_wear_parts_replacement": {
+        "cfs_teflon_tube": {
+          "cur_value": 0,
+          "threshold": 3600000,
+          "timeout": false
+        },
+        "cfs_desiccant": {
+          "cur_value": 0,
+          "threshold": 1800000,
+          "timeout": false
+        }
+      }
+    },
+    "custom_macro": {
+      "leveling_calibration": 0,
+      "default_extruder_temp": 240.0,
+      "default_bed_temp": 50.0,
+      "g28_ext_temp": 140.0,
+      "qmode_flag": 0
+    },
+    "fan_feedback": {
+      "fan0_speed": 0,
+      "fan1_speed": 0,
+      "fan2_speed": 0,
+      "fan3_speed": 0,
+      "fan4_speed": 0
+    },
+    "gcode_macro product_param": {
+      "bed_size_x": 260,
+      "bed_size_y": 260,
+      "bed_size_z": 300,
+      "nozzle_temp": 300,
+      "bed_temp": 100
+    },
+    "filament_rack": {
+      "vender": "Creality",
+      "color_value": "01B04AE",
+      "material_type": "006001"
+    },
+    "box": {
+      "filament": 1,
+      "state": "disconnect",
+      "auto_refill": 1,
+      "enable": 1,
+      "filament_useup": 1,
+      "same_material": [],
+      "map": {
+        "T1A": "T1A",
+        "T1B": "T1B",
+        "T1C": "T1C",
+        "T1D": "T1D",
+        "T2A": "T2A",
+        "T2B": "T2B",
+        "T2C": "T2C",
+        "T2D": "T2D",
+        "T3A": "T3A",
+        "T3B": "T3B",
+        "T3C": "T3C",
+        "T3D": "T3D",
+        "T4A": "T4A",
+        "T4B": "T4B",
+        "T4C": "T4C",
+        "T4D": "T4D"
+      },
+      "T1": {
+        "state": "None",
+        "filament": "None",
+        "temperature": "None",
+        "dry_and_humidity": "None",
+        "filament_detected": "None",
+        "measuring_wheel": "None",
+        "version": "-1",
+        "sn": "-1",
+        "mode": "-1",
+        "vender": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "remain_len": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "color_value": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "material_type": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "uuid": "None",
+        "change_color_num": [
+          -1,
+          -1,
+          -1,
+          -1
+        ]
+      },
+      "T2": {
+        "state": "None",
+        "filament": "None",
+        "temperature": "None",
+        "dry_and_humidity": "None",
+        "filament_detected": "None",
+        "measuring_wheel": "None",
+        "version": "-1",
+        "sn": "-1",
+        "mode": "-1",
+        "vender": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "remain_len": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "color_value": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "material_type": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "uuid": "None",
+        "change_color_num": [
+          -1,
+          -1,
+          -1,
+          -1
+        ]
+      },
+      "T3": {
+        "state": "None",
+        "filament": "None",
+        "temperature": "None",
+        "dry_and_humidity": "None",
+        "filament_detected": "None",
+        "measuring_wheel": "None",
+        "version": "-1",
+        "sn": "-1",
+        "mode": "-1",
+        "vender": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "remain_len": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "color_value": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "material_type": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "uuid": "None",
+        "change_color_num": [
+          -1,
+          -1,
+          -1,
+          -1
+        ]
+      },
+      "T4": {
+        "state": "None",
+        "filament": "None",
+        "temperature": "None",
+        "dry_and_humidity": "None",
+        "filament_detected": "None",
+        "measuring_wheel": "None",
+        "version": "-1",
+        "sn": "-1",
+        "mode": "-1",
+        "vender": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "remain_len": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "color_value": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "material_type": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "uuid": "None",
+        "change_color_num": [
+          -1,
+          -1,
+          -1,
+          -1
+        ]
+      },
+      "cut_state": 1
+    },
+    "gcode_macro BOX_CHECK_MATERIAL": {},
+    "gcode_macro BOX_LOAD_MATERIAL_WITH_MATERIAL_END": {},
+    "gcode_macro BOX_LOAD_MATERIAL_WITH_MATERIAL": {},
+    "gcode_macro BOX_LOAD_MATERIAL_WITHOUT_MATERIAL": {},
+    "gcode_macro BOX_RETRUDE_MATERIAL_WITH_TNN": {},
+    "gcode_macro BOX_QUIT_MATERIAL_END": {},
+    "gcode_macro BOX_QUIT_MATERIAL": {},
+    "gcode_macro BOX_INFO_REFRESH": {},
+    "gcode_macro POP_FILAMENT_OUT": {},
+    "motor_control": {
+      "motor_ready": true,
+      "is_homing": false,
+      "cut": {
+        "state": true,
+        "pos_x": 279.6
+      }
+    },
+    "heaters": {
+      "available_heaters": [
+        "heater_bed",
+        "extruder"
+      ],
+      "available_sensors": [
+        "temperature_sensor mcu_temp",
+        "heater_bed",
+        "extruder"
+      ],
+      "extruder_temperature_wait": false,
+      "bed_temperature_wait": false
+    },
+    "tmc2208 stepper_z": {
+      "mcu_phase_offset": 31,
+      "phase_offset_position": 464.36875000000003,
+      "run_current": 0.4971844555217911,
+      "hold_current": 0.4971844555217911,
+      "drv_status": {
+        "cs_actual": 14,
+        "stealth": 1,
+        "stst": 1
+      }
+    },
+    "tmc2208 stepper_z1": {
+      "mcu_phase_offset": 2,
+      "phase_offset_position": 464.9075,
+      "run_current": 0.4971844555217911,
+      "hold_current": 0.4971844555217911,
+      "drv_status": {
+        "cs_actual": 14,
+        "stealth": 1,
+        "stst": 1
+      }
+    },
+    "z_tilt": {
+      "applied": false
+    },
+    "axis_twist_compensation": {
+      "on_turb": false,
+      "pres_state": true,
+      "pres_data": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "probe": {
+      "last_query": false,
+      "last_z_result": -0.0374999999996443,
+      "z_offset": 0.0
+    },
+    "prtouch_v3": {
+      "on_turb": false,
+      "pres_state": true,
+      "pres_data": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "tmc2208 extruder": {
+      "mcu_phase_offset": 63,
+      "phase_offset_position": 0.13584375,
+      "run_current": 0.3728883416413433,
+      "hold_current": 0.3728883416413433,
+      "drv_status": null
+    },
+    "output_pin board_fan": {
+      "value": 0.0
+    },
+    "output_pin LED": {
+      "value": 1.0
+    },
+    "steer": {
+      "state": false,
+      "enable": false
+    },
+    "query_endstops": {
+      "last_query": {}
+    },
+    "system_stats": {
+      "sysload": 0.42,
+      "cputime": 5077.074227504,
+      "memavail": 364388
+    },
+    "manual_probe": {
+      "is_active": false,
+      "z_position": null,
+      "z_position_lower": null,
+      "z_position_upper": null
+    }
+  }
+}

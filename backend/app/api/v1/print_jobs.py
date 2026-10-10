@@ -3,11 +3,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, require_admin
-from app.db.models import Printer, PrintJob
+from app.db.models import Printer, PrintJob, User
 from app.db.session import get_db
 from app.schemas.print_job import JobSummaryRead, PrintJobCreate, PrintJobRead, PrintJobTransition, TimelineEntryRead
 from app.services.auto_pause import auto_pause_manager
-from app.services.print_jobs import create_print_job, transition_job_status
+from app.services.print_jobs import create_print_job, read_jobs, transition_job_status
 from app.services.timeline import get_job_summary, get_job_timeline
 
 router = APIRouter(tags=["print-jobs"], dependencies=[Depends(get_current_user)])
@@ -28,10 +28,10 @@ async def _get_job_or_404(job_id: int, db: AsyncSession) -> PrintJob:
 
 
 @router.get("/printers/{printer_id}/print-jobs", response_model=list[PrintJobRead])
-async def list_print_jobs(printer_id: int, db: AsyncSession = Depends(get_db)) -> list[PrintJob]:
+async def list_print_jobs(printer_id: int, db: AsyncSession = Depends(get_db)) -> list[PrintJobRead]:
     await _get_printer_or_404(printer_id, db)
     result = await db.execute(select(PrintJob).where(PrintJob.printer_id == printer_id).order_by(PrintJob.id))
-    return list(result.scalars().all())
+    return await read_jobs(db, list(result.scalars().all()))
 
 
 @router.post(
@@ -47,8 +47,9 @@ async def create_print_job_endpoint(
 
 
 @router.get("/print-jobs/{job_id}", response_model=PrintJobRead)
-async def get_print_job(job_id: int, db: AsyncSession = Depends(get_db)) -> PrintJob:
-    return await _get_job_or_404(job_id, db)
+async def get_print_job(job_id: int, db: AsyncSession = Depends(get_db)) -> PrintJobRead:
+    (read,) = await read_jobs(db, [await _get_job_or_404(job_id, db)])
+    return read
 
 
 @router.post("/print-jobs/{job_id}/transition", response_model=PrintJobRead, dependencies=[Depends(require_admin)])
@@ -81,9 +82,11 @@ async def get_print_job_summary(job_id: int, db: AsyncSession = Depends(get_db))
     status_code=status.HTTP_204_NO_CONTENT,
     dependencies=[Depends(require_admin)],
 )
-async def abort_auto_pause(job_id: int, db: AsyncSession = Depends(get_db)) -> None:
+async def abort_auto_pause(
+    job_id: int, db: AsyncSession = Depends(get_db), user: User = Depends(require_admin)
+) -> None:
     await _get_job_or_404(job_id, db)
-    aborted = await auto_pause_manager.abort(job_id)
+    aborted = await auto_pause_manager.abort(job_id, requested_by=f"{user.username} (web)")
     if not aborted:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,

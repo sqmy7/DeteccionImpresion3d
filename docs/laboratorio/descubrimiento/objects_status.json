@@ -1,0 +1,1878 @@
+{
+  "eventtime": 13542.543277957,
+  "status": {
+    "webhooks": {
+      "state": "ready",
+      "state_message": "Printer is ready"
+    },
+    "mcu": {
+      "mcu_version": "cf1eac2d-dirty-20250210_192534-ubuntu",
+      "mcu_build_versions": "gcc: (15:9-2019-q4-0ubuntu1) 9.2.1 20191025 (release) [ARM/arm-9-branch revision 277599] binutils: (2.34-4ubuntu1+13ubuntu1) 2.34",
+      "mcu_constants": {
+        "ADC_MAX": 4095,
+        "CLOCK_FREQ": 120000000,
+        "MCU": "gd32f303xe",
+        "RECEIVE_WINDOW": 192,
+        "RESERVE_PINS_serial": "PA2,PA3",
+        "SERIAL_BAUD": 230400,
+        "STATS_SUMSQ_BASE": 256,
+        "STEPPER_BOTH_EDGE": 1,
+        "build_machine_uid": "Feb 10 202519:25:28"
+      },
+      "last_stats": {
+        "mcu_awake": 0.004,
+        "mcu_task_avg": 1.8e-05,
+        "mcu_task_stddev": 1.3e-05,
+        "bytes_write": 25400959,
+        "bytes_read": 4880003,
+        "bytes_retransmit": 9,
+        "bytes_invalid": 0,
+        "send_seq": 462588,
+        "receive_seq": 462588,
+        "retransmit_seq": 2,
+        "srtt": 0.001,
+        "rttvar": 0.0,
+        "rto": 0.025,
+        "ready_bytes": 0,
+        "stalled_bytes": 0,
+        "freq": 119999006
+      }
+    },
+    "mcu nozzle_mcu": {
+      "mcu_version": "23f337b2",
+      "mcu_build_versions": "gcc: (15:9-2019-q4-0ubuntu1) 9.2.1 20191025 (release) [ARM/arm-9-branch revision 277599] binutils: (2.34-4ubuntu1+13ubuntu1) 2.34",
+      "mcu_constants": {
+        "ADC_MAX": 4095,
+        "CLOCK_FREQ": 120000000,
+        "MCU": "gd32f303xb",
+        "RECEIVE_WINDOW": 192,
+        "RESERVE_PINS_serial": "PA2,PA3",
+        "SERIAL_BAUD": 230400,
+        "STATS_SUMSQ_BASE": 256,
+        "STEPPER_BOTH_EDGE": 1,
+        "build_machine_uid": "Sep  5 202416:56:45"
+      },
+      "last_stats": {
+        "mcu_awake": 0.004,
+        "mcu_task_avg": 1.3e-05,
+        "mcu_task_stddev": 1.3e-05,
+        "bytes_write": 12956514,
+        "bytes_read": 2571189,
+        "bytes_retransmit": 9,
+        "bytes_invalid": 0,
+        "send_seq": 243310,
+        "receive_seq": 243310,
+        "retransmit_seq": 2,
+        "srtt": 0.001,
+        "rttvar": 0.0,
+        "rto": 0.025,
+        "ready_bytes": 51,
+        "stalled_bytes": 9,
+        "freq": 120000421,
+        "adj": 120001587
+      }
+    },
+    "mcu bed_mcu": {
+      "mcu_version": "54872883-dirty-20240605_163644-longer-virtual-machine",
+      "mcu_build_versions": "gcc: (15:9-2019-q4-0ubuntu1) 9.2.1 20191025 (release) [ARM/arm-9-branch revision 277599] binutils: (2.34-4ubuntu1+13ubuntu1) 2.34",
+      "mcu_constants": {
+        "ADC_MAX": 4095,
+        "CLOCK_FREQ": 72000000,
+        "MCU": "gd32e230x8",
+        "RECEIVE_WINDOW": 192,
+        "RESERVE_PINS_serial": "PA9,PA10",
+        "SERIAL_BAUD": 230400,
+        "STATS_SUMSQ_BASE": 256,
+        "STEPPER_BOTH_EDGE": 1,
+        "build_machine_uid": "Jun  5 202416:36:39"
+      },
+      "last_stats": {
+        "mcu_awake": 0.0,
+        "mcu_task_avg": 4e-06,
+        "mcu_task_stddev": 3e-06,
+        "bytes_write": 82727,
+        "bytes_read": 256292,
+        "bytes_retransmit": 9,
+        "bytes_invalid": 0,
+        "send_seq": 13768,
+        "receive_seq": 13768,
+        "retransmit_seq": 17,
+        "srtt": 0.001,
+        "rttvar": 0.0,
+        "rto": 0.025,
+        "ready_bytes": 0,
+        "stalled_bytes": 0,
+        "freq": 71833978,
+        "adj": 71834436
+      }
+    },
+    "mcu rpi": {
+      "mcu_version": "43221f50-dirty-20240224_174812-ubuntu1804",
+      "mcu_build_versions": "gcc: (OpenWrt/CodeSourcery GCC 8.3.0 2021.08) 8.3.0 binutils: (GNU Binutils) 2.28",
+      "mcu_constants": {
+        "ADC_MAX": 4095,
+        "CLOCK_FREQ": 50000000,
+        "MCU": "linux",
+        "PCA9685_MAX": 4096,
+        "PWM_MAX": 32768,
+        "STATS_SUMSQ_BASE": 256,
+        "build_machine_uid": "Feb 24 202417:48:08"
+      },
+      "last_stats": {
+        "mcu_awake": 0.016,
+        "mcu_task_avg": 0.000276,
+        "mcu_task_stddev": 0.001153,
+        "bytes_write": 97344,
+        "bytes_read": 265839,
+        "bytes_retransmit": 0,
+        "bytes_invalid": 0,
+        "send_seq": 14931,
+        "receive_seq": 14931,
+        "retransmit_seq": 0,
+        "srtt": 0.001,
+        "rttvar": 0.001,
+        "rto": 0.025,
+        "ready_bytes": 0,
+        "stalled_bytes": 0,
+        "freq": 49999993,
+        "adj": 50000341
+      }
+    },
+    "gcode_macro xyz_ready": {
+      "x_ready": 1,
+      "y_ready": 1,
+      "z_ready": 1,
+      "xy_moved": 1,
+      "z_moved": 1,
+      "zdown_enable": 0,
+      "safe_z": 3
+    },
+    "gcode_macro ENABLE_ZDOWN": {},
+    "gcode_macro _IF_HOME_Z": {},
+    "gcode_macro _IF_MOVE_XY": {},
+    "gcode_macro _HOME_X": {},
+    "gcode_macro _HOME_Y": {},
+    "gcode_macro _HOME_Z": {},
+    "gcode_move": {
+      "speed_factor": 1.0,
+      "speed": 9000.0,
+      "extrude_factor": 1.0,
+      "absolute_coordinates": true,
+      "absolute_extrude": false,
+      "homing_origin": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "position": [
+        102.527,
+        82.81,
+        56.6,
+        42125.77021001162
+      ],
+      "gcode_position": [
+        102.527,
+        82.81,
+        56.6,
+        55.868999999984226
+      ]
+    },
+    "print_stats": {
+      "filename": "CAJA LISTA CARA ADALOVE LISTA PARA IMPRIMIR (1).stl_PETG_6h0m27s.gcode",
+      "total_duration": 12034.190049738001,
+      "print_duration": 11977.615183586,
+      "filament_used": 41722.750210011625,
+      "state": "printing",
+      "message": "",
+      "info": {
+        "total_layer": null,
+        "current_layer": null
+      },
+      "power_loss": 0,
+      "z_pos": 56.63
+    },
+    "virtual_sdcard": {
+      "file_path": "/mnt/UDISK/printer_data/gcodes/CAJA LISTA CARA ADALOVE LISTA PARA IMPRIMIR (1).stl_PETG_6h0m27s.gcode",
+      "progress": 0.4556404922487409,
+      "is_active": true,
+      "file_position": 4703092,
+      "file_size": 10321936,
+      "first_layer_stop": false,
+      "layer": 283,
+      "layer_count": 486,
+      "run_dis": 0.0,
+      "klipper_capture": false,
+      "cur_print_data": {
+        "end_time": 1577850167.384063,
+        "filament_used": 41135.5958900088,
+        "filename": "CAJA LISTA CARA ADALOVE LISTA PARA IMPRIMIR (1).stl_PETG_6h0m27s.gcode",
+        "metadata": {
+          "size": 10321936,
+          "modified": 1577837446.6100004,
+          "uuid": "420278da-8f1f-4fcd-89d0-e331d6868c3b",
+          "slicer": "Creality",
+          "slicer_version": "7.3.0.6149",
+          "gcode_start_byte": 17989,
+          "gcode_end_byte": 10300123,
+          "layer_count": 486,
+          "object_height": 97.2,
+          "layer_height": 0.2,
+          "filament_type": "PETG",
+          "flush_para": {
+            "flush_multiplier": 1.3,
+            "flush_volumes_matrix": [
+              0
+            ],
+            "nozzle_volume": 183.0
+          },
+          "model_info": {
+            "MaterialType": "PETG"
+          },
+          "wipe_tower_posy": 0.0,
+          "default_filament_colour": [
+            "#56DF3D"
+          ],
+          "filament_used_g": [
+            "201.83"
+          ]
+        },
+        "print_duration": 11800.601528251998,
+        "start_time": 1577838309.8842597,
+        "status": "in_progress",
+        "total_duration": 11857.176394404
+      }
+    },
+    "pause_resume": {
+      "is_paused": false,
+      "resume_err": false
+    },
+    "display_status": {
+      "progress": 0.53,
+      "message": null
+    },
+    "gcode_macro PRINTER_PARAM": {
+      "z_safe_pause": 0.0,
+      "max_x_position": 260.0,
+      "max_y_position": 260.0,
+      "max_z_position": 300.0,
+      "fans": 3,
+      "auto_g29": 0,
+      "default_bed_temp": 50,
+      "default_extruder_temp": 240,
+      "g28_extruder_temp": 140,
+      "print_calibration": 0,
+      "fan0_min": 51,
+      "fan0_speed": 0,
+      "hotend_temp": 200,
+      "default_acc": 12000
+    },
+    "gcode_macro STRUCTURE_PARAM": {
+      "bed_length": 260,
+      "bed_width": 260,
+      "bed_hight": 300,
+      "laser_x_offset": 45.0,
+      "laser_y_offset": -8.0,
+      "laser_z_offset": 3.0,
+      "cali_x_offset": 200.9,
+      "cali_y_offset": 8.9,
+      "cali_z_offset": 5.0
+    },
+    "gcode_macro CANCEL_PRINT": {
+      "inside_cancel": 0
+    },
+    "gcode_macro MOTOR_CANCEL_PRINT": {},
+    "gcode_macro IF_NEED_HOME": {},
+    "gcode_macro PRINT_CALIBRATION": {},
+    "gcode_macro FIRST_FLOOR_PAUSE_POSITION": {},
+    "gcode_macro FIRST_FLOOR_RESUME": {},
+    "gcode_macro FIRST_FLOOR_PAUSE": {
+      "extrude": 2.0
+    },
+    "gcode_macro RESPONSE_INFO": {},
+    "gcode_macro DO_COOLING": {},
+    "gcode_macro DO_CUT": {},
+    "gcode_macro IF_CUT_AND_COOLING": {
+      "inside_cut": 0,
+      "resumed": 1
+    },
+    "gcode_macro PAUSE": {
+      "extrude": 2.0
+    },
+    "gcode_macro PAUSE_EXTERNAL": {},
+    "gcode_macro RESUME": {},
+    "gcode_macro RESUME_EXTERNAL_PROCESS": {},
+    "gcode_macro RESUME_EXTERNAL": {},
+    "gcode_macro M900": {},
+    "gcode_macro WAIT_TEMP_START": {},
+    "gcode_macro WAIT_TEMP_END": {},
+    "gcode_macro M204": {},
+    "gcode_macro M205": {},
+    "gcode_macro G29": {},
+    "gcode_macro CALIBRATE_CUT_POS": {},
+    "gcode_macro INPUTSHAPER": {},
+    "gcode_macro AUTOTUNE_SHAPERS": {
+      "autotune_shapers": "mzv,zv,ei"
+    },
+    "gcode_macro SET_PIN": {},
+    "gcode_macro M106": {},
+    "gcode_macro M107": {},
+    "gcode_macro COOLING_AFTER_LOAD_OR_QUIT_MATERIAL": {},
+    "gcode_macro LOAD_MATERIAL_END": {},
+    "gcode_macro LOAD_MATERIAL": {},
+    "gcode_macro QUIT_MATERIAL_END": {},
+    "gcode_macro QUIT_MATERIAL": {},
+    "gcode_macro EXTRUDE_BEFORE_CLEAR": {},
+    "gcode_macro TPU_EXTRUDE_BEFORE_CLEAR": {},
+    "gcode_macro M600": {},
+    "gcode_macro FINISH_INIT": {},
+    "gcode_macro PRINT_TEMP_SET": {},
+    "gcode_macro NOZCLEAR_START_PRINT": {},
+    "gcode_macro END_PRINT": {},
+    "gcode_macro START_PRINT": {
+      "prepare": 0
+    },
+    "gcode_macro PRINT_PREPARED": {},
+    "gcode_macro PRINT_PREPARE_CLEAR": {},
+    "gcode_macro Qmode": {
+      "flag": 0,
+      "accel": 0,
+      "accel_to_decel": 0,
+      "velocity": 0,
+      "square_corner_velocity": 0,
+      "pressure_advance": 0.0,
+      "fan0_value": 0.0,
+      "fan1_value": 0.0,
+      "board_fan_value": 0.0,
+      "speed_factor": 0,
+      "max_accel": 2500,
+      "max_accel_to_decel": 2500
+    },
+    "gcode_macro Qmode_exit": {},
+    "gcode_macro Rmode": {
+      "flag": 0
+    },
+    "gcode_macro Rmode_exit": {},
+    "gcode_macro A_TriPress_STEP1": {},
+    "gcode_macro A_TriPress_STEP2": {},
+    "gcode_macro zLimit_state": {},
+    "gcode_macro MAINTENANCE_ITEM_PARAM": {
+      "cut_calibration": 10000,
+      "shaper_calibrate": 1800000,
+      "belt_tensioning": 3600000,
+      "motion_mechanism_lubrication": 1800000,
+      "camera_maintenance": 1800000,
+      "fan_inspection": 1800000,
+      "nozzle": 20000,
+      "cut": 100000,
+      "machine_teflon_tube": 3600000,
+      "wipe_mouth_strip": 1800000,
+      "air_filter": 1800000,
+      "cfs_teflon_tube": 3600000,
+      "cfs_desiccant": 1800000
+    },
+    "gcode_macro MAINTENANCE_ITEM": {
+      "calibrate": {
+        "cut_calibration": {
+          "cur_value": 39,
+          "threshold": 10000,
+          "timeout": false
+        },
+        "shaper_calibrate": {
+          "cur_value": 297660,
+          "threshold": 1800000,
+          "timeout": false
+        },
+        "belt_tensioning": {
+          "cur_value": 297660,
+          "threshold": 3600000,
+          "timeout": false
+        }
+      },
+      "routine_maintenance": {
+        "motion_mechanism_lubrication": {
+          "cur_value": 297660,
+          "threshold": 1800000,
+          "timeout": false
+        },
+        "camera_maintenance": {
+          "cur_value": 297660,
+          "threshold": 1800000,
+          "timeout": false
+        },
+        "fan_inspection": {
+          "cur_value": 297660,
+          "threshold": 1800000,
+          "timeout": false
+        }
+      },
+      "machine_wear_parts_replacement": {
+        "nozzle": {
+          "cur_value": 0,
+          "threshold": 20000,
+          "timeout": false
+        },
+        "cut": {
+          "cur_value": 39,
+          "threshold": 100000,
+          "timeout": false
+        },
+        "machine_teflon_tube": {
+          "cur_value": 297660,
+          "threshold": 3600000,
+          "timeout": false
+        },
+        "wipe_mouth_strip": {
+          "cur_value": 297660,
+          "threshold": 1800000,
+          "timeout": false
+        },
+        "air_filter": {
+          "cur_value": 297660,
+          "threshold": 1800000,
+          "timeout": false
+        }
+      },
+      "cfs_wear_parts_replacement": {
+        "cfs_teflon_tube": {
+          "cur_value": 0,
+          "threshold": 3600000,
+          "timeout": false
+        },
+        "cfs_desiccant": {
+          "cur_value": 0,
+          "threshold": 1800000,
+          "timeout": false
+        }
+      }
+    },
+    "custom_macro": {
+      "leveling_calibration": 0,
+      "default_extruder_temp": 240.0,
+      "default_bed_temp": 50.0,
+      "g28_ext_temp": 140.0,
+      "qmode_flag": 0
+    },
+    "fan_feedback": {
+      "fan0_speed": 16000,
+      "fan1_speed": 6000,
+      "fan2_speed": 5333,
+      "fan3_speed": 0,
+      "fan4_speed": 0
+    },
+    "gcode_macro product_param": {
+      "bed_size_x": 260,
+      "bed_size_y": 260,
+      "bed_size_z": 300,
+      "nozzle_temp": 300,
+      "bed_temp": 100
+    },
+    "filament_rack": {
+      "vender": "Creality",
+      "color_value": "01B04AE",
+      "material_type": "006001"
+    },
+    "box": {
+      "filament": 1,
+      "state": "disconnect",
+      "auto_refill": 1,
+      "enable": 0,
+      "filament_useup": 1,
+      "same_material": [],
+      "map": {
+        "T1A": "T1A",
+        "T1B": "T1B",
+        "T1C": "T1C",
+        "T1D": "T1D",
+        "T2A": "T2A",
+        "T2B": "T2B",
+        "T2C": "T2C",
+        "T2D": "T2D",
+        "T3A": "T3A",
+        "T3B": "T3B",
+        "T3C": "T3C",
+        "T3D": "T3D",
+        "T4A": "T4A",
+        "T4B": "T4B",
+        "T4C": "T4C",
+        "T4D": "T4D"
+      },
+      "T1": {
+        "state": "None",
+        "filament": "None",
+        "temperature": "None",
+        "dry_and_humidity": "None",
+        "filament_detected": "None",
+        "measuring_wheel": "None",
+        "version": "-1",
+        "sn": "-1",
+        "mode": "-1",
+        "vender": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "remain_len": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "color_value": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "material_type": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "uuid": "None",
+        "change_color_num": [
+          -1,
+          -1,
+          -1,
+          -1
+        ]
+      },
+      "T2": {
+        "state": "None",
+        "filament": "None",
+        "temperature": "None",
+        "dry_and_humidity": "None",
+        "filament_detected": "None",
+        "measuring_wheel": "None",
+        "version": "-1",
+        "sn": "-1",
+        "mode": "-1",
+        "vender": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "remain_len": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "color_value": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "material_type": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "uuid": "None",
+        "change_color_num": [
+          -1,
+          -1,
+          -1,
+          -1
+        ]
+      },
+      "T3": {
+        "state": "None",
+        "filament": "None",
+        "temperature": "None",
+        "dry_and_humidity": "None",
+        "filament_detected": "None",
+        "measuring_wheel": "None",
+        "version": "-1",
+        "sn": "-1",
+        "mode": "-1",
+        "vender": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "remain_len": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "color_value": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "material_type": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "uuid": "None",
+        "change_color_num": [
+          -1,
+          -1,
+          -1,
+          -1
+        ]
+      },
+      "T4": {
+        "state": "None",
+        "filament": "None",
+        "temperature": "None",
+        "dry_and_humidity": "None",
+        "filament_detected": "None",
+        "measuring_wheel": "None",
+        "version": "-1",
+        "sn": "-1",
+        "mode": "-1",
+        "vender": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "remain_len": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "color_value": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "material_type": [
+          "-1",
+          "-1",
+          "-1",
+          "-1"
+        ],
+        "uuid": "None",
+        "change_color_num": [
+          -1,
+          -1,
+          -1,
+          -1
+        ]
+      },
+      "cut_state": true
+    },
+    "gcode_macro BOX_CHECK_MATERIAL": {},
+    "gcode_macro BOX_LOAD_MATERIAL_WITH_MATERIAL_END": {},
+    "gcode_macro BOX_LOAD_MATERIAL_WITH_MATERIAL": {},
+    "gcode_macro BOX_LOAD_MATERIAL_WITHOUT_MATERIAL": {},
+    "gcode_macro BOX_RETRUDE_MATERIAL_WITH_TNN": {},
+    "gcode_macro BOX_QUIT_MATERIAL_END": {},
+    "gcode_macro BOX_QUIT_MATERIAL": {},
+    "gcode_macro BOX_INFO_REFRESH": {},
+    "gcode_macro POP_FILAMENT_OUT": {},
+    "motor_control": {
+      "motor_ready": true,
+      "is_homing": false,
+      "cut": {
+        "state": true,
+        "pos_x": 279.6
+      }
+    },
+    "idle_timeout": {
+      "state": "Printing",
+      "printing_time": 12033.968931488
+    },
+    "heaters": {
+      "available_heaters": [
+        "heater_bed",
+        "extruder"
+      ],
+      "available_sensors": [
+        "temperature_sensor mcu_temp",
+        "heater_bed",
+        "extruder"
+      ],
+      "extruder_temperature_wait": false,
+      "bed_temperature_wait": false
+    },
+    "temperature_sensor mcu_temp": {
+      "temperature": 55.72,
+      "measured_min_temp": 33.88,
+      "measured_max_temp": 57.03
+    },
+    "tmc2208 stepper_z": {
+      "mcu_phase_offset": 31,
+      "phase_offset_position": 601.638249999997,
+      "run_current": 0.4971844555217911,
+      "hold_current": 0.4971844555217911,
+      "drv_status": {
+        "cs_actual": 14,
+        "stealth": 1,
+        "stst": 1
+      }
+    },
+    "tmc2208 stepper_z1": {
+      "mcu_phase_offset": 2,
+      "phase_offset_position": 602.1769999999971,
+      "run_current": 0.4971844555217911,
+      "hold_current": 0.4971844555217911,
+      "drv_status": {
+        "cs_actual": 14,
+        "stealth": 1,
+        "stst": 1
+      }
+    },
+    "z_tilt": {
+      "applied": false
+    },
+    "axis_twist_compensation": {
+      "on_turb": false,
+      "pres_state": true,
+      "pres_data": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "probe": {
+      "last_query": false,
+      "last_z_result": -0.0374999999996443,
+      "z_offset": 0.0
+    },
+    "prtouch_v3": {
+      "on_turb": false,
+      "pres_state": true,
+      "pres_data": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "tmc2208 extruder": {
+      "mcu_phase_offset": 63,
+      "phase_offset_position": 0.13584375,
+      "run_current": 0.3728883416413433,
+      "hold_current": 0.3728883416413433,
+      "drv_status": {
+        "cs_actual": 29
+      }
+    },
+    "heater_bed": {
+      "temperature": 79.69,
+      "target": 80.0,
+      "power": 0.47284484897491724
+    },
+    "output_pin fanp0": {
+      "value": 1.0
+    },
+    "output_pin fan0": {
+      "value": 0.35490196078431374
+    },
+    "output_pin board_fan": {
+      "value": 0.0
+    },
+    "heater_fan hotend_fan": {
+      "speed": 1.0,
+      "rpm": null
+    },
+    "bed_mesh": {
+      "profile_name": "default",
+      "mesh_min": [
+        10.0,
+        10.0
+      ],
+      "mesh_max": [
+        250.0,
+        250.0
+      ],
+      "probed_matrix": [
+        [
+          0.101,
+          0.085,
+          0.092,
+          0.108,
+          0.055,
+          0.052,
+          0.052,
+          0.085,
+          0.017
+        ],
+        [
+          0.193,
+          0.209,
+          0.12,
+          0.082,
+          0.022,
+          0.034,
+          0.08,
+          0.149,
+          0.048
+        ],
+        [
+          0.267,
+          0.195,
+          0.14,
+          0.093,
+          0.059,
+          0.056,
+          0.126,
+          0.209,
+          0.299
+        ],
+        [
+          0.249,
+          0.158,
+          0.112,
+          0.089,
+          0.048,
+          0.038,
+          0.106,
+          0.193,
+          0.272
+        ],
+        [
+          0.19,
+          0.102,
+          0.054,
+          0.009,
+          -0.005,
+          -0.016,
+          0.098,
+          0.142,
+          0.222
+        ],
+        [
+          0.103,
+          0.044,
+          0.005,
+          -0.031,
+          -0.043,
+          -0.014,
+          0.068,
+          0.127,
+          0.222
+        ],
+        [
+          0.024,
+          -0.012,
+          -0.046,
+          -0.091,
+          -0.12,
+          -0.086,
+          -0.028,
+          0.049,
+          0.144
+        ],
+        [
+          -0.007,
+          -0.051,
+          -0.119,
+          -0.18,
+          -0.23,
+          -0.195,
+          -0.144,
+          -0.061,
+          0.072
+        ],
+        [
+          -0.158,
+          -0.201,
+          -0.213,
+          -0.279,
+          -0.324,
+          -0.286,
+          -0.262,
+          -0.202,
+          -0.031
+        ]
+      ],
+      "mesh_matrix": [
+        [
+          0.101,
+          0.096511,
+          0.089178,
+          0.085,
+          0.086207,
+          0.08937,
+          0.092,
+          0.097378,
+          0.105289,
+          0.108,
+          0.093993,
+          0.069852,
+          0.055,
+          0.052607,
+          0.052037,
+          0.052,
+          0.051422,
+          0.050978,
+          0.052,
+          0.062052,
+          0.07797,
+          0.085,
+          0.067341,
+          0.036126,
+          0.017
+        ],
+        [
+          0.125119,
+          0.123788,
+          0.121404,
+          0.119193,
+          0.113567,
+          0.104681,
+          0.099378,
+          0.099975,
+          0.101691,
+          0.100711,
+          0.085574,
+          0.060545,
+          0.045407,
+          0.043953,
+          0.045193,
+          0.046741,
+          0.049506,
+          0.05439,
+          0.058993,
+          0.072231,
+          0.092508,
+          0.101652,
+          0.081024,
+          0.044301,
+          0.021778
+        ],
+        [
+          0.165593,
+          0.169232,
+          0.174621,
+          0.17543,
+          0.158603,
+          0.130016,
+          0.111733,
+          0.104432,
+          0.095886,
+          0.0888,
+          0.071867,
+          0.045491,
+          0.029948,
+          0.030004,
+          0.034157,
+          0.038281,
+          0.046616,
+          0.060389,
+          0.070963,
+          0.089471,
+          0.116965,
+          0.129681,
+          0.104668,
+          0.05969,
+          0.032067
+        ],
+        [
+          0.193,
+          0.198704,
+          0.207252,
+          0.209,
+          0.185644,
+          0.145756,
+          0.12,
+          0.107837,
+          0.092874,
+          0.082,
+          0.064252,
+          0.037526,
+          0.022,
+          0.02283,
+          0.028459,
+          0.034,
+          0.045941,
+          0.065526,
+          0.08,
+          0.10177,
+          0.133763,
+          0.149,
+          0.123363,
+          0.076704,
+          0.048
+        ],
+        [
+          0.216274,
+          0.215611,
+          0.213722,
+          0.209385,
+          0.187155,
+          0.150536,
+          0.126726,
+          0.113435,
+          0.096276,
+          0.084304,
+          0.068402,
+          0.044967,
+          0.031326,
+          0.031269,
+          0.035067,
+          0.039763,
+          0.053711,
+          0.076878,
+          0.093733,
+          0.116304,
+          0.149604,
+          0.167578,
+          0.156208,
+          0.132763,
+          0.118111
+        ],
+        [
+          0.248615,
+          0.236754,
+          0.216565,
+          0.20177,
+          0.182974,
+          0.154524,
+          0.135763,
+          0.121795,
+          0.102576,
+          0.089719,
+          0.077088,
+          0.059212,
+          0.048696,
+          0.046953,
+          0.047306,
+          0.050237,
+          0.066689,
+          0.09448,
+          0.1144,
+          0.137556,
+          0.172007,
+          0.193978,
+          0.20661,
+          0.222371,
+          0.231467
+        ],
+        [
+          0.267,
+          0.248081,
+          0.216363,
+          0.195,
+          0.178489,
+          0.1554,
+          0.14,
+          0.125993,
+          0.106074,
+          0.093,
+          0.082333,
+          0.067711,
+          0.059,
+          0.056133,
+          0.054244,
+          0.056,
+          0.073867,
+          0.104311,
+          0.126,
+          0.149489,
+          0.184622,
+          0.209,
+          0.236126,
+          0.275563,
+          0.299
+        ],
+        [
+          0.265133,
+          0.244009,
+          0.208687,
+          0.185274,
+          0.169392,
+          0.147904,
+          0.133778,
+          0.121716,
+          0.104768,
+          0.093415,
+          0.082555,
+          0.06717,
+          0.057867,
+          0.054318,
+          0.051399,
+          0.052519,
+          0.070142,
+          0.100355,
+          0.122,
+          0.146023,
+          0.182096,
+          0.207148,
+          0.235058,
+          0.275652,
+          0.299778
+        ],
+        [
+          0.256778,
+          0.233592,
+          0.194907,
+          0.169593,
+          0.154311,
+          0.134387,
+          0.121689,
+          0.11289,
+          0.101055,
+          0.09263,
+          0.081066,
+          0.063773,
+          0.053133,
+          0.048695,
+          0.044541,
+          0.044859,
+          0.061831,
+          0.091177,
+          0.1124,
+          0.137095,
+          0.174323,
+          0.199785,
+          0.22562,
+          0.262649,
+          0.2846
+        ],
+        [
+          0.249,
+          0.224741,
+          0.184304,
+          0.158,
+          0.143037,
+          0.123941,
+          0.112,
+          0.104941,
+          0.095837,
+          0.089,
+          0.07723,
+          0.059193,
+          0.048,
+          0.043037,
+          0.038119,
+          0.038,
+          0.055052,
+          0.084637,
+          0.106,
+          0.130689,
+          0.167822,
+          0.193,
+          0.21723,
+          0.251637,
+          0.272
+        ],
+        [
+          0.233585,
+          0.209285,
+          0.168778,
+          0.142415,
+          0.127414,
+          0.108213,
+          0.096,
+          0.087328,
+          0.075661,
+          0.067548,
+          0.057595,
+          0.042892,
+          0.033711,
+          0.028473,
+          0.02277,
+          0.022637,
+          0.043402,
+          0.079064,
+          0.103659,
+          0.12548,
+          0.157052,
+          0.17877,
+          0.202573,
+          0.237032,
+          0.257496
+        ],
+        [
+          0.208481,
+          0.18453,
+          0.144585,
+          0.118519,
+          0.103387,
+          0.083794,
+          0.070933,
+          0.059186,
+          0.042642,
+          0.032052,
+          0.025168,
+          0.016179,
+          0.010489,
+          0.005041,
+          -0.001584,
+          -0.001526,
+          0.025338,
+          0.070925,
+          0.100785,
+          0.117828,
+          0.140173,
+          0.156185,
+          0.179511,
+          0.21444,
+          0.235304
+        ],
+        [
+          0.19,
+          0.166593,
+          0.127541,
+          0.102,
+          0.086904,
+          0.067185,
+          0.054,
+          0.040452,
+          0.021037,
+          0.009,
+          0.003993,
+          -0.001504,
+          -0.005,
+          -0.010119,
+          -0.01657,
+          -0.016,
+          0.014267,
+          0.065289,
+          0.098,
+          0.112252,
+          0.129259,
+          0.142,
+          0.16523,
+          0.200726,
+          0.222
+        ],
+        [
+          0.165578,
+          0.144245,
+          0.108636,
+          0.085274,
+          0.071016,
+          0.052209,
+          0.039607,
+          0.026639,
+          0.008046,
+          -0.003444,
+          -0.008116,
+          -0.01308,
+          -0.015844,
+          -0.017835,
+          -0.019299,
+          -0.015985,
+          0.012632,
+          0.060269,
+          0.090963,
+          0.105649,
+          0.123861,
+          0.137533,
+          0.161974,
+          0.199303,
+          0.221674
+        ],
+        [
+          0.128311,
+          0.110405,
+          0.080483,
+          0.060726,
+          0.04788,
+          0.030635,
+          0.019081,
+          0.007461,
+          -0.009157,
+          -0.019444,
+          -0.024042,
+          -0.028998,
+          -0.031089,
+          -0.0279,
+          -0.021017,
+          -0.013215,
+          0.011778,
+          0.052362,
+          0.078948,
+          0.095055,
+          0.116616,
+          0.132667,
+          0.159173,
+          0.199452,
+          0.22357
+        ],
+        [
+          0.103,
+          0.087407,
+          0.061326,
+          0.044,
+          0.032096,
+          0.015881,
+          0.005,
+          -0.005844,
+          -0.021356,
+          -0.031,
+          -0.035785,
+          -0.041104,
+          -0.043,
+          -0.036622,
+          -0.024556,
+          -0.014,
+          0.008459,
+          0.044207,
+          0.068,
+          0.085193,
+          0.10923,
+          0.127,
+          0.154785,
+          0.196837,
+          0.222
+        ],
+        [
+          0.07923,
+          0.065601,
+          0.042778,
+          0.027511,
+          0.016439,
+          0.001113,
+          -0.009348,
+          -0.020604,
+          -0.03697,
+          -0.047311,
+          -0.053368,
+          -0.060633,
+          -0.0636,
+          -0.056543,
+          -0.043155,
+          -0.032059,
+          -0.011637,
+          0.020641,
+          0.042519,
+          0.060942,
+          0.087481,
+          0.106807,
+          0.134717,
+          0.176637,
+          0.201689
+        ],
+        [
+          0.045281,
+          0.034377,
+          0.01607,
+          0.003644,
+          -0.00635,
+          -0.020578,
+          -0.030585,
+          -0.042739,
+          -0.060826,
+          -0.072511,
+          -0.080738,
+          -0.091312,
+          -0.0962,
+          -0.088757,
+          -0.074361,
+          -0.063007,
+          -0.045466,
+          -0.017967,
+          0.001304,
+          0.021579,
+          0.051816,
+          0.073415,
+          0.101341,
+          0.14279,
+          0.167511
+        ],
+        [
+          0.024,
+          0.014637,
+          -0.001126,
+          -0.012,
+          -0.021719,
+          -0.035881,
+          -0.046,
+          -0.058911,
+          -0.078311,
+          -0.091,
+          -0.100785,
+          -0.113726,
+          -0.12,
+          -0.1124,
+          -0.097467,
+          -0.086,
+          -0.070237,
+          -0.045674,
+          -0.028,
+          -0.006585,
+          0.025941,
+          0.049,
+          0.077319,
+          0.119104,
+          0.144
+        ],
+        [
+          0.0154,
+          0.005767,
+          -0.010537,
+          -0.022126,
+          -0.034563,
+          -0.053154,
+          -0.066126,
+          -0.080494,
+          -0.101721,
+          -0.115704,
+          -0.127366,
+          -0.143106,
+          -0.151037,
+          -0.143488,
+          -0.128257,
+          -0.116659,
+          -0.101533,
+          -0.078021,
+          -0.060889,
+          -0.038996,
+          -0.005445,
+          0.01863,
+          0.049723,
+          0.095922,
+          0.123481
+        ],
+        [
+          0.0048,
+          -0.00568,
+          -0.023538,
+          -0.036696,
+          -0.053605,
+          -0.079383,
+          -0.096963,
+          -0.1136,
+          -0.13762,
+          -0.153563,
+          -0.16799,
+          -0.187839,
+          -0.198207,
+          -0.190807,
+          -0.175252,
+          -0.163496,
+          -0.149062,
+          -0.126683,
+          -0.110133,
+          -0.087794,
+          -0.053195,
+          -0.02783,
+          0.007898,
+          0.06156,
+          0.09363
+        ],
+        [
+          -0.007,
+          -0.018052,
+          -0.036926,
+          -0.051,
+          -0.070037,
+          -0.099207,
+          -0.119,
+          -0.136993,
+          -0.162807,
+          -0.18,
+          -0.19603,
+          -0.218237,
+          -0.23,
+          -0.222644,
+          -0.206844,
+          -0.195,
+          -0.181215,
+          -0.159919,
+          -0.144,
+          -0.121711,
+          -0.086933,
+          -0.061,
+          -0.022089,
+          0.036778,
+          0.072
+        ],
+        [
+          -0.049304,
+          -0.060558,
+          -0.079628,
+          -0.093267,
+          -0.108345,
+          -0.131009,
+          -0.146926,
+          -0.16501,
+          -0.191882,
+          -0.20977,
+          -0.225662,
+          -0.247517,
+          -0.259022,
+          -0.251298,
+          -0.235012,
+          -0.22317,
+          -0.211354,
+          -0.193417,
+          -0.179778,
+          -0.159564,
+          -0.127613,
+          -0.102904,
+          -0.061011,
+          0.003161,
+          0.041637
+        ],
+        [
+          -0.117074,
+          -0.128554,
+          -0.147749,
+          -0.160467,
+          -0.168425,
+          -0.179406,
+          -0.188319,
+          -0.20623,
+          -0.234436,
+          -0.253185,
+          -0.268452,
+          -0.289135,
+          -0.299867,
+          -0.29152,
+          -0.274486,
+          -0.262674,
+          -0.253978,
+          -0.241371,
+          -0.231378,
+          -0.214641,
+          -0.187493,
+          -0.164985,
+          -0.118851,
+          -0.04702,
+          -0.003837
+        ],
+        [
+          -0.158,
+          -0.169607,
+          -0.188859,
+          -0.201,
+          -0.204585,
+          -0.208393,
+          -0.213,
+          -0.230778,
+          -0.259756,
+          -0.279,
+          -0.293852,
+          -0.31377,
+          -0.324,
+          -0.315274,
+          -0.297793,
+          -0.286,
+          -0.279185,
+          -0.269793,
+          -0.262,
+          -0.247378,
+          -0.223156,
+          -0.202,
+          -0.153356,
+          -0.076978,
+          -0.031
+        ]
+      ],
+      "profiles": {
+        "default": {
+          "points": [
+            [
+              0.101,
+              0.085,
+              0.092,
+              0.108,
+              0.055,
+              0.052,
+              0.052,
+              0.085,
+              0.017
+            ],
+            [
+              0.193,
+              0.209,
+              0.12,
+              0.082,
+              0.022,
+              0.034,
+              0.08,
+              0.149,
+              0.048
+            ],
+            [
+              0.267,
+              0.195,
+              0.14,
+              0.093,
+              0.059,
+              0.056,
+              0.126,
+              0.209,
+              0.299
+            ],
+            [
+              0.249,
+              0.158,
+              0.112,
+              0.089,
+              0.048,
+              0.038,
+              0.106,
+              0.193,
+              0.272
+            ],
+            [
+              0.19,
+              0.102,
+              0.054,
+              0.009,
+              -0.005,
+              -0.016,
+              0.098,
+              0.142,
+              0.222
+            ],
+            [
+              0.103,
+              0.044,
+              0.005,
+              -0.031,
+              -0.043,
+              -0.014,
+              0.068,
+              0.127,
+              0.222
+            ],
+            [
+              0.024,
+              -0.012,
+              -0.046,
+              -0.091,
+              -0.12,
+              -0.086,
+              -0.028,
+              0.049,
+              0.144
+            ],
+            [
+              -0.007,
+              -0.051,
+              -0.119,
+              -0.18,
+              -0.23,
+              -0.195,
+              -0.144,
+              -0.061,
+              0.072
+            ],
+            [
+              -0.158,
+              -0.201,
+              -0.213,
+              -0.279,
+              -0.324,
+              -0.286,
+              -0.262,
+              -0.202,
+              -0.031
+            ]
+          ],
+          "mesh_params": {
+            "min_x": 10.0,
+            "max_x": 250.0,
+            "min_y": 10.0,
+            "max_y": 250.0,
+            "x_count": 9,
+            "y_count": 9,
+            "mesh_x_pps": 2,
+            "mesh_y_pps": 2,
+            "algo": "bicubic",
+            "tension": 0.2
+          }
+        }
+      }
+    },
+    "exclude_object": {
+      "objects": [
+        {
+          "name": "CAJA_LISTA_CARA_ADALOVE_LISTA_PARA_IMPRIMIR_1_.STL_ID_0_COPY_0",
+          "center": [
+            130,
+            130
+          ],
+          "polygon": [
+            [
+              25.8057,
+              82.6
+            ],
+            [
+              80.3205,
+              81.4
+            ],
+            [
+              168.187,
+              81.4
+            ],
+            [
+              229.155,
+              82.6
+            ],
+            [
+              234.194,
+              85.6
+            ],
+            [
+              234.194,
+              175.6
+            ],
+            [
+              229.155,
+              178.6
+            ],
+            [
+              25.8057,
+              178.6
+            ],
+            [
+              25.8057,
+              82.6
+            ]
+          ]
+        }
+      ],
+      "excluded_objects": [],
+      "current_object": "CAJA_LISTA_CARA_ADALOVE_LISTA_PARA_IMPRIMIR_1_.STL_ID_0_COPY_0"
+    },
+    "filament_switch_sensor filament_sensor": {
+      "filament_detected": true,
+      "enabled": true
+    },
+    "filament_switch_sensor filament_sensor_2": {
+      "filament_detected": true,
+      "enabled": true
+    },
+    "filament_switch_sensor filament_sensor_3": {
+      "filament_detected": false,
+      "enabled": true
+    },
+    "filament_switch_sensor filament_sensor_4": {
+      "filament_detected": false,
+      "enabled": true
+    },
+    "filament_switch_sensor filament_sensor_5": {
+      "filament_detected": false,
+      "enabled": true
+    },
+    "output_pin LED": {
+      "value": 1.0
+    },
+    "steer": {
+      "state": false,
+      "enable": false
+    },
+    "motion_report": {
+      "live_position": [
+        28.596,
+        166.3322821631217,
+        56.63,
+        42108.840385757816
+      ],
+      "live_velocity": 150.0,
+      "live_extruder_velocity": 4.46797971656539,
+      "steppers": [
+        "extruder",
+        "stepper_x",
+        "stepper_y",
+        "stepper_z",
+        "stepper_z1"
+      ],
+      "trapq": [
+        "extruder",
+        "toolhead"
+      ]
+    },
+    "query_endstops": {
+      "last_query": {}
+    },
+    "system_stats": {
+      "sysload": 0.63,
+      "cputime": 2864.437351384,
+      "memavail": 372932
+    },
+    "manual_probe": {
+      "is_active": false,
+      "z_position": null,
+      "z_position_lower": null,
+      "z_position_upper": null
+    },
+    "toolhead": {
+      "homed_axes": "xyz",
+      "axis_minimum": [
+        -19.0,
+        -7.0,
+        -5.0,
+        0.0
+      ],
+      "axis_maximum": [
+        285.0,
+        273.0,
+        310.0,
+        0.0
+      ],
+      "print_time": 13513.72590467153,
+      "stalls": 0,
+      "estimated_print_time": 13510.781890191667,
+      "extruder": "extruder",
+      "position": [
+        102.527,
+        82.81,
+        56.63,
+        42125.77021001162
+      ],
+      "max_velocity": 300.0,
+      "max_accel": 5000.0,
+      "max_accel_to_decel": 2500.0,
+      "square_corner_velocity": 8.0,
+      "G29_flag": false
+    },
+    "extruder": {
+      "temperature": 249.42,
+      "target": 250.0,
+      "power": 0.4130226126024119,
+      "can_extrude": true,
+      "nozzle_diameter": 0.4,
+      "extrude_below_min_temp_err_is_report": false,
+      "pressure_advance": 0.072,
+      "smooth_time": 0.04
+    }
+  }
+}

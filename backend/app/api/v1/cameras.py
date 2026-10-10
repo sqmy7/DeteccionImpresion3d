@@ -1,9 +1,10 @@
 import asyncio
 import base64
 import io
+import time
 from collections.abc import AsyncIterator
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.responses import StreamingResponse
 from PIL import Image, ImageDraw
 from sqlalchemy import select
@@ -30,6 +31,7 @@ _STREAM_BOUNDARY = "frame"
 # so this endpoint is never the bottleneck; re-sending the same cached frame once in a while
 # is harmless; a browser <img> just repaints an identical frame.
 _STREAM_INTERVAL_SECONDS = 0.12
+_STALE_FRAME_SECONDS = 15.0  # older than this the live view says "no signal"
 _placeholder_jpeg_cache: bytes | None = None
 
 
@@ -38,7 +40,7 @@ def _placeholder_jpeg() -> bytes:
     if _placeholder_jpeg_cache is None:
         image = Image.new("RGB", (640, 480), color=(30, 41, 59))
         draw = ImageDraw.Draw(image)
-        draw.text((20, 230), "Sin señal", fill=(148, 163, 184))
+        draw.text((20, 230), "Sin senal: el servicio de captura no esta enviando video", fill=(148, 163, 184))
         buffer = io.BytesIO()
         image.save(buffer, format="JPEG")
         _placeholder_jpeg_cache = buffer.getvalue()
@@ -133,8 +135,11 @@ async def _mjpeg_frames(request: Request, camera_id: int) -> AsyncIterator[bytes
         # layer changes/inference) as base64 text in Redis - no live camera feed needed on
         # this side, and it reuses the same decode_responses=True client used everywhere
         # else instead of a second binary connection.
-        cached = await redis_client.get(f"latest_frame:{camera_id}")
-        jpeg_bytes = base64.b64decode(cached) if cached else _placeholder_jpeg()
+        cached, taken_at = await redis_client.mget(f"latest_frame:{camera_id}", f"latest_frame_at:{camera_id}")
+        # The frame outlives the capture process in Redis: measured on the real printer, hours-old
+        # frames were shown as live. No timestamp (a capture that predates it): trust the frame.
+        stale = taken_at is not None and time.time() - float(taken_at) > _STALE_FRAME_SECONDS
+        jpeg_bytes = base64.b64decode(cached) if cached and not stale else _placeholder_jpeg()
 
         yield (
             b"--" + boundary + b"\r\n"
@@ -142,6 +147,23 @@ async def _mjpeg_frames(request: Request, camera_id: int) -> AsyncIterator[bytes
             b"Content-Length: " + str(len(jpeg_bytes)).encode() + b"\r\n\r\n" + jpeg_bytes + b"\r\n"
         )
         await asyncio.sleep(_STREAM_INTERVAL_SECONDS)
+
+
+@stream_router.get("/cameras/{camera_id}/snapshot")
+async def camera_snapshot(
+    camera_id: int, request: Request, db: AsyncSession = Depends(get_db), _user=Depends(get_current_user_query)
+) -> Response:
+    """The latest frame as a still JPEG, e.g. to mark the bed corners on when calibrating. The
+    frame stays in Redis after capture stops, so its age goes in X-Frame-Age-Seconds (absent when
+    the capture process predates that timestamp)."""
+    await _get_camera_or_404(camera_id, db)
+    cached, taken_at = await request.app.state.redis.mget(f"latest_frame:{camera_id}", f"latest_frame_at:{camera_id}")
+    if not cached:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No frame yet: is the capture process running?")
+    headers = {"Cache-Control": "no-store"}
+    if taken_at:
+        headers["X-Frame-Age-Seconds"] = f"{max(0.0, time.time() - float(taken_at)):.1f}"
+    return Response(base64.b64decode(cached), media_type="image/jpeg", headers=headers)
 
 
 @stream_router.get("/cameras/{camera_id}/stream")

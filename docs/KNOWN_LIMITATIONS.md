@@ -6,7 +6,11 @@
 
 Cuando el modelo detecta `spaghetti` en **3 capas consecutivas** (mismo umbral que la alerta de atasco en `jam_detection.py` - reutilizado a propósito, no hay datos que justifiquen un número distinto; la lógica de "racha de N capas consecutivas" quedó compartida en `app/services/streak_detection.py`), se programa una pausa automática con una **ventana de gracia de 15 segundos** (`_GRACE_PERIOD_SECONDS` en `auto_pause.py`) antes de mandar el comando real a la impresora. El frontend muestra un banner global (no depende de qué pantalla esté abierta) con cuenta regresiva calculada desde `executes_at` que manda el backend, y un botón para abortar.
 
+**Modo de la pausa automática (`AUTO_PAUSE_MODE` en el `.env`).** `on` (por defecto): el comportamiento descrito. `warn`: se anuncia en la web (banner «Modo aviso: habría pausado…») y se registra en la bitácora un evento `auto_pause.would_pause` (origen `monitor`, con la capa, la confianza del modelo, las tres capas de la racha y `sent: false`), pero **no se envía nada a la impresora** ni se cuenta regresivamente: sirve para contar cuántas veces habría pausado. `off`: no hace nada. Un valor distinto impide que el backend arranque. Se lee al arrancar: cambiarlo exige reconstruir o reiniciar el backend. Aun en `warn` y `off` la guarda interna de `_execute` jamás envía la pausa si el modo no es `on`.
+
 **Dónde vive el estado "pausa pendiente":** en memoria, en el proceso del backend (`AutoPauseManager._pending`), no en Postgres. La cuenta regresiva ya es una `asyncio.Task` corriendo en ese proceso sin importar dónde se registre "hay una pendiente", así que guardarlo ahí evita una segunda fuente de verdad. La contra: **si el backend se reinicia a mitad de la ventana de gracia, la pausa pendiente se pierde en silencio** - no se ejecuta, y tampoco queda registro más allá de los logs de esos 15 segundos. Se aceptó ese riesgo porque la ventana es corta y esto es una función de seguridad/demo, no infraestructura que necesite sobrevivir un reinicio. Si esto preocupa para producción, la forma de arreglarlo es persistir la pausa pendiente en Postgres y reconciliarla al arrancar el backend (ejecutarla de inmediato si el plazo ya venció, o reprogramar el resto).
+
+**Mejora evaluada y descartada (2026-10-08): reevaluar la racha al arrancar el backend.** Parece lo más simple (al iniciar, mirar cada trabajo abierto y reprogramar la cuenta regresiva si las últimas 3 capas son spaghetti), pero el **aborto del usuario también vive solo en memoria**: tras un reinicio no se puede distinguir una pausa que se perdió de una que el usuario abortó a propósito, y la pausa se volvería a disparar sin que nadie la espere, sobre una impresión que alguien decidió dejar seguir. Es peor que el límite actual. La forma correcta sigue siendo persistir en Postgres los estados "pendiente" y "abortada" y reconciliar al arrancar (requiere una migración). Un reinicio a mitad de impresión no es hipotético: el 2026-10-08, con la impresión en curso, Docker en WSL2 reinició el backend 3 veces en 2 minutos porque faltaba la sesión `wsl -- sleep infinity`.
 
 **Caso límite probado de verdad:** conexión caída al intentar pausar. Se armó una impresora de prueba con `octoprint_url` apuntando a una IP inalcanzable a propósito y se dejó correr la ventana completa sin abortar. Resultado real (de los logs):
 
@@ -20,13 +24,15 @@ El sistema **no falla en silencio**: publica `auto_pause.failed` y el frontend m
 
 **Caso límite no resuelto, y no inventado:** cuánto tiempo es seguro dejar una impresión pausada sin arruinar la adherencia entre capas. Depende del material (las impresiones de prueba fueron en PETG) y de si el hotend retrae/mantiene temperatura durante la pausa (comportamiento del macro `PAUSE` configurado en `printer.cfg` de la Creality Hi, que no revisamos). No hay un número confiable para poner acá sin medirlo en la impresora real - mejor no inventarlo. Los 15 segundos de ventana de gracia son cortos comparados con cualquier riesgo de adherencia, así que el diseño actual no lo necesita, pero si en algún momento se sube ese valor bastante, esto pasa a importar.
 
-**Verificación de los endpoints de Moonraker (`/printer/print/pause` y `/printer/print/resume`):** no se probaron en vivo contra la impresora real - el propio modo automático de esta sesión bloqueó el intento por tratarse de una acción real sobre hardware físico mientras había una impresión real en curso (correcto, es el comportamiento esperado). Se confía en la documentación pública y estable de Moonraker (los mismos endpoints que usan Fluidd/Mainsail). Recomendado: probarlos deliberadamente con una impresión corta y descartable cuando el usuario lo decida.
+**Verificación de los endpoints de Moonraker (`/printer/print/pause` y `/printer/print/resume`):** al implementar la pausa automática no se probaron en vivo contra la impresora real, para no arriesgar una impresión real en curso; se confió en la documentación pública y estable de Moonraker (los mismos endpoints que usan Fluidd/Mainsail). Más adelante sí se probaron a mano sobre la impresora real: la pausa funcionó (Klipper pasó a `paused` y el sistema lo reflejó solo), pero tras reanudar, la impresora terminó en error (`Move out of range: 292.424 249.610 28.401`). La causa no está determinada: los logs de ese día ya no existen en la impresora (ver `docs/laboratorio/RESULTADOS.md`, sección 4, con lo que sí se pudo afirmar y con qué certeza; análisis parcial anterior en `docs/moonraker_discovery/incidente_reanudacion.md`). Cualquier prueba nueva de pausa/reanudación conviene hacerla con una impresión corta y descartable.
+
+**Reanudación desde la web (guardia, 2026-10-08):** no se pudo saber si la orden de aquel incidente llegó dos veces, así que el `POST /printers/{id}/resume` pasa por `app/integrations/moonraker/print_guard.py`: una sola orden a la vez por impresora (el segundo clic simultáneo recibe 409), ninguna otra en los 20 s siguientes (aunque la primera haya fallado por timeout, porque pudo llegar) y ninguna si la propia impresora (un GET de solo lectura de `print_stats.state`, no lo último que vio PrintWatch) no dice `paused`. Si no se puede leer el estado, no se manda nada (502). Esta guardia protege contra duplicados desde PrintWatch; no impide que alguien reanude desde Fluidd o la pantalla al mismo tiempo, ni explica por sí sola el error de movimiento fuera de rango.
 
 ## 1. Detección de capa: automática vía Moonraker (resuelto)
 
 **Estado:** resuelto para las Creality Hi. El disparo manual queda como plan B.
 
-La Creality Hi corre Klipper con Moonraker, no OctoPrint, así que el listener de `app/integrations/octoprint/` no le sirve. Ahora hay un segundo listener, `app/integrations/moonraker/listener.py`, que se conecta al WebSocket de Moonraker (`ws://<ip>:7125/websocket`), se suscribe a `print_stats` y `virtual_sdcard`, y publica el mismo evento `layer_ready:{printer_id}` en Redis que publicaba el script manual. De ahí en adelante el pipeline no cambia: `capture` -> `captures:pending` -> `inference-worker` -> Postgres -> WebSocket.
+La Creality Hi corre Klipper con Moonraker, no OctoPrint, así que el listener de `app/integrations/octoprint/` no le sirve. Ahora hay un segundo listener, `app/integrations/moonraker/listener.py`, que se conecta al WebSocket de Moonraker (`ws://<ip>:7125/websocket`), se suscribe a `print_stats` y `virtual_sdcard` (y, desde la telemetría, a los demás objetos del punto 7), y publica el mismo evento `layer_ready:{printer_id}` en Redis que publicaba el script manual. De ahí en adelante el pipeline no cambia: `capture` -> `captures:pending` -> `inference-worker` -> Postgres -> WebSocket.
 
 Cada impresora elige su listener con la columna `printers.integration_type` (`octoprint` | `moonraker`); `PrinterListenerManager` arranca el que corresponda.
 
@@ -115,7 +121,7 @@ El detalle de impresión (`/printers/:id/jobs/:id`) ahora muestra la cámara en 
 
 **Desfase esperado (no es un bug):** `capture` guarda la foto y actualiza `latest_frame:{camera_id}` en cuanto termina de fotografiar; `inference-worker` recién corre el modelo después. Entre esos dos momentos (~1-2s, medido en la prueba real) el video ya muestra el frame de la capa nueva pero las cajas dibujadas siguen siendo las de la capa anterior. Se corrige solo en cuanto llega `detection.boxes` de la capa nueva — no hace falta ninguna acción, pero vale saberlo si se lo mira con lupa.
 
-**Corregido de paso:** las cajas que ya calculaba el modelo (`inference/model.py`) se guardaban en `detections.raw_output` en un formato sin normalizar e inconsistente con el que usan los scripts de diagnóstico (`calibrate_thresholds.py`, `inspect_false_positives.py`). Nada las leía todavía, así que no se había notado. Ahora se guardan igual que esos scripts (`[x1,y1,x2,y2]` normalizado 0..1). Las **16 detecciones de antes del fix** (impresora 35, capas anteriores a esta sesión) quedaron con el formato viejo en `raw_output.detections[].box` — inofensivo porque nada las lee retroactivamente, pero si alguna vez se recorre `raw_output` histórico hay que tenerlo en cuenta.
+**Corregido de paso:** las cajas que ya calculaba el modelo (`inference/model.py`) se guardaban en `detections.raw_output` en un formato sin normalizar e inconsistente con el que usan los scripts de diagnóstico (`calibrate_thresholds.py`, `inspect_false_positives.py`). Nada las leía todavía, así que no se había notado. Ahora se guardan igual que esos scripts (`[x1,y1,x2,y2]` normalizado 0..1). Las **16 detecciones creadas antes de ese cambio** (impresora 35, 22-09-2026) quedaron con el formato viejo en `raw_output.detections[].box` — inofensivo porque nada las lee retroactivamente, pero si alguna vez se recorre `raw_output` histórico hay que tenerlo en cuenta.
 
 **Verificado:** cajas alineadas correctamente sobre la foto real (confirmado dos veces — dibujado manual con OpenCV y captura de pantalla del navegador real, ambos coinciden), reescalado 640×640 → 1280×720 correcto, cámara con ROI sin configurar hoy pero el cálculo ya contempla el caso con ROI activo, y una capa sin defecto deja el canvas vacío sin cuadros pegados de la anterior.
 
@@ -124,3 +130,134 @@ El detalle de impresión (`/printers/:id/jobs/:id`) ahora muestra la cámara en 
 Observado en la impresión real del cerebro (job 34): el modelo marcó `stringing` con confianza 0.41-0.44 en capas consecutivas sanas. La pieza tiene muchas hebras finas y curvas que visualmente son casi idénticas a los hilos que el modelo busca. Con el umbral actual (0.25) esas detecciones pasan.
 
 No afecta a las alertas (ver punto 3: `stringing` suelto no genera alerta), pero sí ensucia la timeline. Si aparece en la demo, conviene mostrarlo como ejemplo honesto del comportamiento del modelo en vez de esconderlo, o subir el umbral de esa clase en particular.
+
+## 7. Telemetría y bitácora de eventos
+
+**Estado:** probado contra la impresora simulada y, desde el 2026-10-08, **observado con la Creality Hi real imprimiendo** (muestras, sensores, bitácora estable y cadena íntegra; ver `docs/laboratorio/RESULTADOS.md`). Sin comprobar con la real: la atribución a consola/archivo/externo (exige órdenes) y la secuencia de inicio de una impresión. Antes: (ver `docs/PROGRESO_TELEMETRIA.md`).
+
+El listener de Moonraker guarda una muestra por segundo (posición, velocidad, temperaturas y potencia de boquilla y cama, ventilador, factores de velocidad y flujo, desfase de Z, progreso, filamento y los sensores extra que tenga la impresora) mientras hay un trabajo abierto, guarda con cada capa una foto de esos valores y registra en la bitácora los cambios de estado y las intervenciones (temperaturas objetivo, velocidad, flujo, ventiladores, desfase de Z, objetos excluidos, sensores de filamento, comandos de consola) con su origen.
+
+- **Volumen medido en la Hi real (2026-10-08) y, antes, en la simulada:** el WebSocket dio 4,2 KB/s con 45 objetos (1.491 mensajes en 300 s; la suscripción de PrintWatch es menor), el backend 0,35 % de un núcleo y 115 MiB, y Postgres 1.036 bytes por muestra (714 de ellos el campo de sensores extra; la Hi tiene 5 sensores de filamento): ~7,5 MB por cada 2 h de impresión, antes de quitar las claves constantes `enabled`. En la simulada fueron ~2 KB/s, 0,08 % y ~2,7 MB. Lo anterior era: ~2 KB/s de WebSocket, 0,08 % de un núcleo para el listener y ~2,7 MB en Postgres por impresión de 2 h. La Hi puede reportar más o menos campos; se confirma con `moonraker_discovery.py --only-ws` durante una impresión.
+- **Sin trabajo abierto no se guarda serie.** La lectura en vivo (evento `telemetry.sample` y `/printers/{id}/telemetry/latest`) sigue llegando, pero no queda histórico fuera de las impresiones. La última lectura vive en la memoria del backend: tras un reinicio vuelve en ~1 s si la impresora está conectada.
+- **Las muestras se insertan en lotes de 10.** Si la base falla, ese lote se pierde (como mucho ~10 s de telemetría) y queda anotado en el log.
+- **Qué se puede saber del origen de un cambio y qué no** (`app/integrations/moonraker/interventions.py`). Cada cambio se atribuye solo con evidencia:
+  - `printwatch`: PrintWatch mandó la orden (pausa automática o botones de la web) y el cambio llegó en los 60 s siguientes. Si la orden falló por timeout pero la impresora cambió igual, se atribuye a PrintWatch con el error en el detalle, porque la orden pudo haber llegado.
+  - `console`: un comando de G-code que explica el cambio aparece en el registro de consola de Moonraker (`/server/gcode_store`, consultado cada ~2 s). Ahí quedan la consola de Fluidd/Mainsail y los controles que mandan G-code (velocidad, flujo, babystepping, excluir objeto). Si la pantalla de la impresora usara esa misma API, también saldría como `console`.
+  - `gcode_file`: una línea del archivo que se imprime, o de una macro que esa línea llama (como `START_PRINT` o `END_PRINT`), explica el cambio y está en el tramo del archivo que Klipper estaba leyendo. Para saberlo el backend descarga el archivo una vez por impresión, con GET y a 1 MB/s como máximo (`GCODE_SCAN_ENABLED=false` lo apaga; entonces esos cambios salen como `external`).
+  - `external`: sin evidencia. **No distingue** entre la pantalla de la impresora, los botones de pausa/reanudar/cancelar de Fluidd (usan una API que no deja rastro en la consola) u otra aplicación. El inicio de cada impresión sale así por la misma razón. Se marca "externo" en vez de inventar un origen.
+  - `printer`: errores de Klipper, fin del archivo, sensor de filamento y estado de Klippy. `monitor`: conexión y desconexión de PrintWatch con la impresora.
+- **La atribución al archivo es heurística.** De las macros solo se resuelven los `{params.X}`; cualquier otra expresión de la plantilla y todas las ramas de un `{% if %}` cuentan como "puede cambiar este valor". La posición se compara en bytes con 256 bytes de tolerancia; si Klipper contara caracteres y el archivo tuviera muchos comentarios con tildes, la posición podría correrse.
+- **Ventiladores:** en la Hi no existe el objeto `fan`; el ventilador de capa es `output_pin fan0` (se guarda en la telemetría, pero sus cambios no se vigilan en la bitácora). Los cambios programados en el archivo no se registran (los laminadores los cambian todo el tiempo; la curva está en la telemetría), y los que no tienen explicación solo se registran si se pudo revisar el archivo; sin él, la mayoría serían falsos "externos".
+- **Los eventos sin evidencia inmediata se registran con demora:** esperan ~5 s por si aparece el comando de consola, y hasta 3 min si el archivo todavía se está indexando. La hora guardada es la del cambio, no la del registro, así que el orden de la cadena puede no coincidir con el cronológico.
+- **Hora de los comandos de consola:** Moonraker los marca con el reloj de la impresora; se corrigen con la diferencia de relojes estimada a partir del encabezado `Date` de sus respuestas (resolución de 1 s, se afina con cada consulta). Al principio de una conexión puede haber medio segundo de error, y un comando puede aparecer justo después del cambio que provocó.
+- **Lo escrito en la consola antes de que PrintWatch se conectara no se registra** (la primera consulta solo marca el punto de partida).
+- **La cadena de hashes no lo detecta todo.** Detecta un evento editado o borrado en medio de la bitácora (`/printers/{id}/events/verify`), pero no el borrado de los últimos eventos ni una reescritura completa por alguien con acceso de escritura que recalcule todos los hashes. Para cubrir eso hay que guardar el último hash fuera de la base, por ejemplo impreso en el informe del trabajo.
+- **Reinicios de Klipper:** para no depender de si Moonraker restaura la suscripción cuando Klippy se reinicia, el listener registra el aviso (`notify_klippy_*`), se reconecta y se vuelve a suscribir.
+- **Valores con ruido de redondeo:** las columnas son `REAL` (4 bytes, ~7 cifras significativas); la API redondea a 4 decimales al leer.
+
+## 8. Mapa de la cama: precisión de la ubicación de los defectos
+
+**Estado:** backend implementado y probado contra la cámara simulada y calibrado dos veces el 2026-10-08, pero con una **cámara USB genérica provisional, no con la C922** (confirmado por Samuel el 2026-10-09; la C922 será la cámara de la implementación final). Esas dos calibraciones no valen para la C922: hay que recalibrar con ella (ver `docs/laboratorio/PROGRESO_FINAL.md`, «Aclaración sobre la cámara»).
+
+Cómo funciona (`app/services/bed_map.py`): el usuario marca las cuatro esquinas de la cama sobre una foto de la cámara. Eso da la homografía imagen-cama; de ella se estima la focal y la posición de la cámara, y con eso cada caja de defecto se lleva a milímetros de la cama corrigiendo el paralaje con la altura de la capa. La Creality Hi es de cama móvil: si la cámara está fija al marco o a la mesa, la cama se desplaza en la imagen y se compensa con la posición Y del cabezal en la foto de la capa. Contra la cámara simulada, el error es menor a 1 mm; en la real hay que sumar:
+
+- **El tamaño de la cama no es el recorrido de los ejes:** Klipper reporta X −19..285 e Y −7..273 en la Hi (incluye el cortador de filamento, en X 279,6); la cama es de 260 × 260 y la malla va de 10 a 250. Medido con la impresora real. El tamaño se toma ahora de la malla (10 + 250); sin malla, 260 mm sin pasar del recorrido. Antes se tomaba el recorrido y la calibración habría quedado torcida.
+- **Las marcas a mano:** se estima ~1,5 % del tamaño de la cama (~4 mm).
+- **La distorsión del lente**, que no se modela. Una webcam gran angular, como la C922, deforma un poco los bordes de la imagen; cerca de las esquinas puede sumar varios milímetros (no medido: todavía no hay calibración con la C922).
+- **La altura supuesta:** se asume que el defecto está en la superficie de la capa actual. Un hilo de spaghetti que cayó a la cama queda sobrecorregido.
+- **La sincronización en cama móvil:** la foto y la posición del cabezal pueden estar desfasadas hasta ~0,3 s (Klipper informa cada 250 ms y el video va a ~6 cuadros/s). El error crece con la velocidad de la cama en Y (a 200 mm/s, ~60 mm); por eso cada capa guarda esa velocidad, estimada con posiciones consecutivas. Cada ubicación lleva su error estimado; las de más de 20 mm se muestran como poco confiables (círculo punteado del tamaño del error) y no entran al mapa de calor. En el modo demostración, los defectos detectados justo al cambiar de capa quedaron con ±40-50 mm: en ese instante el cabezal viaja al inicio de la capa y la cama se mueve en Y a 140-170 mm/s. La ubicación calculada era exacta (la demostración conoce la verdad), pero el sistema no puede saberlo y la marca como poco confiable.
+  - *Mejora propuesta (no implementada):* que `capture` guarde la hora exacta de cada cuadro y que el backend conserve las posiciones a 4 Hz de los últimos segundos para interpolar la posición en esa hora. Bajaría el error a la latencia de la cámara (~0,1 s, sin medir). Requiere verificar antes que el reloj de WSL2 y el de Windows coincidan (WSL2 puede desfasarse después de suspender el equipo).
+- **La estimación de la cámara** supone píxeles cuadrados y el centro óptico en el centro de la imagen. Si la vista es casi perpendicular a la cama, la focal no se puede despejar y se usa el campo de visión típico de una C922 (78° en diagonal, unos 907 px a 1280×720), que es la cámara prevista para la implementación final; con otra cámara la focal es otra (la genérica provisional dio ~1.500 px, un campo de ~52°). La web lo avisa.
+- **Si la cámara se mueve hay que recalibrar.** Se guarda el historial: cada detección se ubica con la calibración vigente cuando se capturó (o con la primera posterior, si no había ninguna antes, suponiendo que la cámara no se había movido).
+- **Detecciones anteriores:** las cajas de las primeras 16 detecciones (formato viejo, en píxeles) no se pueden ubicar y se cuentan aparte. Las detecciones previas a este cambio no guardaban el ROI; se asume el cuadro completo, que es lo que se usó siempre (nunca se configuró un ROI).
+- **Antigüedad de la foto para calibrar:** `capture` ahora guarda la hora de cada cuadro y el backend la informa (`X-Frame-Age-Seconds`); hay que reiniciar `capture` para que empiece a hacerlo. Sin eso, la foto puede ser la última que quedó en Redis de una sesión anterior.
+
+## 9. Análisis derivados: puntaje combinado, salud, reporte y costo
+
+**Estado:** implementados y probados con datos sintéticos y con la impresora simulada; ninguno se ha contrastado con impresiones reales de la Creality Hi (todavía no hay trabajos con telemetría real). En la web y en el reporte llevan la marca "Estimación" con la explicación de cómo se calculan.
+
+**Puntaje combinado (modelo + telemetría, `app/services/fusion.py`).** Solo se muestra: las alertas y la pausa automática siguen usando únicamente el modelo.
+
+- **Los pesos son iniciales, no calibrados.** Cada señal (boquilla fuera del objetivo, calentador al máximo, flujo cambiado, cama bajada, sensor de filamento...) sube el puntaje con un peso fijo según qué tan directa es su relación con el defecto (0,6 / 0,3 / 0,15). Los umbrales sí tienen respaldo (la banda de ±5 °C que Klipper considera en rango, el paso de 5 % de la calibración de flujo), pero cuánto debe pesar cada señal solo se puede ajustar con impresiones reales etiquetadas.
+- **Solo puede subir el puntaje.** Una telemetría normal no es evidencia en contra (un atasco parcial no se ve en los sensores), así que el puntaje no sirve para descartar falsos positivos del modelo.
+- **No todas las clases tienen señales.** El spaghetti y, casi, el desplazamiento de capa no tienen una lectura de la impresora que los explique; su puntaje es el del modelo.
+- **La ventana es la capa recién impresa** (más hasta dos anteriores si tiene menos de 10 muestras). En capas muy rápidas (pocos segundos) la ventana puede quedar con menos muestras; en trabajos sin telemetría por segundo se usa la foto de telemetría de la capa.
+- **No distingue el origen del cambio.** Un flujo bajado por el archivo cuenta igual que uno bajado desde la consola: lo que importa para el defecto es el valor.
+- **El sensor de filamento:** la Hi expone cinco (`filament_sensor` del cabezal, `_2` y tres de la caja CFS). Los de la caja marcan "sin filamento" todo el tiempo cuando la caja no está conectada, así que solo cuenta un sensor que haya visto filamento en ese trabajo (con la lógica anterior habrían sumado +0,6 a toda sub-extrusión). Si algún día se conecta la caja, sus ranuras vacías seguirían sin contar.
+
+**Salud de la impresora (`app/services/health.py`).**
+
+- **Necesita historia:** al menos 6 trabajos terminados con telemetría y con el mismo objetivo de temperatura (5 de línea base y 1 para comparar). Con la impresora real eso tomará varias semanas de uso.
+- **"Normal" es lo que la impresora hizo antes**, no un valor de catálogo. Si la impresora ya venía mal cuando se formó la línea base, eso queda como normal.
+- **Factores que cambian la potencia y no son desgaste:** la temperatura del cuarto, el ventilador de capa, la velocidad (más plástico que fundir), el material y una puerta o tapa abierta. Conviene leer la tendencia junto con esos datos; la comparación ya separa por objetivo de temperatura.
+- **Las reglas de la carta de control** (±3σ, 2 de 3 más allá de 2σ, 8 seguidos del mismo lado) suponen mediciones independientes y con ruido parecido al normal; con pocos trabajos la desviación de la línea base es poco precisa. Cuando la línea base casi no varía, se usa como mínimo la resolución del dato para no convertir diferencias ínfimas en anomalías.
+- **La velocidad de calentamiento solo se mide en arranques en frío** (cuando la impresión empieza por debajo del 20 % del camino entre 25 °C y el objetivo). Si se precalienta antes de lanzar la impresión, ese trabajo no aporta el dato.
+- **Costo:** la primera consulta después de reiniciar el backend lee las muestras de cada trabajo (hasta 100 trabajos); los resultados de los trabajos terminados quedan en memoria. Medido en la simulada: ver `docs/PROGRESO_TELEMETRIA.md`.
+
+**Reporte PDF por trabajo (`app/services/report.py`).**
+
+- **Se genera al pedirlo, con los datos de ese momento.** No se archiva solo al terminar el trabajo: si después se reconoce una alerta o se recalibra la cámara, un reporte nuevo lo refleja. Para conservar una versión, hay que descargarla.
+- **El hash impreso solo protege si el PDF se guarda fuera de la base.** Sirve para comprobar después que la cadena de eventos sigue conteniendo ese hash (que nadie borró los últimos eventos ni la reescribió entera).
+- **Gráficas reducidas** a 600 puntos (promedios por tramos) y bitácora limitada a 150 eventos por reporte; el resto está en la web.
+- **Texto en Latin-1** (fuentes básicas de PDF, sin incrustar tipografías): el español sale completo, pero símbolos como σ o → se escriben con letras.
+- **Tiempo estimado:** la Hi **no publica `estimated_time`** en ningún objeto ni en los metadatos (medido en la impresora real); Creality Print lo escribe en el nombre del archivo (`..._PETG_6h0m27s.gcode`) y de ahí se toma, marcado como tal en la web y el reporte. Un archivo con otro nombre no tiene estimación y el reporte lo dice. Solo existe para los trabajos posteriores a este cambio.
+
+**Costo estimado (`app/services/costs.py`).**
+
+- **Filamento:** es lo que la impresora mandó extruir (`print_stats.filament_used`), no un pesaje. Incluye purgas y líneas de limpieza que estén en el archivo; no incluye lo que se pierde fuera de él. Los gramos salen de los gramos por milímetro del laminador si el archivo los trae; si no, de una densidad típica por material (PLA 1,24; PETG 1,27; ABS 1,04; ASA 1,07; TPU 1,21 g/cm³) y el diámetro configurado.
+- **Energía: solo los calentadores**, como PWM × potencia nominal. No cuenta motores, ventiladores, electrónica, pantalla ni cámara (decenas de vatios), ni el consumo en espera. La potencia de la cama depende del voltaje: 1000 W a 220 V según la ficha, ~300 W a 120 V (supuesto de la configuración por defecto) y ~250 W a 110 V. Los huecos de más de 5 s en la telemetría no se cuentan.
+- **Precios únicos** para toda la instalación (no por material ni por impresora), configurables en la web por un administrador. Hasta que alguien los configure, son valores de ejemplo y la web lo avisa.
+- **En la analítica** el costo de cada trabajo se calcula con una muestra = 1 s (la frecuencia del muestreo); en la página del trabajo se usa el tiempo real entre muestras. La diferencia es mínima, pero las cifras pueden no coincidir al último peso.
+
+## 10. Lo que dejó el laboratorio del 2026-10-08 y 2026-10-09 (límites vigentes)
+
+Detalle y cifras en `docs/laboratorio/HALLAZGOS_PARA_INFORME.md`.
+
+- **La cámara de las pruebas no era la C922** (era una USB genérica provisional; la C922 será la de la
+  implementación final). Las calibraciones guardadas (ids 1 y 2, focal ~1.500 px) y los 32 cuadros del trabajo 44 son
+  de esa cámara: con la C922 hay que recalibrar, y el modelo sigue sin evaluarse con imágenes de la cámara final.
+- **La posición de la cámara de prueba no deja ver la pieza** (baja y de frente): los cuadros muestran la máquina, no
+  la superficie de la cama. Con la cámara final hay que colocarla donde se vea la pieza.
+- **`capture` abre la cámara USB por índice por defecto** (`source_uri = 0`); al conectar o desconectar otra cámara, el
+  índice cambia sin aviso. Se puede elegir por nombre (`name:C922`, solo Windows y con `pygrabber`); si esa cámara no
+  está conectada, `capture` falla y reintenta cada 5 s en vez de leer otra. Sin probar con hardware.
+- **Un cuadro todo negro es «sin señal»**: `capture` ya no lo publica y no hace foto de la capa (queda un hueco
+  visible). Un cuarto muy oscuro con alguna luz encendida no cuenta como negro (media < 2 y ningún píxel > 24).
+- **Tiempo restante:** el del laminador (total del nombre del archivo menos `print_duration`) no sabe del
+  calentamiento que ocurre con el estado `printing` y `print_duration` en 0 (~52 s en el trabajo 44), y en impresiones
+  cortas el laminador subestima (+9,4 % en el trabajo 44; +0,3 % en el de 6 h). Solo dos impresiones medidas.
+- **El video en vivo ocupa una conexión HTTP mientras la página está abierta**, y un navegador admite ~6 por servidor:
+  con 6 pestañas con video, las demás se quedan sin cargar. La página en vivo cierra el flujo con la pestaña oculta y lo
+  reintenta a los 5 s si falla; la miniatura del Panel pide una foto cada 2 s y no mantiene conexión.
+- **Duración de un trabajo:** el reloj de la impresora (`print_duration`) solo existe para trabajos desde el
+  2026-10-08; los anteriores muestran solo el tiempo que PrintWatch los siguió (puede ser menos que la impresión).
+- **Reporte PDF:** el aviso de unión tardía se decide por la capa de la primera muestra; si esa muestra no trae capa,
+  solo cuenta un avance de más del 15 %.
+- **Pausa automática:** `AUTO_PAUSE_MODE` (`on`, `warn`, `off`; ver la sección 0). La ruta `warn` solo se probó con la
+  impresora simulada; con la real no hubo capas con *spaghetti*. La pausa y la reanudación reales siguen sin probarse
+  (Etapa C, con autorización).
+- **Los cambios de factor de velocidad** (pantalla y Fluidd) no se han probado con la impresora real: la impresión de
+  prueba terminó antes.
+- **Pruebas de la web:** hay `vitest` para la lógica pura (`npm test` en `frontend/`); los componentes no tienen pruebas
+  automáticas, se miran en el navegador (la demostración sirve para eso). Las de `capture` se corren con su propio
+  entorno: `capture\.venv\Scripts\python.exe -m pytest capture\tests`.
+
+## 11. Incidentes y cancelar (rama `incidente-web`)
+
+Definición, criterios y brechas en `docs/META_FINAL.md`.
+
+- **Probado solo con la impresora simulada, la base de pruebas y la demostración.** La auto-pausa nunca se ha ejecutado
+  de punta a punta contra la Hi real; la pausa y la reanudación reales (Etapa C) siguen sin probarse, y la
+  cancelación real tampoco.
+- **Cancelar no se puede deshacer.** Solo administradores; el servidor exige la palabra `CANCELAR`; la guarda lee
+  el estado de la propia impresora (`printing` o `paused`), manda una orden a la vez (compartida con reanudar) y espera
+  20 s entre dos cancelaciones. La web pide confirmar dos veces.
+- **Pausa confirmada = Klipper dijo `paused`** (se lee con GET hasta 20 s después de enviar la orden). Si no llega, el
+  incidente queda «Pausa no confirmada» y hay que mirar la impresora; la web no reintenta la pausa.
+- **Una detección suelta abre un incidente** solo para `spaghetti` y `layer_shift` con confianza ≥ 0,50
+  (`INCIDENT_CLASSES`, `INCIDENT_MIN_CONFIDENCE`), a lo sumo uno por clase y trabajo. Puede haber incidentes por
+  una sola foto equivocada: por eso existe la etiqueta de falso positivo.
+- **Los incidentes no van en la cadena de hashes** (sus eventos sí). Un reinicio del backend durante la cuenta
+  regresiva deja el incidente abierto hasta que algo lo cierre (pausa, reanudar, cancelar o fin del trabajo).
+- **El aviso es solo de la web:** banner fijo y marca `(!)` en el título; sin sonido ni mensajes fuera de la web.
+
