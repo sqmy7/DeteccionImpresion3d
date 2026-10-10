@@ -272,3 +272,68 @@ Medido sobre una ampliación de 6× con cuadrícula de 10 px (incertidumbre de u
 - **Consecuencia para el sistema:** con la cámara a esta distancia y el modelo recibiendo el fotograma entero, un fallo pequeño como este pasaría desapercibido (y el aviso de racha pide además 3 capas seguidas). Acercar la cámara, recortar la región de interés a la cama
   o analizar la cama por mosaicos haría que ocupe más imagen; la región de la cama completa (la propuesta anterior) **no basta** para este tamaño, y un recorte mucho más cerrado no es posible porque un fallo puede estar en cualquier punto de la cama. No se cambió nada.
 - **La propuesta de región de interés de la sección anterior queda desfasada para este encuadre** (la cama ahora ocupa aprox. x 75 a 1240, y 297 a 640): habría que volver a medirla cuando se fije la posición de la cámara.
+
+## Prueba con un enredo grande de filamento (2026-10-09, 20:43)
+
+Solo lectura: nada se aplicó, no se escribió en la base de datos ni en Redis y no se tocó la impresora (seguía en `complete`). Foto en vivo de la cámara 36 a las 20:43 (`/snapshot`, 162 279 bytes, edad 0,0 s):
+[etapa_c2/revision_detecciones/en_vivo_4_enredo_grande.jpg](etapa_c2/revision_detecciones/en_vivo_4_enredo_grande.jpg); con las cajas,
+[en_vivo_4_enredo_grande_cajas.jpg](etapa_c2/revision_detecciones/en_vivo_4_enredo_grande_cajas.jpg). El encuadre es casi el mismo de la prueba anterior (cama entera, de frente); el enredo rodea ahora al cubo: masa a la izquierda, lazos encima y un
+lazo que sale por la derecha.
+
+### 1. El modelo de producción con la foto completa
+
+| Umbral | Resultado |
+|---|---|
+| **0,25 (producción)** | **`spaghetti` 0,319**, recuadro x 543 a 651, y 281 a 395 (108 × 113 px). **Lo detecta**, con poco margen sobre el umbral (0,069) |
+| 0,10 (solo contexto) | lo mismo, más `under_extrusion` **0,116** en x 0 a 66, y 553 a 606 (la caja de cartón verde de abajo a la izquierda: falsa, y por debajo del umbral de producción) |
+
+El recuadro de `spaghetti` encierra el enredo y al cubo (coincide con lo medido a mano).
+
+### 2. Tamaño del enredo (fotograma de 1280×720)
+
+| Medida | Valor |
+|---|---|
+| Rectángulo que contiene todo el enredo (medido a mano sobre una ampliación de 6× con cuadrícula, ±3 px) | x 544 a 668, y 274 a 388: **124 × 114 px**, 14 136 px² |
+| Fracción de la imagen | ancho **9,7 %**, alto **15,8 %**, **área 1,53 %** |
+| Caja del modelo | 108 × 113 px = **1,33 %** de la imagen |
+| Cubo (71 × 81 px, 5 751 px²) | el rectángulo del enredo es **2,5 veces el área del cubo** (lo rodea; el cubo es el 0,62 % de la imagen) |
+| Respecto al enredo de la prueba anterior (48 × 43 px) | 6,8 veces el área y 2,6 veces el ancho |
+| Lo que ve el modelo con la foto completa (entrada de 640×640) | 62 × 101 px |
+
+Nota: el rectángulo incluye el cubo que rodea, así que no es la superficie de filamento: la masa suelta de la izquierda (~36 × 46 px) es de un tamaño parecido a la del enredo anterior; lo nuevo son los lazos de arriba y de la derecha.
+
+### 3. Recortes cada vez más cerrados y cámara «más lejos» (contexto: qué tamaño relativo hace falta)
+
+Mismo modelo y umbrales 0,25 y 0,10, recortando la foto alrededor del enredo (el recorte se estira a 640×640 como hace el worker). «Cámara más lejos» es la foto reducida y centrada en un lienzo gris de 1280×720: una aproximación de lo que daría
+una cámara más alejada. «Tamaño relativo» es el área del rectángulo medido del enredo respecto al área de lo que recibe el modelo. Resultados completos en
+[etapa_c2/revision_detecciones/series_enredos.json](etapa_c2/revision_detecciones/series_enredos.json). Con confianza menor de 0,25 no cuenta como detección en producción (– en la tabla).
+
+| Caso (zoom respecto a la foto completa) | Enredo grande: tamaño relativo → `spaghetti` | Enredo pequeño (prueba anterior): tamaño relativo → `spaghetti` |
+|---|---|---|
+| Cámara ×0,3 de zoom (3,3 veces más lejos) | 0,14 % → – | 0,02 % → – |
+| Cámara ×0,5 | 0,38 % → – | 0,06 % → – |
+| Cámara ×0,8 | 0,98 % → – (0,123 solo con 0,10) | 0,14 % → – |
+| **Foto completa (×1)** | **1,53 % → 0,319** | **0,22 % → –** |
+| Recorte 1000×563 (×1,28) | no se hizo | 0,37 % → **0,296** |
+| Recorte 800×450 (×1,6) | 3,93 % → **0,717** | 0,57 % → **0,717** |
+| Recorte 600×340 (×2,1) | 6,93 % → **0,730** | 1,01 % → **0,743** |
+| Recorte 400×225 (×3,2) | 15,71 % → **0,786** | 2,29 % → **0,500** |
+
+**Lo que se ve:**
+- **La confianza crece con el zoom en las dos fotos.** Con el recorte de 800×450 (1,6 veces más cerca) los dos enredos dan **0,717**, muy por encima del umbral.
+- **Límite de visibilidad con el umbral de producción (0,25):** el enredo pequeño pasa de no verse (0,22 % de la imagen, foto completa) a verse apenas (0,37 %, 0,296): el límite está **entre 0,22 % y 0,37 %**, o sea hace falta ~1,3 veces más zoom que la foto completa
+  (esto afina el «entre 0,5 % y 2,3 %» de la prueba anterior, que solo tenía recortes muy cerrados). El enredo grande se ve con la foto completa (0,319) y deja de verse al alejar la cámara un 20 % (×0,8, 0,98 %): su límite cae **entre 0,98 % y 1,53 %**, es decir, aguanta como mucho ~1,25 veces más
+  distancia antes de dejar de verse.
+- **El tamaño relativo del rectángulo no es una regla general**: en términos de área el enredo grande necesita más (1 %) que el pequeño (0,37 %) porque el rectángulo del grande incluye al cubo; lo comparable es cada foto contra sí misma (la confianza sube de forma continua con el zoom).
+
+### 4. Cuánto tendría que acercarse la cámara
+
+Referencia: el enredo pequeño no se ve con la foto completa. Para que el sistema lo vea con el umbral de producción, la cámara tendría que acercarse (o la imagen que recibe el modelo ampliarse) **al menos 1,3 veces** (distancia al 78 %, un 22 % más cerca)
+para un valor apenas por encima de 0,25 (0,296), y **1,6 veces** (distancia al 62 %, un 38 % más cerca) para una confianza cómoda de ~0,72. El enredo grande ya se ve y con 1,6 veces de zoom pasa de 0,319 a 0,717.
+
+**Pero acercar la cámara no es viable con la cama entera en el encuadre:** la cama ocupa ya unos 1165 px de los 1280 de ancho (x 95 a 1260), así que con 1,6 veces más zoom no cabría (mediría ~1860 px). Los recortes de esta prueba son zoom digital (mismos píxeles); una cámara de verdad más cerca daría al menos tanto
+detalle, pero con un campo de visión menor. Las salidas que no pierden cobertura serían **analizar la cama por mosaicos**: dos recortes de 800×450 con solapamiento (aprox. x 95 a 895 y x 460 a 1260, y 260 a 710) darían el 1,6 veces de zoom en toda la cama a cambio de dos
+inferencias por capa en lugar de una (cada una tardó entre 0,4 y 1,9 s con un hilo, con la impresora en reposo). No se cambió nada.
+
+**Reservas:** son dos ejemplos (filamento blanco sobre la placa oscura, buen contraste); el recorte centrado en el enredo es la mejor situación posible (el modelo recibe el enredo en el centro); el lienzo gris de «más lejos» es una aproximación; y el modelo del que se habla es el de
+producción tal como está (umbral 0,25, estirado a 640×640). Los resultados no dicen cómo responde el modelo a un spaghetti real, que es de otro aspecto y tamaño.

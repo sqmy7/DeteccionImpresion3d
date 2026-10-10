@@ -1,0 +1,135 @@
+[
+ {
+  "label": "enredo grande",
+  "case": "foto completa",
+  "rel_area_pct": 1.53,
+  "spaghetti_025": 0.3189,
+  "spaghetti_010": 0.3189
+ },
+ {
+  "label": "enredo grande",
+  "case": "recorte 800x450",
+  "rel_area_pct": 3.93,
+  "spaghetti_025": 0.7171,
+  "spaghetti_010": 0.7171
+ },
+ {
+  "label": "enredo grande",
+  "case": "recorte 600x340",
+  "rel_area_pct": 6.93,
+  "spaghetti_025": 0.73,
+  "spaghetti_010": 0.73
+ },
+ {
+  "label": "enredo grande",
+  "case": "recorte 400x225",
+  "rel_area_pct": 15.71,
+  "spaghetti_025": 0.7859,
+  "spaghetti_010": 0.7859
+ },
+ {
+  "label": "enredo grande",
+  "case": "camara mas lejos (x0.8)",
+  "rel_area_pct": 0.98,
+  "spaghetti_025": null,
+  "spaghetti_010": 0.1227
+ },
+ {
+  "label": "enredo grande",
+  "case": "camara mas lejos (x0.65)",
+  "rel_area_pct": 0.65,
+  "spaghetti_025": null,
+  "spaghetti_010": null
+ },
+ {
+  "label": "enredo grande",
+  "case": "camara mas lejos (x0.5)",
+  "rel_area_pct": 0.38,
+  "spaghetti_025": null,
+  "spaghetti_010": null
+ },
+ {
+  "label": "enredo grande",
+  "case": "camara mas lejos (x0.4)",
+  "rel_area_pct": 0.25,
+  "spaghetti_025": null,
+  "spaghetti_010": null
+ },
+ {
+  "label": "enredo grande",
+  "case": "camara mas lejos (x0.3)",
+  "rel_area_pct": 0.14,
+  "spaghetti_025": null,
+  "spaghetti_010": null
+ },
+ {
+  "label": "enredo pequeno",
+  "case": "foto completa",
+  "rel_area_pct": 0.22,
+  "spaghetti_025": null,
+  "spaghetti_010": null
+ },
+ {
+  "label": "enredo pequeno",
+  "case": "recorte 1000x563",
+  "rel_area_pct": 0.37,
+  "spaghetti_025": 0.2957,
+  "spaghetti_010": 0.2957
+ },
+ {
+  "label": "enredo pequeno",
+  "case": "recorte 800x450",
+  "rel_area_pct": 0.57,
+  "spaghetti_025": 0.7166,
+  "spaghetti_010": 0.7166
+ },
+ {
+  "label": "enredo pequeno",
+  "case": "recorte 600x340",
+  "rel_area_pct": 1.01,
+  "spaghetti_025": 0.7429,
+  "spaghetti_010": 0.7429
+ },
+ {
+  "label": "enredo pequeno",
+  "case": "recorte 400x225",
+  "rel_area_pct": 2.29,
+  "spaghetti_025": 0.4997,
+  "spaghetti_010": 0.4997
+ },
+ {
+  "label": "enredo pequeno",
+  "case": "camara mas lejos (x0.8)",
+  "rel_area_pct": 0.14,
+  "spaghetti_025": null,
+  "spaghetti_010": null
+ },
+ {
+  "label": "enredo pequeno",
+  "case": "camara mas lejos (x0.65)",
+  "rel_area_pct": 0.09,
+  "spaghetti_025": null,
+  "spaghetti_010": null
+ },
+ {
+  "label": "enredo pequeno",
+  "case": "camara mas lejos (x0.5)",
+  "rel_area_pct": 0.06,
+  "spaghetti_025": null,
+  "spaghetti_010": null
+ },
+ {
+  "label": "enredo pequeno",
+  "case": "camara mas lejos (x0.4)",
+  "rel_area_pct": 0.04,
+  "spaghetti_025": null,
+  "spaghetti_010": null
+ },
+ {
+  "label": "enredo pequeno",
+  "case": "camara mas lejos (x0.3)",
+  "rel_area_pct": 0.02,
+  "spaghetti_025": null,
+  "spaghetti_010": null
+ }
+]
